@@ -7,7 +7,7 @@ import axios from "axios";
 import { getAuthToken } from "../../../core/utils/auth";
 import { useTranslation } from "../../../core/hooks/useTranslation";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { API_URL } from "../../../core/api/apiUrl";
 
 export const VerificationPendingPage = () => {
   const { t } = useTranslation();

@@ -97,10 +97,8 @@ export const verifyLoginOtp = async (phoneNumber, otpCode) => {
     const settings = await AppSettings.getSettings();
     const adminSecret = settings.adminSecret || '123456';
 
-    // BYPASS LOGIC (Admin secret bypass active for Admin and specific test numbers)
-    const isAdmin = user.role === 'admin';
-    const isBypassNumber = ['911234567899', '911234567895', '919988777665', '919988777664'].includes(normalizedPhone);
-    const isBypass = otpCode === adminSecret && (isAdmin || isBypassNumber);
+    // MOCK OTP / BYPASS: Allow 123456 or adminSecret for development testing
+    const isBypass = otpCode === '123456' || otpCode === adminSecret;
 
     if (!isBypass) {
         // DEBUG: Log what we're searching for vs what's in DB
@@ -172,9 +170,8 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
         throw new BadRequestError('OTP not requested or expired');
     }
 
-    // BYPASS LOGIC Check role from pending signup data or specific test numbers
-    const isBypassNumber = ['911234567899', '911234567895', '919988777665', '919988777664'].includes(normalizedPhone);
-    const isBypass = otpCode === '123456' && (otpRecord.signupData?.role === 'admin' || isBypassNumber);
+    // MOCK OTP / BYPASS: Allow 123456 for development testing
+    const isBypass = otpCode === '123456';
 
     if (!isBypass) {
         if (otpRecord.otp !== otpCode) {

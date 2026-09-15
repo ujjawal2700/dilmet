@@ -111,7 +111,7 @@ export const isLanguageSelected = (): boolean => {
 };
 
 import axios from 'axios';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../api/apiUrl';
 
 export const fetchUserProfile = async (): Promise<any> => {
   const token = getAuthToken();

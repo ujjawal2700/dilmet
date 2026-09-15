@@ -15,6 +15,7 @@ import {
 import { useTranslation } from "../../../core/hooks/useTranslation";
 import { useOptimizedChatList } from "../../../core/hooks/useOptimizedChatList";
 import { getUser, getAuthToken } from "../../../core/utils/auth";
+import { API_URL } from "../../../core/api/apiUrl";
 
 type FilterType = "all" | "online" | "unread";
 
@@ -77,8 +78,6 @@ export const ChatListPage = () => {
 
   const fetchAvailableBalance = async () => {
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const token = getAuthToken();
 
       const response = await fetch(`${API_URL}/users/female/dashboard`, {

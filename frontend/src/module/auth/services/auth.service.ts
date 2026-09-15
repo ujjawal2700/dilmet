@@ -8,7 +8,7 @@
 import axios from 'axios';
 import { SignupData, LoginData, OnboardingData, BasicProfileData, InterestsData } from '../types/auth.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../../../core/api/apiUrl';
 
 /**
  * Register a new user
