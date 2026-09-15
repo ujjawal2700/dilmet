@@ -132,6 +132,11 @@ async function networkFirstWithCache(request, cacheName) {
             console.log('📦 Serving from cache:', request.url);
             return cached;
         }
+        // For SPA navigation requests (e.g. /signup, /login), fallback to the app shell
+        if (request.mode === 'navigate') {
+            const appShell = await caches.match('/index.html');
+            if (appShell) return appShell;
+        }
         throw error;
     }
 }
