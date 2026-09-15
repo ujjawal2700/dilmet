@@ -1,0 +1,10 @@
+# Male Pages Directory
+
+Place male user pages here:
+- MaleDashboard.tsx
+- NearbyFemalesPage.tsx
+- ChatListPage.tsx
+- ChatWindowPage.tsx
+- WalletPage.tsx
+- CoinPurchasePage.tsx
+

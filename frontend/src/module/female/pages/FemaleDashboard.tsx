@@ -1,0 +1,205 @@
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../core/context/AuthContext';
+import { ProfileHeader } from '../components/ProfileHeader';
+import { useGlobalState } from '../../../core/context/GlobalStateContext';
+import { EarningsCard } from '../components/EarningsCard';
+import { FemaleStatsGrid } from '../components/FemaleStatsGrid';
+import { ActiveChatsList } from '../components/ActiveChatsList';
+import { FemaleBottomNavigation } from '../components/FemaleBottomNavigation';
+import { QuickActionsGrid } from '../components/QuickActionsGrid';
+import { useFemaleNavigation } from '../hooks/useFemaleNavigation';
+import { useSocket } from '../../../core/context/SocketContext';
+import socketService from '../../../core/services/socket.service';
+import userService from '../../../core/services/user.service';
+import type { FemaleDashboardData } from '../types/female.types';
+import { useTranslation } from '../../../core/hooks/useTranslation';
+
+const FemaleDashboardContent = () => {
+  const { t } = useTranslation();
+  const [dashboardData, setDashboardData] = useState<FemaleDashboardData | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isConnected } = useSocket();
+  const { addNotification } = useGlobalState();
+  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
+
+
+  const quickActions = useMemo(() => [
+    { id: 'earnings', icon: 'trending_up', label: t('viewEarnings') },
+    { id: 'withdraw', icon: 'payments', label: t('withdraw') },
+    { id: 'auto-messages', icon: 'auto_awesome', label: t('autoMessages') },
+  ], [t]);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await userService.getFemaleDashboardData();
+      console.log('📊 [DEBUG] PROCESSED Dashboard Data:', data);
+      console.log('📱 [DEBUG] Active Chats for Dashboard:', data.activeChats);
+      setDashboardData(data);
+    } catch (error) {
+      console.error('❌ [DEBUG] Dashboard Fetch Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchDashboardData();
+
+    // Refetch data when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+
+
+    // Welcome notification (deferred to not block main thread)
+    if (user?.role === 'female' && user?.approvalStatus === 'approved') {
+      const welcomeShown = localStorage.getItem('hetnaz_female_welcome_shown');
+      if (!welcomeShown) {
+        localStorage.setItem('hetnaz_female_welcome_shown', 'true');
+        setTimeout(() => {
+          addNotification({
+            title: t('welcomeTitle'),
+            message: t('welcomeMessage'),
+            type: 'system'
+          });
+        }, 3000);
+      }
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, addNotification, fetchDashboardData]);
+
+  // Handle real-time online status updates for other users
+  useEffect(() => {
+    const handleUserOnline = (data: { userId: string }) => {
+      setDashboardData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          activeChats: prev.activeChats.map(chat => {
+            // chat.userId is the other user's ID
+            if (chat.userId === data.userId) return { ...chat, isOnline: true };
+            return chat;
+          })
+        };
+      });
+    };
+
+    const handleUserOffline = (data: { userId: string; lastSeen?: string }) => {
+      setDashboardData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          activeChats: prev.activeChats.map(chat => {
+            if (chat.userId === data.userId) {
+              return {
+                ...chat,
+                isOnline: false,
+                timestamp: data.lastSeen ? new Date(data.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : chat.timestamp
+              };
+            }
+            return chat;
+          })
+        };
+      });
+    };
+
+    socketService.on('user:online', handleUserOnline);
+    socketService.on('user:offline', handleUserOffline);
+
+    return () => {
+      socketService.off('user:online', handleUserOnline);
+      socketService.off('user:offline', handleUserOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user && user.role === 'female' && user.approvalStatus !== 'approved') {
+      navigate('/verification-pending');
+    }
+  }, [user, navigate]);
+
+  const activeChatsForDisplay = useMemo(() => {
+    return dashboardData?.activeChats || [];
+  }, [dashboardData?.activeChats]);
+
+  const handleQuickActionClick = (actionId: string) => {
+    switch (actionId) {
+      case 'earnings': navigate('/female/earnings'); break;
+      case 'withdraw': navigate('/female/withdrawal'); break;
+      case 'auto-messages': navigate('/female/auto-messages'); break;
+    }
+  };
+
+  // Show lightweight skeleton instead of blocking spinner
+  if (isLoading && !dashboardData) {
+    return (
+      <div className="flex h-screen w-full flex-col bg-background-light overflow-hidden relative">
+        <div className="relative z-10 flex-1 p-4 space-y-4 animate-pulse">
+          <div className="h-20 bg-white/20 rounded-xl" />
+          <div className="h-32 bg-white/20 rounded-xl" />
+          <div className="h-24 bg-white/20 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="font-display text-ink antialiased selection:bg-pink-500 selection:text-white min-h-screen relative lg:pl-60 overflow-x-hidden bg-background-light">
+      
+      {/* Scrollable Content Layer */}
+      <div className="relative z-10 flex flex-col min-h-screen pb-24 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto w-full">
+        {/* Header Removed */}
+
+        <ProfileHeader
+          user={dashboardData?.user ? { ...dashboardData.user, isOnline: isConnected } : { name: t('loading'), avatar: '', isPremium: false, isOnline: isConnected }}
+        />
+
+        <div className="px-4 mb-2">
+          <EarningsCard
+            totalEarnings={dashboardData?.earnings.totalEarnings || 0}
+            availableBalance={dashboardData?.earnings.availableBalance || 0}
+            pendingWithdrawals={dashboardData?.earnings.pendingWithdrawals || 0}
+            onViewEarningsClick={() => navigate('/female/earnings')}
+            onWithdrawClick={() => navigate('/female/withdrawal')}
+          />
+        </div>
+
+        <FemaleStatsGrid stats={dashboardData?.stats || { messagesReceived: 0, activeConversations: 0, profileViews: 0 }} />
+
+        <QuickActionsGrid actions={quickActions.map(action => ({
+          ...action,
+          onClick: () => handleQuickActionClick(action.id),
+        }))} />
+
+        <ActiveChatsList
+          chats={activeChatsForDisplay}
+          onChatClick={(id) => navigate(`/female/chat/${id}`)}
+          onSeeAllClick={() => navigate('/female/chats')}
+        />
+
+        <FemaleBottomNavigation
+          items={navigationItems}
+          onItemClick={handleNavigationClick}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const FemaleDashboard = () => (
+  <FemaleDashboardContent />
+);
+

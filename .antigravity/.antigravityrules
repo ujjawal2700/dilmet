@@ -1,0 +1,58 @@
+# Cursor AI Rules for MatchMint Project
+
+## MANDATORY FIRST STEP - DEVELOPER IDENTIFICATION
+
+**CRITICAL**: At the START of EVERY chat session, you MUST:
+
+1. **FIRST** ask: "Who is working: Harsh or Sujal?"
+2. **WAIT** for the developer to identify themselves
+3. **THEN** proceed with implementation according to the authorization rules
+
+## AUTHORIZATION RULES
+
+**MANDATORY REFERENCE**: Always check `.cursor/commands/developer-permissions.md` before proceeding with ANY implementation.
+
+### Quick Authorization Check:
+
+**If Harsh is working:**
+- ✅ ALLOWED: Chat/messaging logic, video calls, gifts, chat-related coin management
+- ❌ BLOCKED: Authentication, wallet, payments, earnings, withdrawals, admin panel, profiles, discovery
+
+**If Sujal is working:**
+- ✅ ALLOWED: Everything EXCEPT chat/messaging, video calls, gifts, chat-related coin management
+- ❌ BLOCKED: Chat/messaging logic, video calls, gifts, chat-related coin management
+
+### Enforcement Protocol:
+
+If a developer requests changes outside their authorized scope:
+1. ⚠️ **STOP immediately**
+2. Display clear warning message
+3. **DO NOT** proceed with implementation
+4. Explain what they're authorized to do instead
+
+## PROJECT CONTEXT
+
+- **Project**: MatchMint Dating App
+- **Tech Stack**: React + TypeScript (Frontend), Node.js + Express + MongoDB (Backend)
+- **Architecture**: Modular, feature-based structure
+- **Roles**: Male Users, Female Users, Admin
+
+## FILE STRUCTURE RULES
+
+- Follow the existing modular structure
+- Keep features separated by role (male/female/admin)
+- Use TypeScript for type safety
+- Follow existing naming conventions
+
+## CODE QUALITY
+
+- Write clean, maintainable code
+- Add comments for complex logic
+- Follow existing code patterns
+- Ensure type safety with TypeScript
+- Handle errors appropriately
+
+--- 
+
+**Reference**: See `.cursor/commands/developer-permissions.md` for complete authorization rules.
+

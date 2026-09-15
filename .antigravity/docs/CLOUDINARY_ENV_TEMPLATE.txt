@@ -1,0 +1,17 @@
+# ============================================
+# Cloudinary Configuration
+# ============================================
+# Add these to your frontend/.env file
+# Get values from Cloudinary Dashboard
+
+VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+VITE_CLOUDINARY_API_KEY=your_api_key_here
+VITE_CLOUDINARY_API_SECRET=your_api_secret_here
+VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset_name_here
+
+# Example:
+# VITE_CLOUDINARY_CLOUD_NAME=matchmint-dating
+# VITE_CLOUDINARY_API_KEY=123456789012345
+# VITE_CLOUDINARY_API_SECRET=abcdefghijklmnopqrstuvwxyz123456
+# VITE_CLOUDINARY_UPLOAD_PRESET=matchmint-unsigned
+

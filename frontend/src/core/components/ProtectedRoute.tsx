@@ -1,0 +1,78 @@
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { LocationPromptModal } from "../../shared/components/LocationPromptModal";
+import { PageSkeletonLoader } from "../../shared/components/PageSkeletonLoader";
+
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+}
+
+export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
+  const { user, isAuthenticated, isLoading, updateUser } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <PageSkeletonLoader />;
+  }
+
+  if (!isAuthenticated) {
+    // Redirect to appropriate login based on requested path
+    if (location.pathname.startsWith("/admin")) {
+      return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    }
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    // Role mismatch - redirect to their dashboard or unauthorized
+    if (user.role === "admin")
+      return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === "female")
+      return <Navigate to="/female/dashboard" replace />;
+    return <Navigate to="/male/dashboard" replace />;
+  }
+
+  // Enforce mandatory location setting for male/female users (but NOT during onboarding or verification)
+  const isMissingLocation =
+    isAuthenticated &&
+    user &&
+    (user.role === "male" || user.role === "female") &&
+    (!(user.location && user.location.trim() !== "") ||
+      !(
+        user.latitude !== undefined &&
+        user.longitude !== undefined &&
+        (user.latitude !== 0 || user.longitude !== 0)
+      ));
+
+  const isOnboarding =
+    location.pathname.startsWith("/onboarding") ||
+    location.pathname === "/verification-pending";
+
+  // CRITICAL: Redirect unapproved females to verification pending page
+  if (
+    user &&
+    user.role === "female" &&
+    user.approvalStatus !== "approved" &&
+    !isOnboarding
+  ) {
+    return <Navigate to="/verification-pending" replace />;
+  }
+
+  return (
+    <>
+      {isMissingLocation && !isOnboarding && (
+        <LocationPromptModal
+          onSave={(loc, coords) =>
+            updateUser({
+              location: loc,
+              city: loc,
+              latitude: coords?.lat,
+              longitude: coords?.lng,
+            })
+          }
+        />
+      )}
+      <Outlet />
+    </>
+  );
+};

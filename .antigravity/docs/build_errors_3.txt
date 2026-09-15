@@ -1,0 +1,6 @@
+﻿src/module/admin/pages/FemaleApprovalDetailPage.tsx(194,50): error TS2322: Type 'string | { url: string; }' is not assignable to type 'string | undefined'.
+  Type '{ url: string; }' is not assignable to type 'string'.
+src/module/admin/pages/FemaleApprovalDetailPage.tsx(252,84): error TS18048: 'approval.verificationDocuments' is possibly 'undefined'.
+src/module/admin/pages/FemaleApprovalDetailPage.tsx(280,50): error TS2322: Type 'string | { url: string; }' is not assignable to type 'string | undefined'.
+  Type '{ url: string; }' is not assignable to type 'string'.
+src/module/admin/pages/FemaleApprovalPage.tsx(26,9): error TS6133: 'token' is declared but its value is never read.

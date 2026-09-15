@@ -1,0 +1,117 @@
+import apiClient from '../api/client';
+
+export interface AppConfig {
+    general: {
+        platformName: string;
+        supportEmail: string;
+        supportPhone: string;
+        maintenanceMode: boolean;
+        registrationEnabled: boolean;
+    };
+    messageCosts: {
+        costMode: 'perMessage' | 'perWord';
+        basic: number;
+        silver: number;
+        gold: number;
+        platinum: number;
+        wordCosts: {
+            basic: number;
+            silver: number;
+            gold: number;
+            platinum: number;
+        };
+        hiMessage: number;
+        imageMessage: number;
+        videoCall: number;
+        voiceCall: number;
+    };
+    withdrawal: {
+        minAmount: number;
+        maxAmount: number;
+    };
+    maleLevels?: Array<{
+        level: number;
+        minCoinsSpent: number;
+        badgeName: string;
+    }>;
+}
+
+class ConfigService {
+    private config: AppConfig | null = null;
+    private lastFetch: number = 0;
+    private CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+    // Dedupes concurrent callers (e.g. React StrictMode's double effect-fire)
+    // so they share one in-flight network request instead of each firing
+    // their own /users/config call.
+    private inFlightRequest: Promise<AppConfig> | null = null;
+
+    async getConfig(): Promise<AppConfig> {
+        const now = Date.now();
+        if (this.config && (now - this.lastFetch < this.CACHE_TTL)) {
+            return this.config;
+        }
+
+        const data = await this.refreshConfig();
+        return data;
+    }
+
+    async refreshConfig(): Promise<AppConfig> {
+        if (this.inFlightRequest) {
+            return this.inFlightRequest;
+        }
+        this.inFlightRequest = this.doRefresh();
+        try {
+            return await this.inFlightRequest;
+        } finally {
+            this.inFlightRequest = null;
+        }
+    }
+
+    private async doRefresh(): Promise<AppConfig> {
+        try {
+            const response = await apiClient.get('/users/config');
+            this.config = response.data.data.settings;
+            this.lastFetch = Date.now();
+            return this.config!;
+        } catch (error) {
+            console.error('Failed to fetch app config:', error);
+            // Return defaults if failed and no cache
+            if (!this.config) {
+                return {
+                    general: {
+                        platformName: 'HETNAZ',
+                        supportEmail: 'support@hetnaz.com',
+                        supportPhone: '',
+                        maintenanceMode: false,
+                        registrationEnabled: true
+                    },
+                    messageCosts: {
+                        costMode: 'perMessage',
+                        basic: 50,
+                        silver: 45,
+                        gold: 40,
+                        platinum: 35,
+                        wordCosts: {
+                            basic: 20,
+                            silver: 18,
+                            gold: 16,
+                            platinum: 14,
+                        },
+                        hiMessage: 5,
+                        imageMessage: 100,
+                        videoCall: 500,
+                        voiceCall: 300
+                    },
+                    withdrawal: {
+                        minAmount: 500,
+                        maxAmount: 50000
+                    }
+                };
+            }
+            return this.config;
+        }
+    }
+}
+
+export const configService = new ConfigService();
+export default configService;

@@ -1,0 +1,63 @@
+import express from 'express';
+import * as userController from '../../controllers/user/userController.js';
+import * as statsController from '../../controllers/user/statsController.js';
+import * as femaleDashboardController from '../../controllers/user/femaleDashboardController.js';
+import * as relationshipController from '../../controllers/user/relationshipController.js';
+import autoMessageController from '../../controllers/user/autoMessageController.js';
+import * as reportController from '../../controllers/user/reportController.js';
+import { protect, restrictTo } from '../../middleware/auth.js';
+import * as faqController from '../../controllers/faq/faqController.js';
+import * as leaderboardController from '../../controllers/user/leaderboardController.js';
+
+const router = express.Router();
+
+router.use(protect);
+
+// Me
+router.get('/me', userController.getProfile);
+router.get('/config', userController.getAppSettings);
+
+// Me Stats
+router.get('/me/stats', statsController.getMeStats);
+
+// Female Dashboard
+router.get('/female/dashboard', restrictTo('female'), femaleDashboardController.getDashboardData);
+router.get('/female/dashboard/earnings', restrictTo('female'), femaleDashboardController.getEarnings);
+router.get('/female/dashboard/stats', restrictTo('female'), femaleDashboardController.getStats);
+router.get('/female/dashboard/chats', restrictTo('female'), femaleDashboardController.getActiveChats);
+
+// Auto-Message Templates (Female only)
+router.get('/female/auto-messages/stats', restrictTo('female'), autoMessageController.getStats);
+router.get('/female/auto-messages', restrictTo('female'), autoMessageController.getTemplates);
+router.post('/female/auto-messages', restrictTo('female'), autoMessageController.createTemplate);
+router.put('/female/auto-messages/:id', restrictTo('female'), autoMessageController.updateTemplate);
+router.delete('/female/auto-messages/:id', restrictTo('female'), autoMessageController.deleteTemplate);
+
+// Discovery and User Profiles
+router.patch('/me', userController.updateProfile);
+router.delete('/me', userController.deleteAccount);
+router.post('/resubmit-verification', userController.resubmitVerification);
+
+// Discover approved females (for male users)
+router.get('/discover', userController.discoverFemales);
+
+// FAQs list
+router.get('/faqs', faqController.getFaqs);
+
+// Male Leaderboard / Levels Comparison
+router.get('/male/leaderboard', restrictTo('male'), leaderboardController.getLeaderboard);
+
+// Get a specific user's profile
+router.get('/:userId', userController.getUserById);
+
+// Relationship Management
+router.post('/block', relationshipController.blockUser);
+router.post('/unblock', relationshipController.unblockUser);
+router.get('/block-list', relationshipController.getBlockedUsers);
+router.delete('/chats/:chatId', relationshipController.deleteChat);
+
+// Reporting
+router.post('/report', reportController.createReport);
+
+
+export default router;
