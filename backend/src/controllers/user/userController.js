@@ -264,7 +264,7 @@ export const discoverFemales = async (req, res, next) => {
 
             if (user.isAiCompanion) {
                 // AI companions have no real location, so never show a distance
-                distanceFormatted = 'AI Companion';
+                distanceFormatted = process.env.SHOW_AI_LABELS === 'true' ? 'AI Companion' : 'Location not set';
             } else if (hasCurrentUserCoords && hasUserCoords) {
                 const distanceKm = calculateDistance(
                     { lat: currentUserCoords[1], lng: currentUserCoords[0] },
@@ -359,7 +359,7 @@ export const getUserById = async (req, res, next) => {
         if (currentUser?.role === 'admin') {
             exactLocation = user.profile?.location?.city || null;
         } else if (user.isAiCompanion) {
-            distanceFormatted = 'AI Companion';
+            distanceFormatted = process.env.SHOW_AI_LABELS === 'true' ? 'AI Companion' : 'Location not set';
         } else if (hasCurrentUserCoords && hasTargetUserCoords) {
             const distanceKm = calculateDistance(
                 { lat: currentUserCoords[1], lng: currentUserCoords[0] },

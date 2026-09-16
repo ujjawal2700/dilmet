@@ -90,7 +90,14 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
             const cached = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
             if (cached) {
                 const parsed = JSON.parse(cached);
-                return parsed.map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) }));
+                return parsed.map((n: any) => ({
+                    ...n,
+                    title: typeof n.title === 'string' && n.title !== '[object Object]' ? n.title : (n.senderName || 'Notification'),
+                    message: typeof n.message === 'string' && n.message !== '[object Object]'
+                        ? n.message
+                        : (n.message?.content || n.message?.text || 'You received a new message'),
+                    timestamp: new Date(n.timestamp)
+                }));
             }
         } catch (e) {
             console.error('Failed to load notifications from cache:', e);
@@ -193,7 +200,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     }, []);
 
-    const unreadCount = persistentNotifications.filter(n => !n.isRead && n.timestamp >= sessionStartTime).length;
+    const unreadCount = persistentNotifications.filter(n => !n.isRead).length;
 
     const saveToChatCache = useCallback((chatId: string, messages: any[]) => {
         const trimmedMessages = messages.slice(-100); // Keep last 100 messages
@@ -284,32 +291,109 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         setCompletedTask(data);
     }, []);
 
-    // 3. Handle incoming messages/notifications (Optimized)
+    // 3. Handle incoming messages/notifications (Optimized & Robust)
     const handleNewMessage = useCallback((data: any) => {
-        if (!user) return;
+        if (!user || !data) return;
 
-        const chatId = data.chatId || data._id;
-        const senderId = data.senderId || data.sender?._id;
-        const senderName = data.senderName || data.sender?.name || 'New Message';
-        const senderAvatar = data.senderAvatar || data.sender?.avatar;
-        const content = data.content || data.message || 'You received a new message';
+        // Backend socket events can be:
+        // { chatId, message: { _id, content, senderId, ... } }
+        // or flat message { _id, content, chatId, senderId, ... }
+        const msg = data.message && typeof data.message === 'object' ? data.message : data;
+        const chatId = data.chatId || msg.chatId || data._id || msg._id;
 
-        if (senderId === user.id) return;
+        // Extract sender info
+        const senderObj = msg.senderId || msg.sender || data.sender;
+        const senderId = (typeof senderObj === 'object' ? senderObj?._id : senderObj) || data.senderId || msg.senderId;
+
+        // Don't notify sender of their own messages
+        if (senderId && String(senderId) === String(user.id)) return;
+
+        // Extract sender name
+        let senderName = 'New Message';
+        if (typeof senderObj === 'object' && senderObj !== null) {
+            senderName = senderObj.profile?.name || senderObj.name || senderName;
+            if (senderObj.isAiCompanion) {
+                senderName = senderObj.profile?.name || 'AI Companion';
+            }
+        } else if (data.senderName && typeof data.senderName === 'string') {
+            senderName = data.senderName;
+        }
+
+        // Extract sender avatar
+        let senderAvatar: string | undefined = undefined;
+        if (typeof senderObj === 'object' && senderObj !== null) {
+            senderAvatar =
+                senderObj.profile?.avatarUrl ||
+                senderObj.profile?.photos?.find((p: any) => p.isPrimary)?.url ||
+                senderObj.profile?.photos?.[0]?.url ||
+                senderObj.avatarUrl ||
+                senderObj.avatar;
+        } else if (data.senderAvatar && typeof data.senderAvatar === 'string') {
+            senderAvatar = data.senderAvatar;
+        }
+
+        // Extract readable text content based on messageType
+        let content = 'You received a new message';
+        const messageType = msg.messageType || data.messageType;
+        if (messageType === 'image') {
+            content = '📷 Sent a photo';
+        } else if (messageType === 'gift') {
+            const giftNames = (msg.gifts || msg.metadata?.gifts || []).map((g: any) => g.giftName || g.name).filter(Boolean);
+            content = giftNames.length > 0 ? `🎁 Sent ${giftNames.join(', ')}` : '🎁 Sent a gift';
+        } else if (messageType === 'video_call') {
+            content = '📞 Video call';
+        } else {
+            const rawContent = msg.content !== undefined ? msg.content : (data.content !== undefined ? data.content : (typeof data.message === 'string' ? data.message : ''));
+            if (typeof rawContent === 'string' && rawContent.trim().length > 0 && rawContent !== '[object Object]') {
+                content = rawContent.trim();
+            } else if (typeof rawContent === 'object' && rawContent !== null) {
+                content = rawContent.content || rawContent.text || rawContent.message || 'You received a new message';
+            }
+        }
+
         const isInsideThisChat = window.location.pathname.includes(`/chat/${chatId}`);
 
         if (!isInsideThisChat) {
             addNotification({
                 title: senderName,
                 message: content,
-                type: 'message',
+                type: messageType === 'gift' ? 'gift' : 'message',
                 chatId: chatId,
                 avatar: senderAvatar
             });
         }
 
         queryClient.invalidateQueries({ queryKey: CHAT_KEYS.lists() });
-        queryClient.invalidateQueries({ queryKey: CHAT_KEYS.messages(chatId) });
+        if (chatId) {
+            queryClient.invalidateQueries({ queryKey: CHAT_KEYS.messages(chatId) });
+        }
     }, [user, addNotification, queryClient]);
+
+    // 4. Handle generic push/system notifications over socket
+    const handleGenericNotification = useCallback((data: any) => {
+        if (!user || !data) return;
+        const notif = data.notification || data;
+        if (!notif) return;
+
+        const title = typeof notif.title === 'string' && notif.title !== '[object Object]' ? notif.title : 'Notification';
+        let message = 'New update received';
+        if (typeof notif.message === 'string' && notif.message !== '[object Object]') {
+            message = notif.message;
+        } else if (typeof notif.message === 'object' && notif.message !== null) {
+            message = notif.message.content || notif.message.text || 'New update received';
+        } else if (typeof notif.content === 'string') {
+            message = notif.content;
+        }
+
+        addNotification({
+            title,
+            message,
+            type: notif.type || 'system',
+            chatId: notif.relatedChatId || notif.chatId,
+            userId: notif.relatedUserId || notif.userId,
+            avatar: notif.avatar
+        });
+    }, [user, addNotification]);
 
     // REAL-TIME DEFERRAL: Move socket connection to a separate, delayed effect
     // This prevents socket initialization from competing with the dashboard layout engine
@@ -339,6 +423,8 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
             socketService.on('chat:message', handleNewMessage);
             socketService.on('message:new', handleNewMessage);
             socketService.on('message:notification', handleNewMessage);
+            socketService.on('notification:new', handleGenericNotification);
+            socketService.on('notification', handleGenericNotification);
             socketService.on('task:completed', handleTaskCompleted);
         }, 100);
 
@@ -353,9 +439,11 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
             socketService.off('chat:message', handleNewMessage);
             socketService.off('message:new', handleNewMessage);
             socketService.off('message:notification', handleNewMessage);
+            socketService.off('notification:new', handleGenericNotification);
+            socketService.off('notification', handleGenericNotification);
             socketService.off('task:completed', handleTaskCompleted);
         };
-    }, [user?.id, handleBalanceUpdate, handleUserUpdate, handleNewMessage, handleTaskCompleted]);
+    }, [user?.id, handleBalanceUpdate, handleUserUpdate, handleNewMessage, handleGenericNotification, handleTaskCompleted]);
 
     // Background profile/balance sync - move to a lower priority (2 seconds delay)
     useEffect(() => {

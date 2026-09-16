@@ -268,15 +268,16 @@ const cleanupStaleConnections = async (io) => {
 
 // Export helpers
 export const emitBalanceUpdate = (io, userId, newBalance) => {
-    const socketId = activeUsers.get(userId);
-    if (socketId) io.to(socketId).emit('balance:update', { balance: newBalance });
+    const uid = (userId?._id || userId || '').toString();
+    if (uid) io.to(uid).emit('balance:update', { balance: newBalance });
 };
 
 export const emitNewMessage = (io, chatId, message) => {
     io.to(`chat:${chatId}`).emit('message:new', { chatId, message });
     const receiverId = (message.receiverId?._id || message.receiverId || '').toString();
-    const socketId = activeUsers.get(receiverId);
-    if (socketId) io.to(socketId).emit('message:notification', { chatId, message });
+    if (receiverId) {
+        io.to(receiverId).emit('message:notification', { chatId, message });
+    }
 };
 
 export const isUserOnline = (userId) => {
@@ -285,13 +286,13 @@ export const isUserOnline = (userId) => {
 };
 
 export const emitNotification = (io, userId, notification) => {
-    const socketId = activeUsers.get(userId.toString());
-    if (socketId) io.to(socketId).emit('notification:new', { notification });
+    const uid = (userId?._id || userId || '').toString();
+    if (uid) io.to(uid).emit('notification:new', { notification });
 };
 
 export const emitTaskCompleted = (io, userId, task) => {
-    const socketId = activeUsers.get(userId.toString());
-    if (socketId) io.to(socketId).emit('task:completed', task);
+    const uid = (userId?._id || userId || '').toString();
+    if (uid) io.to(uid).emit('task:completed', task);
 };
 
 // Support tickets: notify anyone with the ticket open (support:<id> room),

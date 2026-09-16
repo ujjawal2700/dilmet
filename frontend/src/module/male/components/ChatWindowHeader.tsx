@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { MaterialSymbol } from '../types/material-symbol';
-import { AiBadge } from '../../../shared/components/AiBadge';
+import { AiBadge, SHOW_AI_LABELS } from '../../../shared/components/AiBadge';
 
 interface IntimacyInfo {
   level: number;
@@ -108,7 +108,7 @@ export const ChatWindowHeader = ({
                 )}
               </div>
               <p className="text-[11px] font-semibold text-white/85">
-                {isAiCompanion ? 'AI companion' : isOnline ? 'Active now' : 'Active some time ago'}
+                {SHOW_AI_LABELS && isAiCompanion ? 'AI companion' : isOnline ? 'Active now' : 'Active some time ago'}
               </p>
             </div>
           </button>

@@ -61,6 +61,50 @@ const getImageMessageCost = async () => {
 /**
  * Send a text message
  */
+/**
+ * Load only the user fields the message handlers need.
+ * Photos stored as base64 data URIs can be hundreds of KB and take seconds to transfer,
+ * so they are dropped inside MongoDB; normal photo URLs are kept.
+ */
+const getChatUser = async (userId) => {
+    if (!mongoose.isValidObjectId(userId)) return null;
+    const [user] = await User.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(String(userId)) } },
+        {
+            $project: {
+                role: 1,
+                blockedUsers: 1,
+                memberTier: 1,
+                coinBalance: 1,
+                isAiCompanion: 1,
+                'profile.name': 1,
+                'profile.photos': {
+                    $map: {
+                        input: {
+                            $filter: {
+                                input: { $ifNull: ['$profile.photos', []] },
+                                as: 'photo',
+                                cond: { $ne: [{ $substrCP: [{ $ifNull: ['$$photo.url', ''] }, 0, 5] }, 'data:'] }
+                            }
+                        },
+                        as: 'photo',
+                        in: { url: '$$photo.url', isPrimary: '$$photo.isPrimary' }
+                    }
+                }
+            }
+        }
+    ]);
+    if (user) user.blockedUsers = user.blockedUsers || [];
+    return user || null;
+};
+
+const buildMessagePayload = (message, sender, receiver) => {
+    const payload = message.toObject();
+    payload.senderId = { _id: sender._id, profile: sender.profile };
+    payload.receiverId = { _id: receiver._id, profile: receiver.profile };
+    return payload;
+};
+
 export const sendMessage = async (req, res, next) => {
     try {
         const senderId = req.user.id;
@@ -106,8 +150,8 @@ export const sendMessage = async (req, res, next) => {
 
         // 1. STAGE 1: Parallelize configuration and basic user checks (Fast)
         const [sender, receiver, MESSAGE_COST] = await Promise.all([
-            User.findById(senderId).select('blockedUsers memberTier profile coinBalance'),
-            User.findById(receiverId).select('blockedUsers profile isAiCompanion'),
+            getChatUser(senderId),
+            getChatUser(receiverId),
             (messageType === 'image' ? getImageMessageCost() : getMessageCost(req.user.memberTier, content))
         ]);
 
@@ -243,9 +287,7 @@ export const sendMessage = async (req, res, next) => {
         }
 
         // Build response message without extra findById (Populate manually from existing objects)
-        const populatedMessage = message.toObject();
-        populatedMessage.senderId = { _id: sender._id, profile: sender.profile };
-        populatedMessage.receiverId = { _id: receiver._id, profile: receiver.profile };
+        const populatedMessage = buildMessagePayload(message, sender, receiver);
 
         // Emit real-time update via Socket.IO (INSTANT)
         const io = req.app.get('io');
@@ -325,12 +367,10 @@ export const sendHiMessage = async (req, res, next) => {
         }
 
         // Check receiver exists
-        const receiver = await User.findById(receiverId);
+        const [receiver, sender] = await Promise.all([getChatUser(receiverId), getChatUser(senderId)]);
         if (!receiver) {
             throw new NotFoundError('User not found');
         }
-
-        const sender = await User.findById(senderId);
         if (sender.blockedUsers.some(id => id.toString() === receiverId.toString())) {
             throw new BadRequestError('You have blocked this user. Unblock to send messages.');
         }
@@ -366,7 +406,7 @@ export const sendHiMessage = async (req, res, next) => {
         let updatedSender = await User.findOneAndUpdate(
             { _id: senderId, coinBalance: { $gte: HI_MESSAGE_COST } },
             { $inc: { coinBalance: -HI_MESSAGE_COST } },
-            { new: true }
+            { new: true, lean: true, select: 'coinBalance' }
         );
 
         if (!updatedSender) {
@@ -464,9 +504,7 @@ export const sendHiMessage = async (req, res, next) => {
         }
 
         // Populate message
-        const populatedMessage = await Message.findById(message._id)
-            .populate('senderId', 'profile')
-            .populate('receiverId', 'profile');
+        const populatedMessage = buildMessagePayload(message, sender, receiver);
 
         // Emit real-time update
         const io = req.app.get('io');
@@ -570,8 +608,8 @@ export const sendGift = async (req, res, next) => {
 
         // Block check
         const [sender, receiver] = await Promise.all([
-            User.findById(senderId).select('blockedUsers coinBalance profile'),
-            User.findById(receiverId).select('blockedUsers profile isAiCompanion')
+            getChatUser(senderId),
+            getChatUser(receiverId)
         ]);
 
         if (sender.blockedUsers.some(id => id.toString() === receiverId.toString())) {
@@ -585,7 +623,7 @@ export const sendGift = async (req, res, next) => {
         let updatedSender = await User.findOneAndUpdate(
             { _id: senderId, coinBalance: { $gte: totalCost } },
             { $inc: { coinBalance: -totalCost } },
-            { new: true }
+            { new: true, lean: true, select: 'coinBalance' }
         );
 
         if (!updatedSender) {
@@ -692,9 +730,7 @@ export const sendGift = async (req, res, next) => {
 
 
         // Populate message
-        const populatedMessage = await Message.findById(message._id)
-            .populate('senderId', 'profile')
-            .populate('receiverId', 'profile');
+        const populatedMessage = buildMessagePayload(message, sender, receiver);
 
         // Emit real-time update
         const io = req.app.get('io');

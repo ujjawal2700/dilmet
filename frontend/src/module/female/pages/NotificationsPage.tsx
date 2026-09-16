@@ -12,8 +12,7 @@ export const NotificationsPage = () => {
     markNotificationAsRead,
     deletePersistentNotification,
     clearAllPersistentNotifications,
-    unreadCount,
-    sessionStartTime
+    unreadCount
   } = useGlobalState();
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export const NotificationsPage = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   const filteredNotifications = useMemo(() => {
-    let filtered = persistentNotifications.filter(n => n.timestamp >= sessionStartTime);
+    let filtered = [...persistentNotifications];
 
     switch (selectedFilter) {
       case 'unread':
@@ -43,7 +42,7 @@ export const NotificationsPage = () => {
     }
 
     return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [persistentNotifications, selectedFilter, sessionStartTime]);
+  }, [persistentNotifications, selectedFilter]);
 
   const handleNotificationClick = (id: string, actionUrl?: string, relatedChatId?: string, type?: string) => {
     markNotificationAsRead(id);
@@ -61,6 +60,24 @@ export const NotificationsPage = () => {
   const handleDeleteNotification = (id: string, e: MouseEvent) => {
     e.stopPropagation();
     deletePersistentNotification(id);
+  };
+
+  const formatNotificationTitle = (title: any) => {
+    if (!title || title === '[object Object]') return 'New Notification';
+    if (typeof title === 'string') return t(title);
+    return title.name || 'New Notification';
+  };
+
+  const formatNotificationMessage = (msg: any) => {
+    if (!msg) return '';
+    if (typeof msg === 'string') {
+      if (msg === '[object Object]') return 'You received a new message';
+      return t(msg);
+    }
+    if (typeof msg === 'object') {
+      return msg.content || msg.text || msg.message || 'You received a new message';
+    }
+    return String(msg);
   };
 
   const getNotificationTheme = (type: string) => {
@@ -186,7 +203,7 @@ export const NotificationsPage = () => {
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center justify-between gap-2">
                        <h3 className={`text-[13px] tracking-tight truncate ${!notification.isRead ? 'font-black text-ink' : 'font-bold text-slate-600'}`}>
-                        {t(notification.title)}
+                        {formatNotificationTitle(notification.title)}
                       </h3>
                       <button
                         onClick={(e) => handleDeleteNotification(notification.id, e)}
@@ -196,7 +213,7 @@ export const NotificationsPage = () => {
                       </button>
                     </div>
                     <p className={`text-[11px] leading-relaxed line-clamp-2 ${!notification.isRead ? 'font-bold text-ink' : 'font-semibold text-muted-light'}`}>
-                      {t(notification.message)}
+                      {formatNotificationMessage(notification.message)}
                     </p>
                     <div className="flex items-center gap-2 pt-1 opacity-60">
                       <MaterialSymbol name="schedule" size={12} className="text-muted-light" />

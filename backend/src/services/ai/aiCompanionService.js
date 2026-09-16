@@ -90,24 +90,73 @@ const cleanOutput = (text, companionName) => {
     return out;
 };
 
+const FALLBACK_REPLIES = {
+    compliments: [
+        "Aww, thank you so much! That's really sweet of you 😊✨",
+        "Haha thank you! You're sweet 🙈 How is your day going?",
+        "Aww that made me smile! Thank you ✨ What are you up to?",
+        "Thank you so much! Always nice chatting with you 😊",
+        "Haha you're making me blush! ✨ How was your day?"
+    ],
+    greetings: [
+        "Hey! Kaise ho? What are you up to today? ✨",
+        "Hello! So glad you messaged. How was your day? 😊",
+        "Hey there! Tell me something interesting that happened today 🌸",
+        "Hi! Always happy to hear from you. Having a good day?"
+    ],
+    questions: [
+        "I'm an AI companion here to chat and keep you company! Tell me about yourself 😊",
+        "I love listening to music and chatting about life ✨ What kind of things do you enjoy?",
+        "I'm always curious to learn more about you! What's your favourite thing to do on weekends?"
+    ],
+    general: [
+        "That's really interesting! Tell me more about that 😊",
+        "Haha love that! By the way, what kind of music or movies are you into? ✨",
+        "Aww nice! Aur batao, aaj ka din kaisa chal raha hai? 😊",
+        "I enjoy talking to you! What are your plans for the evening? ✨",
+        "Sounds fun! Tell me more ✨"
+    ]
+};
+
+const getContextualFallbackResponse = ({ userMessage = '' }) => {
+    const text = (userMessage || '').toLowerCase();
+    let pool = FALLBACK_REPLIES.general;
+
+    if (/stunning|beautiful|pretty|gorgeous|cute|hot|sweet|tareef|sundar|look|dress|smile|nice|handsome/i.test(text)) {
+        pool = FALLBACK_REPLIES.compliments;
+    } else if (/^(hi|hello|hey|heyy|namaste|hlo|kaise ho|kya haal|good morning|good evening)/i.test(text.trim())) {
+        pool = FALLBACK_REPLIES.greetings;
+    } else if (/\?|who are you|kahan se|what do you do|real or|are you real|bot|ai/i.test(text)) {
+        pool = FALLBACK_REPLIES.questions;
+    }
+
+    return pool[Math.floor(Math.random() * pool.length)];
+};
+
 /**
  * Call Gemini, clean the output and run it through content moderation.
  * Retries once if the output is empty or fails moderation.
  */
 const generateSafeMessage = async ({ systemInstruction, prompt, companion, persona }) => {
+    if (!isGeminiConfigured()) return null;
     for (let attempt = 0; attempt < 2; attempt++) {
-        const { text, inputTokens, outputTokens } = await generateText({ systemInstruction, prompt });
+        try {
+            const { text, inputTokens, outputTokens } = await generateText({ systemInstruction, prompt });
 
-        AiPersona.updateOne(
-            { _id: persona._id },
-            { $inc: { 'stats.inputTokens': inputTokens, 'stats.outputTokens': outputTokens } }
-        ).catch(() => { });
+            AiPersona.updateOne(
+                { _id: persona._id },
+                { $inc: { 'stats.inputTokens': inputTokens, 'stats.outputTokens': outputTokens } }
+            ).catch(() => { });
 
-        const cleaned = cleanOutput(text, companion.profile?.name);
-        if (cleaned && validateMessageContent(cleaned).isValid) {
-            return cleaned;
+            const cleaned = cleanOutput(text, companion.profile?.name);
+            if (cleaned && validateMessageContent(cleaned).isValid) {
+                return cleaned;
+            }
+            logger.warn(`[AI] Discarded generated message for companion ${companion._id} (attempt ${attempt + 1})`);
+        } catch (err) {
+            logger.warn(`[AI] Gemini call failed for companion ${companion._id}: ${err.message}`);
+            break;
         }
-        logger.warn(`[AI] Discarded generated message for companion ${companion._id} (attempt ${attempt + 1})`);
     }
     return null;
 };
@@ -118,7 +167,6 @@ class AiCompanionService {
     }
 
     async isEnabled() {
-        if (!isGeminiConfigured()) return false;
         const aiSettings = await getAiSettings();
         return aiSettings.enabled !== false;
     }
@@ -161,7 +209,7 @@ class AiCompanionService {
         // Push notification title carries the AI label too
         const labelledSender = {
             ...companion,
-            profile: { ...companion.profile, name: `${companion.profile?.name || 'AI Companion'} (AI)` },
+            profile: { ...companion.profile, name: process.env.SHOW_AI_LABELS === 'true' ? `${companion.profile?.name || 'AI Companion'} (AI)` : companion.profile?.name },
         };
         chatNotificationService.notifyNewMessage(user._id, labelledSender, {
             chatId: chat._id,
@@ -254,7 +302,15 @@ class AiCompanionService {
                 'Keep it to one short, friendly line.',
             ].join(' ');
 
-            const content = await generateSafeMessage({ systemInstruction, prompt, companion, persona });
+            let content = await generateSafeMessage({ systemInstruction, prompt, companion, persona });
+            if (!content) {
+                const fallbackOpeners = [
+                    `Hey ${user.profile?.name || 'there'}! Hope you're having a wonderful day ✨`,
+                    `Hi ${user.profile?.name || ''}! How is your day going so far? 😊`,
+                    `Hey! Saw your profile and wanted to say hi 🌸 What are you up to today?`
+                ];
+                content = fallbackOpeners[Math.floor(Math.random() * fallbackOpeners.length)];
+            }
             if (!content) return { sent: false, reason: 'generation_failed' };
 
             const chat = await Chat.create({
@@ -411,7 +467,11 @@ class AiCompanionService {
         const systemInstruction = buildSystemInstruction(companion, persona, user, LANGUAGE_RULES[persona.languageStyle] || LANGUAGE_RULES.mirror);
         const prompt = `Chat so far:\n${transcript}\n\nWrite ${companionName}'s next message replying to ${userName}. Only the message text.`;
 
-        const content = await generateSafeMessage({ systemInstruction, prompt, companion, persona });
+        let content = await generateSafeMessage({ systemInstruction, prompt, companion, persona });
+        if (!content) {
+            logger.info(`[AI] Gemini unavailable or output empty, generating contextual fallback for ${companionName}`);
+            content = getContextualFallbackResponse({ userMessage: last.content });
+        }
         if (!content) throw new Error('Generation failed or was filtered');
 
         await this._deliverMessage({ chat, companion, user, content, kind: 'reply' });

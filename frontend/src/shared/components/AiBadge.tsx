@@ -1,5 +1,8 @@
 import { MaterialSymbol } from './MaterialSymbol';
 
+/** Set VITE_SHOW_AI_LABELS=true to show AI companion badges and notices again */
+export const SHOW_AI_LABELS = import.meta.env.VITE_SHOW_AI_LABELS === 'true';
+
 interface AiBadgeProps {
   /** 'compact' shows "AI", 'full' shows "AI Companion" */
   variant?: 'compact' | 'full';
@@ -13,6 +16,8 @@ interface AiBadgeProps {
  * so users always know they are not talking to a real person.
  */
 export const AiBadge = ({ variant = 'compact', onDark = false, className = '' }: AiBadgeProps) => {
+  if (!SHOW_AI_LABELS) return null;
+
   const colors = onDark
     ? 'bg-white text-violet-700'
     : 'bg-violet-600 text-white dark:bg-violet-500';

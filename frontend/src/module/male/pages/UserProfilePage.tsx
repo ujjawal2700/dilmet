@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
-import { AiBadge } from '../../../shared/components/AiBadge';
+import { AiBadge, SHOW_AI_LABELS } from '../../../shared/components/AiBadge';
 import { useAuth } from '../../../core/context/AuthContext';
 import { calculateDistance, formatDistance, areCoordinatesValid } from '../../../utils/distanceCalculator';
 import { useTranslation } from '../../../core/hooks/useTranslation';
@@ -376,7 +376,7 @@ export const UserProfilePage = () => {
             </div>
           </div>
 
-          {profile.isAiCompanion && (
+          {SHOW_AI_LABELS && profile.isAiCompanion && (
             <div className="mb-8 flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-violet-900">
               <MaterialSymbol name="smart_toy" size={20} filled className="text-violet-600 shrink-0 mt-0.5" />
               <p className="text-[13px] font-medium leading-snug">

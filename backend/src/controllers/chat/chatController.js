@@ -256,7 +256,7 @@ export const getOrCreateChat = async (req, res, next) => {
             ]
         })
             .sort({ lastMessageAt: -1 })
-            .populate('participants.userId', 'profile phoneNumber isOnline lastSeen isVerified isAiCompanion')
+            .populate('participants.userId', 'profile.name phoneNumber isOnline lastSeen isVerified isAiCompanion')
             .populate('lastMessage');
 
         // Create new chat if doesn't exist
@@ -270,7 +270,7 @@ export const getOrCreateChat = async (req, res, next) => {
             });
 
             chat = await Chat.findById(chat._id)
-                .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role isAiCompanion')
+                .populate('participants.userId', 'profile.name phoneNumber isOnline lastSeen isVerified role isAiCompanion')
                 .populate('lastMessage')
                 .lean();
         }
@@ -294,7 +294,8 @@ export const getOrCreateChat = async (req, res, next) => {
 
         const [me, other] = await Promise.all([
             User.findById(userId).select('blockedUsers').lean(),
-            User.findById(otherParticipant.userId._id).select('blockedUsers').lean()
+            // Only the other user's photo is needed; photos can be large base64 data and slow to load
+            User.findById(otherParticipant.userId._id).select('blockedUsers profile.photos').lean()
         ]);
 
         const transformedChat = {
@@ -302,7 +303,7 @@ export const getOrCreateChat = async (req, res, next) => {
             otherUser: {
                 _id: otherParticipant.userId._id,
                 name: otherParticipant.userId.profile?.name || `User ${otherParticipant.userId.phoneNumber}`,
-                avatar: otherParticipant.userId.profile?.photos?.[0]?.url || null,
+                avatar: other?.profile?.photos?.[0]?.url || null,
                 isOnline: otherParticipant.userId.isOnline,
                 lastSeen: otherParticipant.userId.lastSeen,
                 isVerified: otherParticipant.userId.isVerified,
@@ -346,7 +347,7 @@ export const getChatById = async (req, res, next) => {
             'participants.userId': userId,
             isActive: true
         })
-            .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role isAiCompanion')
+            .populate('participants.userId', 'profile.name phoneNumber isOnline lastSeen isVerified role isAiCompanion')
             .populate('lastMessage')
             .lean();
 
@@ -374,7 +375,8 @@ export const getChatById = async (req, res, next) => {
         // Check block status in parallel with basic auth
         const [me, other] = await Promise.all([
             User.findById(userId).select('blockedUsers').lean(),
-            User.findById(otherParticipant.userId._id).select('blockedUsers').lean()
+            // Only the other user's photo is needed; photos can be large base64 data and slow to load
+            User.findById(otherParticipant.userId._id).select('blockedUsers profile.photos').lean()
         ]);
 
         const transformedChat = {
@@ -382,7 +384,7 @@ export const getChatById = async (req, res, next) => {
             otherUser: {
                 _id: otherParticipant.userId._id,
                 name: otherParticipant.userId.profile?.name || `User ${otherParticipant.userId.phoneNumber}`,
-                avatar: otherParticipant.userId.profile?.photos?.[0]?.url || null,
+                avatar: other?.profile?.photos?.[0]?.url || null,
                 isOnline: otherParticipant.userId.isOnline,
                 lastSeen: otherParticipant.userId.lastSeen,
                 isVerified: otherParticipant.userId.isVerified,
@@ -427,7 +429,7 @@ export const getChatMessages = async (req, res, next) => {
             _id: chatId,
             'participants.userId': userId,
             isActive: true
-        });
+        }).select('deletedBy').lean();
 
         if (!chat) {
             throw new NotFoundError('Chat not found');
@@ -456,8 +458,8 @@ export const getChatMessages = async (req, res, next) => {
         const messages = await Message.find(query)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
-            .populate('senderId', 'profile.name profile.photos')
-            .populate('receiverId', 'profile.name profile.photos')
+            .populate('senderId', 'profile.name')
+            .populate('receiverId', 'profile.name')
             .lean();
 
         // Mark messages as read and update chat unread count in parallel

@@ -28,7 +28,7 @@ import { useTranslation } from "../../../core/hooks/useTranslation";
 import { useQueryClient } from "@tanstack/react-query";
 import { CHAT_KEYS } from "../../../core/queries/useChatQuery";
 import { MaterialSymbol } from "../types/material-symbol";
-import { AiBadge } from "../../../shared/components/AiBadge";
+import { AiBadge, SHOW_AI_LABELS } from "../../../shared/components/AiBadge";
 import { ChatSkeletonLoader } from "../components/ChatSkeletonLoader";
 import { FailedMessageModal } from "../components/FailedMessageModal";
 import type { Message } from "../types/male.types";
@@ -125,7 +125,7 @@ export const ChatWindowPage = () => {
   const [showAiNotice, setShowAiNotice] = useState(false);
   const isAiChat = !!chatInfo?.otherUser?.isAiCompanion;
   useEffect(() => {
-    if (isAiChat && !localStorage.getItem(AI_NOTICE_KEY)) {
+    if (SHOW_AI_LABELS && isAiChat && !localStorage.getItem(AI_NOTICE_KEY)) {
       setShowAiNotice(true);
     }
   }, [isAiChat]);
@@ -1029,7 +1029,7 @@ export const ChatWindowPage = () => {
           onVoiceCall={() => handleStartCall("voice")}
         />
 
-        {isAiChat && (
+        {SHOW_AI_LABELS && isAiChat && (
           <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-violet-50 dark:bg-violet-950/60 border-b border-violet-200 dark:border-violet-900 text-violet-800 dark:text-violet-200">
             <MaterialSymbol name="smart_toy" size={16} filled className="shrink-0" />
             <p className="text-[12px] font-semibold leading-snug">
