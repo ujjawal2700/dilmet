@@ -8,6 +8,7 @@ import * as adminController from '../../controllers/admin/adminController.js';
 import { protect, restrictTo } from '../../middleware/auth.js';
 import * as reportController from '../../controllers/user/reportController.js';
 import * as faqController from '../../controllers/faq/faqController.js';
+import * as aiCompanionController from '../../controllers/admin/aiCompanionController.js';
 
 const router = express.Router();
 
@@ -30,11 +31,25 @@ router.patch('/users/:id/toggle-block', adminController.toggleBlockUser);
 router.patch('/users/:id/toggle-verify', adminController.toggleVerifyUser);
 router.delete('/users/:id', adminController.deleteUser);
 
+// AI Companions
+router.get('/ai-companions', aiCompanionController.listAiCompanions);
+router.post('/ai-companions', aiCompanionController.createAiCompanion);
+router.get('/ai-companions/:id', aiCompanionController.getAiCompanion);
+router.patch('/ai-companions/:id', aiCompanionController.updateAiCompanion);
+router.delete('/ai-companions/:id', aiCompanionController.deleteAiCompanion);
+
 // Transaction Management
 router.get('/transactions', adminController.listTransactions);
 
 // Referral (Refer & Earn) Management
 router.get('/referrals', adminController.listReferrals);
+
+// Support Ticket Management
+router.get('/support-tickets', adminController.listSupportTickets);
+router.get('/support-tickets/user/:userId', adminController.listSupportTicketsForUser);
+router.get('/support-tickets/:id', adminController.getSupportTicket);
+router.post('/support-tickets/:id/messages', adminController.sendSupportMessage);
+router.patch('/support-tickets/:id/status', adminController.updateSupportTicketStatus);
 
 // Platform Settings
 router.get('/settings', adminController.getAppSettings);

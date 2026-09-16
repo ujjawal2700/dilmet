@@ -181,6 +181,28 @@ class SocketService {
             this.emit('user:blocked_by', data);
         });
 
+        // ==================== SUPPORT TICKET EVENTS ====================
+        this.socket.on('support:message:new', (data) => {
+            this.emit('support:message:new', data);
+        });
+
+        this.socket.on('support:message:notification', (data) => {
+            this.emit('support:message:notification', data);
+        });
+
+        this.socket.on('support:ticket:updated', (data) => {
+            this.emit('support:ticket:updated', data);
+        });
+
+        this.socket.on('support:ticket:activity', (data) => {
+            this.emit('support:ticket:activity', data);
+        });
+
+        // Real-time notifications (created for e.g. admin replies)
+        this.socket.on('notification:new', (data) => {
+            this.emit('notification:new', data);
+        });
+
         // ==================== VIDEO CALL EVENTS ====================
         // Incoming call
         this.socket.on('call:incoming', (data) => {
@@ -286,6 +308,20 @@ class SocketService {
      */
     sendTyping(chatId: string, isTyping: boolean) {
         this.socket?.emit('chat:typing', { chatId, isTyping });
+    }
+
+    /**
+     * Join a support ticket room (for live message delivery while viewing it)
+     */
+    joinSupportTicket(ticketId: string) {
+        this.socket?.emit('support:join', { ticketId });
+    }
+
+    /**
+     * Leave a support ticket room
+     */
+    leaveSupportTicket(ticketId: string) {
+        this.socket?.emit('support:leave', { ticketId });
     }
 
     /**

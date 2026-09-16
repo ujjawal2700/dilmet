@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AiBadge } from '../../../shared/components/AiBadge';
 import { useAuth } from '../../../core/context/AuthContext';
 import { calculateDistance, formatDistance, areCoordinatesValid } from '../../../utils/distanceCalculator';
 import { useTranslation } from '../../../core/hooks/useTranslation';
@@ -29,6 +30,7 @@ interface UserProfile {
   latitude?: number;
   longitude?: number;
   role?: string;
+  isAiCompanion?: boolean;
 }
 
 export const UserProfilePage = () => {
@@ -59,8 +61,9 @@ export const UserProfilePage = () => {
         interests: stateProfile.interests || [],
         isOnline: stateProfile.isOnline,
         isVerified: stateProfile.isVerified,
-        distance: stateProfile.distance,
+        distance: stateProfile.isAiCompanion ? undefined : stateProfile.distance,
         role: stateProfile.role || 'female',
+        isAiCompanion: !!stateProfile.isAiCompanion,
       };
     }
     // 2. React Query discovery cache check
@@ -87,8 +90,9 @@ export const UserProfilePage = () => {
           interests: found.interests || [],
           isOnline: found.isOnline,
           isVerified: found.isVerified,
-          distance: found.distance,
+          distance: found.isAiCompanion ? undefined : found.distance,
           role: found.role || 'female',
+          isAiCompanion: !!found.isAiCompanion,
         };
       }
     }
@@ -154,16 +158,17 @@ export const UserProfilePage = () => {
         name: data.name || data.profile?.name,
         bio: data.bio || data.profile?.bio,
         age: data.age || data.profile?.age,
-        location: formattedLocation,
+        location: data.isAiCompanion ? '' : formattedLocation,
         occupation: data.occupation || data.profile?.occupation,
         photos: data.photos || data.profile?.photos || [],
         interests: data.interests || data.profile?.interests || [],
         isOnline: data.isOnline,
         isVerified: data.isVerified,
-        distance: distanceStr,
+        distance: data.isAiCompanion ? undefined : distanceStr,
         latitude: profileLat,
         longitude: profileLng,
-        role: data.role
+        role: data.role,
+        isAiCompanion: !!data.isAiCompanion
       };
 
       setProfile(mappedProfile);
@@ -342,6 +347,7 @@ export const UserProfilePage = () => {
                <div className="space-y-1">
                  <div className="flex items-center gap-2">
                     <h1 className="text-[28px] font-black tracking-tighter text-ink leading-none">{profile.name}</h1>
+                    {profile.isAiCompanion && <AiBadge variant="full" />}
                     {profile.isVerified && <MaterialSymbol name="verified" filled size={20} className="text-blue-500 drop-shadow-sm" />}
                  </div>
                  <div className="flex items-center gap-3">
@@ -369,6 +375,15 @@ export const UserProfilePage = () => {
                )}
             </div>
           </div>
+
+          {profile.isAiCompanion && (
+            <div className="mb-8 flex items-start gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-violet-900">
+              <MaterialSymbol name="smart_toy" size={20} filled className="text-violet-600 shrink-0 mt-0.5" />
+              <p className="text-[13px] font-medium leading-snug">
+                {profile.name} is an AI companion, not a real person. Replies are written by AI, and coins spent chatting with AI companions go to the platform.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-10">
             {/* Bio Section */}
@@ -527,7 +542,8 @@ export const UserProfilePage = () => {
       {/* Redesigned Floating Bottom Action Bar */}
       <div className="fixed bottom-0 inset-x-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-t border-slate-200/50 dark:border-slate-800 px-4 pt-3 pb-6 sm:pb-7 shadow-[0_-8px_32px_rgba(0,0,0,0.08)]">
         <div className="max-w-md md:max-w-xl mx-auto flex items-center gap-3">
-          {/* Tactical Video Call */}
+          {/* Tactical Video Call (AI companions can't take calls) */}
+          {!profile.isAiCompanion && (
           <button 
             onClick={handleVideoCall}
             disabled={isInCall}
@@ -543,6 +559,7 @@ export const UserProfilePage = () => {
               ) : null}
             </div>
           </button>
+          )}
           
           {/* Primary Chat Action */}
           <button 

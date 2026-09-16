@@ -25,3 +25,5 @@ export { default as AutoMessageTemplate } from './AutoMessageTemplate.js';
 export { default as AutoMessageLog } from './AutoMessageLog.js';
 export { default as Faq } from './Faq.js';
 
+export { default as AiPersona } from './AiPersona.js';
+export { default as AiReplyJob } from './AiReplyJob.js';

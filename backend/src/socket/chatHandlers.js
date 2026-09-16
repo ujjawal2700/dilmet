@@ -12,9 +12,15 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Chat from '../models/Chat.js';
 import Message from '../models/Message.js';
+import SupportTicket from '../models/SupportTicket.js';
 import logger from '../utils/logger.js';
 import { getEnvConfig } from '../config/env.js';
 import memoryCache from '../core/cache/memoryCache.js';
+
+// Shared room every connected admin socket joins, so admin-facing lists
+// (e.g. the support ticket queue) can be updated live without each admin
+// needing a specific ticket open.
+const ADMIN_ROOM = 'admins';
 
 const { jwtSecret } = getEnvConfig();
 
@@ -64,6 +70,9 @@ export const setupChatHandlers = (io) => {
         activeUsers.set(userId, socket.id);
         lastHeartbeat.set(userId, Date.now());
         socket.join(userId);
+        if (socket.userRole === 'admin') {
+            socket.join(ADMIN_ROOM);
+        }
 
         // Update DB immediately (don't defer) - critical for online status accuracy
         User.findByIdAndUpdate(userId, {
@@ -105,6 +114,27 @@ export const setupChatHandlers = (io) => {
         // LEAVE CHAT
         socket.on('chat:leave', (data) => {
             socket.leave(`chat:${data.chatId}`);
+        });
+
+        // JOIN SUPPORT TICKET (owner or any admin)
+        socket.on('support:join', async (data) => {
+            try {
+                const { ticketId } = data;
+                const ticket = await SupportTicket.findById(ticketId).select('userId').lean();
+                if (!ticket) return socket.emit('error', { message: 'Ticket not found' });
+                if (socket.userRole !== 'admin' && ticket.userId.toString() !== userId) {
+                    return socket.emit('error', { message: 'Not authorized for this ticket' });
+                }
+                socket.join(`support:${ticketId}`);
+                socket.emit('support:joined', { ticketId });
+            } catch (e) {
+                socket.emit('error', { message: 'Failed to join ticket' });
+            }
+        });
+
+        // LEAVE SUPPORT TICKET
+        socket.on('support:leave', (data) => {
+            socket.leave(`support:${data.ticketId}`);
         });
 
         // TYPING
@@ -262,4 +292,29 @@ export const emitNotification = (io, userId, notification) => {
 export const emitTaskCompleted = (io, userId, task) => {
     const socketId = activeUsers.get(userId.toString());
     if (socketId) io.to(socketId).emit('task:completed', task);
+};
+
+// Support tickets: notify anyone with the ticket open (support:<id> room),
+// the ticket owner directly (in case they're elsewhere in the app), and
+// every connected admin (so the admin ticket queue updates live).
+export const emitSupportMessage = (io, ticket, message) => {
+    const ticketId = ticket._id.toString();
+    io.to(`support:${ticketId}`).emit('support:message:new', { ticketId, message });
+
+    const ownerId = ticket.userId.toString();
+    const ownerSocketId = activeUsers.get(ownerId);
+    if (ownerSocketId) io.to(ownerSocketId).emit('support:message:notification', { ticketId, message });
+
+    io.to(ADMIN_ROOM).emit('support:ticket:activity', { ticket, message });
+};
+
+export const emitSupportTicketUpdate = (io, ticket) => {
+    const ticketId = ticket._id.toString();
+    io.to(`support:${ticketId}`).emit('support:ticket:updated', { ticket });
+
+    const ownerId = ticket.userId.toString();
+    const ownerSocketId = activeUsers.get(ownerId);
+    if (ownerSocketId) io.to(ownerSocketId).emit('support:ticket:updated', { ticket });
+
+    io.to(ADMIN_ROOM).emit('support:ticket:updated', { ticket });
 };

@@ -40,7 +40,7 @@ export const getMyChatList = async (req, res, next) => {
             .select('participants lastMessage lastMessageAt createdAt messageCountByUser intimacyLevel')
             .populate({
                 path: 'participants.userId',
-                select: 'profile.name profile.photos profile.name_hi profile.name_en profile.location phoneNumber isOnline lastSeen isVerified role'
+                select: 'profile.name profile.photos profile.name_hi profile.name_en profile.location phoneNumber isOnline lastSeen isVerified role isAiCompanion'
             })
             .populate({
                 path: 'lastMessage',
@@ -101,7 +101,9 @@ export const getMyChatList = async (req, res, next) => {
                     isOnline: !!otherUserDoc.isOnline,
                     lastSeen: otherUserDoc.lastSeen,
                     isVerified: !!otherUserDoc.isVerified,
+                    isAiCompanion: !!otherUserDoc.isAiCompanion,
                     distance: (() => {
+                        if (otherUserDoc.isAiCompanion) return null;
                         const otherCoords = otherProfile.location?.coordinates?.coordinates;
                         if (hasMyCoords && otherCoords && otherCoords[0] !== 0) {
                             const dist = calculateDistance(
@@ -254,7 +256,7 @@ export const getOrCreateChat = async (req, res, next) => {
             ]
         })
             .sort({ lastMessageAt: -1 })
-            .populate('participants.userId', 'profile phoneNumber isOnline lastSeen isVerified')
+            .populate('participants.userId', 'profile phoneNumber isOnline lastSeen isVerified isAiCompanion')
             .populate('lastMessage');
 
         // Create new chat if doesn't exist
@@ -268,7 +270,7 @@ export const getOrCreateChat = async (req, res, next) => {
             });
 
             chat = await Chat.findById(chat._id)
-                .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role')
+                .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role isAiCompanion')
                 .populate('lastMessage')
                 .lean();
         }
@@ -304,6 +306,7 @@ export const getOrCreateChat = async (req, res, next) => {
                 isOnline: otherParticipant.userId.isOnline,
                 lastSeen: otherParticipant.userId.lastSeen,
                 isVerified: otherParticipant.userId.isVerified,
+                isAiCompanion: !!otherParticipant.userId.isAiCompanion,
             },
             lastMessage: chat.lastMessage,
             lastMessageAt: chat.lastMessageAt,
@@ -343,7 +346,7 @@ export const getChatById = async (req, res, next) => {
             'participants.userId': userId,
             isActive: true
         })
-            .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role')
+            .populate('participants.userId', 'profile.name profile.photos profile.location phoneNumber isOnline lastSeen isVerified role isAiCompanion')
             .populate('lastMessage')
             .lean();
 
@@ -383,6 +386,7 @@ export const getChatById = async (req, res, next) => {
                 isOnline: otherParticipant.userId.isOnline,
                 lastSeen: otherParticipant.userId.lastSeen,
                 isVerified: otherParticipant.userId.isVerified,
+                isAiCompanion: !!otherParticipant.userId.isAiCompanion,
             },
             lastMessage: chat.lastMessage,
             lastMessageAt: chat.lastMessageAt,

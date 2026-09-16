@@ -10,6 +10,7 @@ export interface ChatUser {
     isOnline: boolean;
     lastSeen: Date | string;
     isVerified?: boolean;
+    isAiCompanion?: boolean;
     latitude?: number;
     longitude?: number;
     profile?: {

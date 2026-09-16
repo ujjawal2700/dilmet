@@ -19,6 +19,7 @@ import chatNotificationService from '../../services/notification/chatNotificatio
 import earningBatchService from '../../services/wallet/earningBatchService.js';
 import taskService from '../../services/task/taskService.js';
 import { validateMessageContent } from '../../utils/contentModeration.js';
+import aiCompanionService from '../../services/ai/aiCompanionService.js';
 
 // Counts words in a message (whitespace-separated, ignoring empty tokens)
 export const countWords = (text) => {
@@ -106,7 +107,7 @@ export const sendMessage = async (req, res, next) => {
         // 1. STAGE 1: Parallelize configuration and basic user checks (Fast)
         const [sender, receiver, MESSAGE_COST] = await Promise.all([
             User.findById(senderId).select('blockedUsers memberTier profile coinBalance'),
-            User.findById(receiverId).select('blockedUsers profile'),
+            User.findById(receiverId).select('blockedUsers profile isAiCompanion'),
             (messageType === 'image' ? getImageMessageCost() : getMessageCost(req.user.memberTier, content))
         ]);
 
@@ -142,13 +143,16 @@ export const sendMessage = async (req, res, next) => {
             }
 
             // 2. Batch Credit to Receiver (Optimized for performance)
-            earningBatchService.addEarning(receiverId, {
-                amount: MESSAGE_COST,
-                type: messageType === 'image' ? 'image_earned' : 'message_earned',
-                relatedUserId: senderId,
-                relatedChatId: chatId,
-                description: `${messageType === 'image' ? 'Image' : 'Message'} received`
-            });
+            // AI companions don't earn: coins spent on them stay with the platform
+            if (!receiver.isAiCompanion) {
+                earningBatchService.addEarning(receiverId, {
+                    amount: MESSAGE_COST,
+                    type: messageType === 'image' ? 'image_earned' : 'message_earned',
+                    relatedUserId: senderId,
+                    relatedChatId: chatId,
+                    description: `${messageType === 'image' ? 'Image' : 'Message'} received`
+                });
+            }
 
             // 3. Create Debit Transaction Record for Sender (Immediate)
             Transaction.create({
@@ -262,6 +266,11 @@ export const sendMessage = async (req, res, next) => {
             }
         }
 
+        // AI companion: queue a delayed reply
+        if (receiver.isAiCompanion) {
+            aiCompanionService.scheduleReply({ chatId, companionId: receiverId, userId: senderId });
+        }
+
         // Daily Tasks progress (Fire-and-Forget) - "say hi to N girls" tasks
         if (req.user.role === 'male') {
             taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io })
@@ -372,14 +381,16 @@ export const sendHiMessage = async (req, res, next) => {
             });
         }
 
-        // 2. Batch Credit to Receiver (Optimized)
-        earningBatchService.addEarning(receiverId, {
-            amount: HI_MESSAGE_COST,
-            type: 'message_earned',
-            relatedUserId: senderId,
-            relatedChatId: chat._id,
-            description: `"Hi" message received`,
-        });
+        // 2. Batch Credit to Receiver (Optimized) - AI companions don't earn
+        if (!receiver.isAiCompanion) {
+            earningBatchService.addEarning(receiverId, {
+                amount: HI_MESSAGE_COST,
+                type: 'message_earned',
+                relatedUserId: senderId,
+                relatedChatId: chat._id,
+                description: `"Hi" message received`,
+            });
+        }
 
         // 3. Create Transaction Records (Async)
         Transaction.create({
@@ -472,6 +483,11 @@ export const sendHiMessage = async (req, res, next) => {
             }
         }
 
+        // AI companion: queue a delayed reply
+        if (receiver.isAiCompanion) {
+            aiCompanionService.scheduleReply({ chatId: chat._id, companionId: receiver._id, userId: senderId });
+        }
+
         // Daily Tasks progress (Fire-and-Forget) - "say hi to N girls" tasks
         taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io })
             .catch(err => console.error('[TASKS] Failed to record hi-message progress:', err));
@@ -555,7 +571,7 @@ export const sendGift = async (req, res, next) => {
         // Block check
         const [sender, receiver] = await Promise.all([
             User.findById(senderId).select('blockedUsers coinBalance profile'),
-            User.findById(receiverId).select('blockedUsers profile')
+            User.findById(receiverId).select('blockedUsers profile isAiCompanion')
         ]);
 
         if (sender.blockedUsers.some(id => id.toString() === receiverId.toString())) {
@@ -584,14 +600,16 @@ export const sendGift = async (req, res, next) => {
             });
         }
 
-        // 2. Batch Credit to Receiver (Optimized)
-        earningBatchService.addEarning(receiverId, {
-            amount: totalCost,
-            type: 'gift_received',
-            relatedUserId: senderId,
-            relatedChatId: chatId,
-            description: `Received ${gifts.length} gifts from user`,
-        });
+        // 2. Batch Credit to Receiver (Optimized) - AI companions don't earn
+        if (!receiver.isAiCompanion) {
+            earningBatchService.addEarning(receiverId, {
+                amount: totalCost,
+                type: 'gift_received',
+                relatedUserId: senderId,
+                relatedChatId: chatId,
+                description: `Received ${gifts.length} gifts from user`,
+            });
+        }
 
         // 3. Create Debit Transaction Record for Sender (Immediate)
         Transaction.create({
@@ -691,6 +709,11 @@ export const sendGift = async (req, res, next) => {
                     levelInfo: levelUpInfo,
                 });
             }
+        }
+
+        // AI companion: queue a delayed reply
+        if (receiver.isAiCompanion) {
+            aiCompanionService.scheduleReply({ chatId, companionId: receiverId, userId: senderId });
         }
 
         // Daily Tasks progress (Fire-and-Forget) - "send a gift" task

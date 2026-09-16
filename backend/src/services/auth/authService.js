@@ -15,14 +15,14 @@ import mongoose from 'mongoose';
 
 const { jwtSecret, jwtExpiresIn } = getEnvConfig();
 
-const signToken = (id) => {
-    return jwt.sign({ id }, jwtSecret, {
+const signToken = (id, role) => {
+    return jwt.sign({ id, role }, jwtSecret, {
         expiresIn: jwtExpiresIn,
     });
 };
 
 const createSendToken = (user, statusCode, res) => {
-    const token = signToken(user._id);
+    const token = signToken(user._id, user.role);
 
     // Remove password from output
     user.password = undefined;
@@ -58,7 +58,7 @@ export const requestLoginOtp = async (phoneNumber) => {
         console.log('[AUTH] Normalized phone:', normalizedPhone);
 
         const user = await User.findOne({ phoneNumber: normalizedPhone, isDeleted: false });
-        if (!user) {
+        if (!user || user.isAiCompanion) {
             console.log('[AUTH] User not found or account deleted for phone:', normalizedPhone);
             throw new BadRequestError('User not found. Please sign up first.');
         }
@@ -88,7 +88,7 @@ export const verifyLoginOtp = async (phoneNumber, otpCode) => {
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
     const user = await User.findOne({ phoneNumber: normalizedPhone });
-    if (!user) {
+    if (!user || user.isAiCompanion) {
         throw new BadRequestError('User not found');
     }
 
@@ -321,6 +321,6 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
     return newUser;
 };
 
-export const generateToken = (userId) => {
-    return signToken(userId);
+export const generateToken = (userId, role) => {
+    return signToken(userId, role);
 };

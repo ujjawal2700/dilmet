@@ -19,13 +19,15 @@ export const FemaleLayout: React.FC = () => {
   const isEditProfile = location.pathname === "/female/edit-profile";
   const isSettings = location.pathname === "/female/settings";
   const isFaqs = location.pathname === "/female/faqs";
+  const isSupportTicket = location.pathname.startsWith("/female/support/");
 
   const hideBottomNav =
     isChatWindow ||
     isProfileView ||
     isEditProfile ||
     isSettings ||
-    isFaqs;
+    isFaqs ||
+    isSupportTicket;
 
   return (
     <div className="min-h-screen relative w-full bg-background-light">

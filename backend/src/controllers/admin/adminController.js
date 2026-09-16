@@ -7,6 +7,7 @@ import * as adminService from '../../services/admin/adminService.js';
 import Gift from '../../models/Gift.js';
 import Task from '../../models/Task.js';
 import notificationScheduler from '../../jobs/notificationScheduler.js';
+import supportService from '../../services/support/supportService.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -193,6 +194,108 @@ export const listReferrals = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * List support tickets across all users (filterable by status/role/userId/search)
+ */
+export const listSupportTickets = async (req, res, next) => {
+    try {
+        const filters = {
+            status: req.query.status,
+            role: req.query.role,
+            userId: req.query.userId,
+            search: req.query.search,
+        };
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+
+        const result = await supportService.listAllTicketsAdmin(filters, page, limit);
+
+        res.status(200).json({
+            status: 'success',
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get a single support ticket with its full message thread (admin view)
+ */
+export const getSupportTicket = async (req, res, next) => {
+    try {
+        const { ticket, messages } = await supportService.getTicketWithMessages(
+            req.params.id,
+            req.user._id,
+            true,
+        );
+        await supportService.markRead(req.params.id, 'admin');
+        res.status(200).json({
+            status: 'success',
+            data: { ticket, messages }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Reply to a support ticket as admin
+ */
+export const sendSupportMessage = async (req, res, next) => {
+    try {
+        const { message } = req.body;
+        const result = await supportService.addMessage(
+            req.params.id,
+            req.user._id,
+            'admin',
+            message,
+            req.app.get('io'),
+        );
+        res.status(201).json({
+            status: 'success',
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Update a support ticket's status (open / in_progress / resolved / closed)
+ */
+export const updateSupportTicketStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const ticket = await supportService.updateTicketStatus(
+            req.params.id,
+            status,
+            req.app.get('io'),
+        );
+        res.status(200).json({
+            status: 'success',
+            data: { ticket }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * List support tickets raised by a specific user (used on the admin User Detail page)
+ */
+export const listSupportTicketsForUser = async (req, res, next) => {
+    try {
+        const tickets = await supportService.listTicketsForUser(req.params.userId);
+        res.status(200).json({
+            status: 'success',
+            data: { tickets }
         });
     } catch (error) {
         next(error);

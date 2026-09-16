@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AiBadge } from '../../../shared/components/AiBadge';
 import { useTranslation } from '../../../core/hooks/useTranslation';
 
 import { FilterOptions } from './FilterPanel';
@@ -273,6 +274,7 @@ export const DiscoverFemalesSection: React.FC<DiscoverFemalesSectionProps> = ({
                     <h3 className="text-[17px] font-bold text-slate-900 dark:text-white truncate tracking-tight">
                       {profile.name}
                     </h3>
+                    {profile.isAiCompanion && <AiBadge />}
                     {profile.isVerified && (
                       <span className="text-[#ff4081] shrink-0 text-sm">
                         <MaterialSymbol name="verified" size={16} filled />

@@ -28,6 +28,7 @@ import { useTranslation } from "../../../core/hooks/useTranslation";
 import { useQueryClient } from "@tanstack/react-query";
 import { CHAT_KEYS } from "../../../core/queries/useChatQuery";
 import { MaterialSymbol } from "../types/material-symbol";
+import { AiBadge } from "../../../shared/components/AiBadge";
 import { ChatSkeletonLoader } from "../components/ChatSkeletonLoader";
 import { FailedMessageModal } from "../components/FailedMessageModal";
 import type { Message } from "../types/male.types";
@@ -35,6 +36,7 @@ import { validateMessageContent } from "../../../core/utils/contentModeration";
 
 // Message cost constant
 const MESSAGE_COST = 50;
+const AI_NOTICE_KEY = "ai_companion_notice_ack";
 const IMAGE_MESSAGE_COST = 100;
 
 export const ChatWindowPage = () => {
@@ -118,6 +120,15 @@ export const ChatWindowPage = () => {
   const [requiredCoinsModal, setRequiredCoinsModal] = useState(MESSAGE_COST);
   const [modalAction, setModalAction] = useState(t("actionPerform"));
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // One-time notice the first time a user opens a chat with an AI companion
+  const [showAiNotice, setShowAiNotice] = useState(false);
+  const isAiChat = !!chatInfo?.otherUser?.isAiCompanion;
+  useEffect(() => {
+    if (isAiChat && !localStorage.getItem(AI_NOTICE_KEY)) {
+      setShowAiNotice(true);
+    }
+  }, [isAiChat]);
 
   // Typing indicator
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -1004,6 +1015,7 @@ export const ChatWindowPage = () => {
           userAvatar={chatInfo.otherUser.avatar || ""}
           isOnline={chatInfo.otherUser.isOnline}
           isVerified={chatInfo.otherUser.isVerified}
+          isAiCompanion={isAiChat}
           coinBalance={coinBalance}
           intimacy={intimacy}
           onMoreClick={() => setIsMoreOptionsOpen(true)}
@@ -1011,11 +1023,20 @@ export const ChatWindowPage = () => {
             navigate(`/male/profile/${chatInfo.otherUser._id}`)
           }
           onBackClick={() => navigate("/male/chats")}
-          showVideoCall={true}
+          showVideoCall={!isAiChat}
           onVideoCall={() => handleStartCall("video")}
-          showVoiceCall={true}
+          showVoiceCall={!isAiChat}
           onVoiceCall={() => handleStartCall("voice")}
         />
+
+        {isAiChat && (
+          <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-violet-50 dark:bg-violet-950/60 border-b border-violet-200 dark:border-violet-900 text-violet-800 dark:text-violet-200">
+            <MaterialSymbol name="smart_toy" size={16} filled className="shrink-0" />
+            <p className="text-[12px] font-semibold leading-snug">
+              You're chatting with an AI companion, not a real person.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="px-4 py-2 bg-red-100 text-red-700 text-sm flex items-start justify-between gap-2">
@@ -1049,6 +1070,7 @@ export const ChatWindowPage = () => {
               </div>
               <h1 className="text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-1.5 mb-1">
                 {chatInfo.otherUser.name}
+                {isAiChat && <AiBadge variant="full" />}
                 {chatInfo.otherUser.isVerified && (
                   <MaterialSymbol
                     name="verified"
@@ -1302,6 +1324,30 @@ export const ChatWindowPage = () => {
             imageUrl={selectedImageModal}
             onClose={() => setSelectedImageModal(null)}
           />
+        )}
+
+        {showAiNotice && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-xl text-center">
+              <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-300">
+                <MaterialSymbol name="smart_toy" size={30} filled />
+              </div>
+              <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mb-2">
+                {chatInfo.otherUser.name} is an AI companion
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-5">
+                AI companions are not real people. Their replies are written by AI and can take a few minutes to arrive. Messages and gifts cost coins just like other chats, and those coins go to the platform.
+              </p>
+              <button
+                onClick={() => {
+                  localStorage.setItem(AI_NOTICE_KEY, "1");
+                  setShowAiNotice(false);
+                }}
+                className="w-full py-3 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold active:scale-95 transition-all">
+                I understand
+              </button>
+            </div>
+          </div>
         )}
 
         <ReportModal

@@ -77,6 +77,11 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Transaction',
     },
+    // Set when the message was written by an AI companion ('opener' starts a chat, 'reply' answers the user)
+    aiGenerated: {
+      type: String,
+      enum: ['opener', 'reply'],
+    },
     // Message status
     status: {
       type: String,

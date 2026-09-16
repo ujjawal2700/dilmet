@@ -65,7 +65,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-import { authRoutes, adminRoutes, userRoutes, walletRoutes, paymentRoutes, chatRoutes, rewardRoutes, uploadRoutes, fcmRoutes, taskRoutes } from './routes/index.js';
+import { authRoutes, adminRoutes, userRoutes, walletRoutes, paymentRoutes, chatRoutes, rewardRoutes, uploadRoutes, fcmRoutes, taskRoutes, supportRoutes } from './routes/index.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -77,6 +77,7 @@ app.use('/api/rewards', rewardRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/fcm', fcmRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/support', supportRoutes);
 // app.use('/api/male', maleRoutes);
 // app.use('/api/female', femaleRoutes);
 

@@ -1,4 +1,5 @@
 import { MaterialSymbol } from '../types/material-symbol';
+import { AiBadge } from '../../../shared/components/AiBadge';
 import type { Chat } from '../types/male.types';
 
 interface IntimacyInfo {
@@ -141,6 +142,8 @@ export const ChatListItem = ({ chat, onClick, showIntimacy = false }: ChatListIt
             >
               {chat.userName}
             </h4>
+
+            {chat.isAiCompanion && <AiBadge />}
 
             {/* Intimacy Tag Badge */}
             {showIntimacy && chat.intimacy && (

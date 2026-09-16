@@ -12,6 +12,7 @@ import Chat from '../../models/Chat.js';
 import Message from '../../models/Message.js';
 import logger from '../../utils/logger.js';
 import { getRandomDefaultTemplate } from '../../config/defaultAutoMessages.js';
+import aiCompanionService from '../ai/aiCompanionService.js';
 
 const DAILY_AUTO_MESSAGE_LIMIT = 10;
 const NEW_USER_THRESHOLD_DAYS = 7; // Consider users registered within last 7 days as "new"
@@ -176,6 +177,11 @@ class AutoMessageService {
     async processAutoMessagesForMale(maleUserId) {
         try {
             const maleIdStr = maleUserId.toString();
+
+            // AI companion openers run independently (own caps and in-flight guard)
+            aiCompanionService.maybeSendOpener(maleUserId).catch(err => {
+                logger.error(`❌ AI opener error for male ${maleUserId}: ${err.message}`);
+            });
 
             // Check for debounce lock to prevent duplicate processing
             const lastProcessed = processingLocks.get(maleIdStr);

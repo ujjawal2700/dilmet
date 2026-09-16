@@ -24,6 +24,7 @@
   "author": "Sujal & Harsh",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^2.22.0",
     "agora-token": "^2.0.5",
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",

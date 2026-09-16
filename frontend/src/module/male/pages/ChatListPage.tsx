@@ -138,13 +138,14 @@ export const ChatListPage = () => {
       const userCoord = { lat: user?.latitude || 0, lng: user?.longitude || 0 };
       const profileCoord = { lat: profileLat || 0, lng: profileLng || 0 };
 
-      if (areCoordinatesValid(userCoord) && areCoordinatesValid(profileCoord)) {
+      if (!otherUser.isAiCompanion && areCoordinatesValid(userCoord) && areCoordinatesValid(profileCoord)) {
         const dist = calculateDistance(userCoord, profileCoord);
         distanceStr = formatDistance(dist);
       }
 
       return {
         id: chat._id || chat.id,
+        isAiCompanion: !!otherUser.isAiCompanion,
         oddsUserId: otherId,
         userName: otherUser.name || "User",
         userAvatar: otherUser.avatar || "",

@@ -4,6 +4,24 @@ import apiClient from '../api/client';
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || '';
 
 /**
+ * Razorpay's checkout.js locks page scroll (overflow/touch-action on <html>
+ * and <body>) while its modal is open. On some browsers/devices it doesn't
+ * always clean this up after the modal closes - especially on the success
+ * path, where our own handler callback runs async work before the app
+ * re-renders - leaving the whole page permanently unscrollable. Force-reset
+ * it ourselves once the checkout flow is done, regardless of what Razorpay
+ * did or didn't clean up.
+ */
+const restorePageScroll = () => {
+    for (const el of [document.documentElement, document.body]) {
+        el.style.overflow = '';
+        el.style.touchAction = '';
+        el.style.position = '';
+        (el.style as any).overscrollBehavior = '';
+    }
+};
+
+/**
  * Load Razorpay SDK script dynamically
  */
 export const loadRazorpayScript = (): Promise<boolean> => {
@@ -102,6 +120,7 @@ export const initiatePayment = async (
                             transactionId: orderData.transactionId,
                         });
 
+                        restorePageScroll();
                         resolve({
                             success: true,
                             message: result.message,
@@ -114,21 +133,28 @@ export const initiatePayment = async (
                             newMemberTier: result.newMemberTier,
                         });
                     } catch (error: any) {
-
+                        restorePageScroll();
                         resolve({
                             success: false,
                             message: 'Payment verification failed',
                             error: error.response?.data?.message || error.message,
                         });
+                    } finally {
+                        // Razorpay's own close animation can finish slightly after this
+                        // callback runs and re-apply its scroll lock - reset again once
+                        // it's definitely done closing.
+                        setTimeout(restorePageScroll, 300);
                     }
                 },
                 modal: {
                     ondismiss: () => {
+                        restorePageScroll();
                         resolve({
                             success: false,
                             message: 'Payment cancelled',
                             error: 'USER_CANCELLED',
                         });
+                        setTimeout(restorePageScroll, 300);
                     },
                 },
             };
@@ -137,6 +163,7 @@ export const initiatePayment = async (
             razorpay.open();
         });
     } catch (error: any) {
+        restorePageScroll();
         return {
             success: false,
             message: 'Failed to initiate payment',

@@ -121,6 +121,10 @@ export const updateUserProfile = async (userId, data) => {
         }
     }
 
+    if (typeof data.showAiCompanions === 'boolean') {
+        user.showAiCompanions = data.showAiCompanions;
+    }
+
     if (data.interests && Array.isArray(data.interests)) {
         user.profile.interests = data.interests;
     }

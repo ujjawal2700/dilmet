@@ -168,7 +168,8 @@ export const discoverFemales = async (req, res, next) => {
         const isOnlineFilter = filter === 'online';
         const cacheTTL = isOnlineFilter ? 10 : CACHE_TTL.DISCOVER; // 10s for online, 30s otherwise
 
-        const cacheKey = `discover:females:${req.user.id}:${filter}:${page}:${limit}:${language}`;
+        const showAi = req.user.showAiCompanions !== false;
+        const cacheKey = `discover:females:${req.user.id}:${filter}:${page}:${limit}:${language}:${showAi ? 'ai' : 'noai'}`;
 
         // Try cache first (but only for first page to keep it fresh)
         if (parseInt(page) === 1) {
@@ -219,6 +220,9 @@ export const discoverFemales = async (req, res, next) => {
             isActive: true,
             isDeleted: false,
         };
+        if (!showAi) {
+            query.isAiCompanion = { $ne: true };
+        }
 
         // Filter and Sort options: matches the optimized compound indexes
         let sortOption = { isOnline: -1, lastSeen: -1 };
@@ -243,7 +247,7 @@ export const discoverFemales = async (req, res, next) => {
         // Also ensure we only select the minimum required fields for high-speed retrieval
         const [users, total] = await Promise.all([
             User.find(query)
-                .select(`profile.name profile.bio ${nameField} ${bioField} profile.age profile.occupation profile.location isOnline lastSeen createdAt coinBalance`)
+                .select(`profile.name profile.bio ${nameField} ${bioField} profile.age profile.occupation profile.location isOnline lastSeen createdAt coinBalance isAiCompanion`)
                 .select({ 'profile.photos': { $slice: 2 } }) // Only get the first 2 photos to save bandwidth
                 .sort(sortOption)
                 .skip(skip)
@@ -258,7 +262,10 @@ export const discoverFemales = async (req, res, next) => {
             const userCoords = user.profile?.location?.coordinates?.coordinates;
             const hasUserCoords = userCoords && userCoords[0] !== 0 && userCoords[1] !== 0;
 
-            if (hasCurrentUserCoords && hasUserCoords) {
+            if (user.isAiCompanion) {
+                // AI companions have no real location, so never show a distance
+                distanceFormatted = 'AI Companion';
+            } else if (hasCurrentUserCoords && hasUserCoords) {
                 const distanceKm = calculateDistance(
                     { lat: currentUserCoords[1], lng: currentUserCoords[0] },
                     { lat: userCoords[1], lng: userCoords[0] }
@@ -278,6 +285,7 @@ export const discoverFemales = async (req, res, next) => {
                 occupation: user.profile?.occupation,
                 isOnline: user.isOnline,
                 distance: distanceFormatted,
+                isAiCompanion: !!user.isAiCompanion,
                 chatCost: 50,
                 hasChat: chattedUserIds.has(user._id.toString()), // Tag existing chats
             };
@@ -319,7 +327,7 @@ export const getUserById = async (req, res, next) => {
             isActive: true,
             isDeleted: false
         })
-            .select('profile isOnline lastSeen role approvalStatus phoneNumber verificationDocuments createdAt isVerified isBlocked')
+            .select('profile isOnline lastSeen role approvalStatus phoneNumber verificationDocuments createdAt isVerified isBlocked isAiCompanion')
             .lean();
 
         if (!user) {
@@ -350,6 +358,8 @@ export const getUserById = async (req, res, next) => {
 
         if (currentUser?.role === 'admin') {
             exactLocation = user.profile?.location?.city || null;
+        } else if (user.isAiCompanion) {
+            distanceFormatted = 'AI Companion';
         } else if (hasCurrentUserCoords && hasTargetUserCoords) {
             const distanceKm = calculateDistance(
                 { lat: currentUserCoords[1], lng: currentUserCoords[0] },
@@ -375,7 +385,8 @@ export const getUserById = async (req, res, next) => {
                     photos: user.profile?.photos || [],
                     bio: user.profile?.bio,
                     occupation: user.profile?.occupation,
-                    city: user.profile?.location?.city || '',
+                    city: user.isAiCompanion ? '' : (user.profile?.location?.city || ''),
+                    isAiCompanion: !!user.isAiCompanion,
                     ...(currentUser?.role === 'admin' ? { location: exactLocation } : { distance: distanceFormatted }),
                     interests: user.profile?.interests || [],
                     isOnline: user.isOnline,

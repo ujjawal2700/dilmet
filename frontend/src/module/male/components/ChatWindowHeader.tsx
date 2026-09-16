@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { MaterialSymbol } from '../types/material-symbol';
+import { AiBadge } from '../../../shared/components/AiBadge';
 
 interface IntimacyInfo {
   level: number;
@@ -13,6 +14,7 @@ interface ChatWindowHeaderProps {
   userAvatar: string;
   isOnline: boolean;
   isVerified?: boolean;
+  isAiCompanion?: boolean;
   coinBalance?: number;
   intimacy?: IntimacyInfo | null;
   onMoreClick?: () => void;
@@ -29,6 +31,7 @@ export const ChatWindowHeader = ({
   userAvatar,
   isOnline,
   isVerified,
+  isAiCompanion = false,
 
   intimacy,
   onMoreClick,
@@ -99,12 +102,13 @@ export const ChatWindowHeader = ({
                     Lv.{intimacy.level}
                   </span>
                 )}
+                {isAiCompanion && <AiBadge onDark />}
                 {isVerified && (
                   <MaterialSymbol name="verified" filled size={16} className="text-white" />
                 )}
               </div>
               <p className="text-[11px] font-semibold text-white/85">
-                {isOnline ? 'Active now' : 'Active some time ago'}
+                {isAiCompanion ? 'AI companion' : isOnline ? 'Active now' : 'Active some time ago'}
               </p>
             </div>
           </button>

@@ -2,6 +2,7 @@ import React from "react";
 import { DiscoverProfile } from "../../../core/services/user.service";
 import { useTranslation } from "../../../core/hooks/useTranslation";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
+import { AiBadge } from "../../../shared/components/AiBadge";
 
 interface NearbyFemaleItemProps {
   profile: DiscoverProfile;
@@ -53,6 +54,7 @@ export const NearbyFemaleItem: React.FC<NearbyFemaleItemProps> = ({
             <h3 className="text-[17px] font-bold text-slate-900 dark:text-white truncate tracking-tight">
               {profile.name}
             </h3>
+            {profile.isAiCompanion && <AiBadge />}
             {anyProfile.isVerified && (
               <span className="text-[#ff4081] shrink-0 text-sm">
                 <MaterialSymbol name="verified" size={16} filled />

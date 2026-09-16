@@ -11,6 +11,7 @@ export interface DiscoverProfile {
     distance?: string | number;
     chatCost: number;
     hasChat?: boolean;
+    isAiCompanion?: boolean;
 }
 
 
@@ -29,6 +30,7 @@ export interface UserProfile {
     lastSeen?: string;
     role?: string;
     distance?: string;
+    isAiCompanion?: boolean;
 }
 
 export const discoverFemales = async (filter: string = 'all', page: number = 1, limit: number = 50) => {

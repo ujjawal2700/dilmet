@@ -257,6 +257,21 @@ const TasksManagementPage = lazy(() =>
     default: m.TasksManagementPage,
   })),
 );
+const AiCompanionsPage = lazy(() =>
+  import("./module/admin/pages/AiCompanionsPage").then((m) => ({
+    default: m.AiCompanionsPage,
+  })),
+);
+const SupportTicketsPage = lazy(() =>
+  import("./module/admin/pages/SupportTicketsPage").then((m) => ({
+    default: m.SupportTicketsPage,
+  })),
+);
+const SupportTicketDetailPage = lazy(() =>
+  import("./module/admin/pages/SupportTicketDetailPage").then((m) => ({
+    default: m.SupportTicketDetailPage,
+  })),
+);
 const SettingsPage = lazy(() =>
   import("./module/admin/pages/SettingsPage").then((m) => ({
     default: m.SettingsPage,
@@ -278,6 +293,14 @@ const FaqsPage = lazy(() =>
 const LegalDocumentPage = lazy(() =>
   import("./pages/LegalDocumentPage").then((m) => ({
     default: m.LegalDocumentPage,
+  })),
+);
+const SupportPage = lazy(() =>
+  import("./pages/SupportPage").then((m) => ({ default: m.SupportPage })),
+);
+const SupportTicketPage = lazy(() =>
+  import("./pages/SupportTicketPage").then((m) => ({
+    default: m.SupportTicketPage,
   })),
 );
 
@@ -424,6 +447,11 @@ function AppShell() {
                         />
                         <Route path="/male/level" element={<MyLevelPage />} />
                         <Route path="/male/tasks" element={<TasksPage />} />
+                        <Route path="/male/support" element={<SupportPage />} />
+                        <Route
+                          path="/male/support/:ticketId"
+                          element={<SupportTicketPage />}
+                        />
                       </Route>
                     </Route>
 
@@ -476,6 +504,14 @@ function AppShell() {
                           element={<FemaleSettingsPage />}
                         />
                         <Route path="/female/faqs" element={<FaqsPage />} />
+                        <Route
+                          path="/female/support"
+                          element={<SupportPage />}
+                        />
+                        <Route
+                          path="/female/support/:ticketId"
+                          element={<SupportTicketPage />}
+                        />
                       </Route>
                     </Route>
 
@@ -542,12 +578,24 @@ function AppShell() {
                                 element={<ReportsManagementPage />}
                               />
                               <Route
+                                path="support-tickets"
+                                element={<SupportTicketsPage />}
+                              />
+                              <Route
+                                path="support-tickets/:id"
+                                element={<SupportTicketDetailPage />}
+                              />
+                              <Route
                                 path="settings"
                                 element={<SettingsPage />}
                               />
                               <Route
                                 path="faqs"
                                 element={<FaqsManagementPage />}
+                              />
+                              <Route
+                                path="ai-companions"
+                                element={<AiCompanionsPage />}
                               />
                             </Routes>
                           </AdminStatsProvider>

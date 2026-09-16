@@ -207,6 +207,51 @@ export const deleteFaq = async (faqId: string) => {
     return response.data;
 };
 
+export const listSupportTickets = async (filters: any = {}, page = 1, limit = 20) => {
+    const response = await apiClient.get('/admin/support-tickets', { params: { ...filters, page, limit } });
+    return response.data.data;
+};
+
+export const getSupportTicket = async (ticketId: string) => {
+    const response = await apiClient.get(`/admin/support-tickets/${ticketId}`);
+    return response.data.data;
+};
+
+export const sendSupportMessage = async (ticketId: string, message: string) => {
+    const response = await apiClient.post(`/admin/support-tickets/${ticketId}/messages`, { message });
+    return response.data.data;
+};
+
+export const updateSupportTicketStatus = async (ticketId: string, status: string) => {
+    const response = await apiClient.patch(`/admin/support-tickets/${ticketId}/status`, { status });
+    return response.data.data;
+};
+
+export const listSupportTicketsForUser = async (userId: string) => {
+    const response = await apiClient.get(`/admin/support-tickets/user/${userId}`);
+    return response.data.data.tickets;
+};
+
+export const listAiCompanions = async () => {
+    const response = await apiClient.get('/admin/ai-companions');
+    return response.data.data;
+};
+
+export const createAiCompanion = async (data: any) => {
+    const response = await apiClient.post('/admin/ai-companions', data);
+    return response.data.data.companion;
+};
+
+export const updateAiCompanion = async (id: string, data: any) => {
+    const response = await apiClient.patch(`/admin/ai-companions/${id}`, data);
+    return response.data.data.companion;
+};
+
+export const deleteAiCompanion = async (id: string) => {
+    const response = await apiClient.delete(`/admin/ai-companions/${id}`);
+    return response.data;
+};
+
 export const adminService = {
     getDashboardStats,
     listUsers,
@@ -237,7 +282,16 @@ export const adminService = {
     listFaqsAdmin,
     createFaq,
     updateFaq,
-    deleteFaq
+    deleteFaq,
+    listSupportTickets,
+    getSupportTicket,
+    sendSupportMessage,
+    updateSupportTicketStatus,
+    listSupportTicketsForUser,
+    listAiCompanions,
+    createAiCompanion,
+    updateAiCompanion,
+    deleteAiCompanion
 };
 
 export default adminService;

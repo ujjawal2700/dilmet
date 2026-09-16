@@ -22,6 +22,7 @@ import logger from './utils/logger.js';
 import { setupSocketIO } from './socket/index.js';
 import walletScheduler from './jobs/walletScheduler.js';
 import notificationScheduler from './jobs/notificationScheduler.js';
+import aiReplyScheduler from './jobs/aiReplyScheduler.js';
 import './models/index.js'; // Load all model hooks
 
 const { port, nodeEnv } = getEnvConfig();
@@ -105,6 +106,9 @@ const startServer = async () => {
 
       // Start notification scheduler (for daily rewards, etc.)
       notificationScheduler.startNotificationScheduler();
+
+      // Start AI companion reply scheduler (delayed replies from AI companions)
+      aiReplyScheduler.startAiReplyScheduler(io);
     });
 
     // Handle unhandled promise rejections

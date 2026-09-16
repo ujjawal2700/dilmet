@@ -34,6 +34,6 @@ export const setupSocketIO = (io) => {
 };
 
 // Export helper functions for emitting events
-export { emitBalanceUpdate, emitNewMessage, emitNotification, emitTaskCompleted } from './chatHandlers.js';
+export { emitBalanceUpdate, emitNewMessage, emitNotification, emitTaskCompleted, emitSupportMessage, emitSupportTicketUpdate } from './chatHandlers.js';
 export { syncUserSocket, getUserSocketId } from './videoCallHandlers.js';
 

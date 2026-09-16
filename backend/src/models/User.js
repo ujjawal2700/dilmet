@@ -41,6 +41,18 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // AI companion accounts (bot profiles shown with a visible AI badge).
+    // Persona details live in the AiPersona model.
+    isAiCompanion: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    // Male preference: whether AI companions appear in discovery and send openers
+    showAiCompanions: {
+      type: Boolean,
+      default: true,
+    },
     isBlocked: {
       type: Boolean,
       default: false,

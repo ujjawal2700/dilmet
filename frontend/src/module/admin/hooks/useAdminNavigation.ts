@@ -88,6 +88,18 @@ export const useAdminNavigation = () => {
       badgeCount: stats.pendingReports,
     },
     {
+      id: 'ai-companions',
+      icon: 'smart_toy',
+      label: 'AI Companions',
+      isActive: location.pathname.startsWith('/admin/ai-companions'),
+    },
+    {
+      id: 'support-tickets',
+      icon: 'support_agent',
+      label: 'Support Tickets',
+      isActive: location.pathname.startsWith('/admin/support-tickets'),
+    },
+    {
       id: 'finance',
       icon: 'account_balance',
       label: 'Finance',
@@ -178,6 +190,12 @@ export const useAdminNavigation = () => {
         break;
       case 'reports':
         navigate('/admin/reports');
+        break;
+      case 'support-tickets':
+        navigate('/admin/support-tickets');
+        break;
+      case 'ai-companions':
+        navigate('/admin/ai-companions');
         break;
       case 'logout':
         if (window.confirm('Are you sure you want to logout?')) {

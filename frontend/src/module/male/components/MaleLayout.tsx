@@ -19,9 +19,10 @@ export const MaleLayout: React.FC = () => {
   const isBuyCoins = location.pathname === "/male/buy-coins";
   const isEditProfile = location.pathname === "/male/edit-profile";
   const isReferral = location.pathname === "/male/referral";
+  const isSupportTicket = location.pathname.startsWith("/male/support/");
 
   const hideBottomNav =
-    isChatWindow || isProfileView || isBuyCoins || isEditProfile || isReferral;
+    isChatWindow || isProfileView || isBuyCoins || isEditProfile || isReferral || isSupportTicket;
 
   return (
     <div className="min-h-screen relative w-full bg-background-light">

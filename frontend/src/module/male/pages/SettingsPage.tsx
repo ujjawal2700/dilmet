@@ -6,6 +6,7 @@ import { useTranslation } from '../../../core/hooks/useTranslation';
 import { useGlobalState } from '../../../core/context/GlobalStateContext';
 import userService from '../../../core/services/user.service';
 import { legalDocuments } from '../../../core/content/legalDocuments';
+import { queryClient } from '../../../core/queries/queryClient';
 
 export const SettingsPage = () => {
   const { t } = useTranslation();
@@ -20,9 +21,32 @@ export const SettingsPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // AI companions preference (null until loaded)
+  const [showAiCompanions, setShowAiCompanions] = useState<boolean | null>(null);
+  const [isSavingAiPref, setIsSavingAiPref] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    userService.getMyProfile()
+      .then((profile: any) => setShowAiCompanions(profile?.showAiCompanions !== false))
+      .catch(() => setShowAiCompanions(true));
   }, []);
+
+  const handleToggleAiCompanions = async () => {
+    if (showAiCompanions === null || isSavingAiPref) return;
+    const next = !showAiCompanions;
+    setShowAiCompanions(next);
+    setIsSavingAiPref(true);
+    try {
+      await userService.updateMyProfile({ showAiCompanions: next });
+      queryClient.invalidateQueries({ queryKey: ['discovery'] });
+    } catch (error) {
+      console.error('Failed to update AI companion preference:', error);
+      setShowAiCompanions(!next);
+    } finally {
+      setIsSavingAiPref(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     try {
@@ -145,6 +169,44 @@ export const SettingsPage = () => {
             </div>
           </section>
         )}
+
+        {/* AI Companions Section */}
+        <section className="px-4 mt-6">
+          <div className="flex items-center gap-3 px-2 mb-2">
+            <div className="bg-[#f6ece7] size-8 rounded-xl flex items-center justify-center bg-transparent text-pink-600">
+              <MaterialSymbol name="smart_toy" size={18} />
+            </div>
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">
+              AI Companions
+            </h3>
+          </div>
+
+          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden p-4">
+            <button
+              onClick={handleToggleAiCompanions}
+              disabled={showAiCompanions === null || isSavingAiPref}
+              role="switch"
+              aria-checked={!!showAiCompanions}
+              className="w-full min-h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between gap-4 px-6 py-3 hover:bg-slate-100 transition-all disabled:opacity-60"
+            >
+              <div className="flex flex-col items-start text-left">
+                <span className="text-[11px] font-black uppercase tracking-[0.15em] text-ink/80">
+                  Show AI companions
+                </span>
+                <span className="text-xs font-medium text-ink/60 mt-0.5">
+                  AI-powered profiles marked with an AI badge. They can appear in discovery and message you first.
+                </span>
+              </div>
+              <span
+                className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${showAiCompanions ? 'bg-pink-500' : 'bg-slate-300'}`}
+              >
+                <span
+                  className={`absolute top-1 size-5 rounded-full bg-white shadow transition-transform ${showAiCompanions ? 'translate-x-6' : 'translate-x-1'}`}
+                />
+              </span>
+            </button>
+          </div>
+        </section>
 
         {/* Account Section */}
         <section className="px-4 mt-6">

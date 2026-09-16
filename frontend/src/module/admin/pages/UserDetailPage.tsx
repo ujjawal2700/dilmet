@@ -5,8 +5,16 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
 import type { AdminUser } from '../types/admin.types';
+import type { SupportTicket } from '../../../core/types/support.types';
 import adminService from '../../../core/services/admin.service';
 import apiClient from '../../../core/api/client';
+
+const TICKET_STATUS_META: Record<string, { label: string; className: string }> = {
+  open: { label: 'Open', className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' },
+  in_progress: { label: 'In Progress', className: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' },
+  resolved: { label: 'Resolved', className: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' },
+  closed: { label: 'Closed', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' },
+};
 
 export const UserDetailPage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -17,6 +25,8 @@ export const UserDetailPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmBlock, setShowConfirmBlock] = useState(false);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -48,6 +58,25 @@ export const UserDetailPage = () => {
       }
     };
     fetchUser();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      setIsLoadingTickets(false);
+      return;
+    }
+    const fetchTickets = async () => {
+      try {
+        setIsLoadingTickets(true);
+        const tickets = await adminService.listSupportTicketsForUser(userId);
+        setSupportTickets(tickets);
+      } catch (error) {
+        console.error('Failed to fetch support tickets:', error);
+      } finally {
+        setIsLoadingTickets(false);
+      }
+    };
+    fetchTickets();
   }, [userId]);
 
   const formatDate = (dateString: string) => {
@@ -299,6 +328,49 @@ export const UserDetailPage = () => {
                     <p className="text-sm text-gray-900 dark:text-white">{formatDate(user.lastLoginAt)}</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Support Tickets */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <MaterialSymbol name="support_agent" className="text-pink-600 dark:text-pink-400" size={24} />
+                  Support Tickets
+                  {supportTickets.length > 0 && (
+                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({supportTickets.length})</span>
+                  )}
+                </h3>
+                {isLoadingTickets ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-8 h-8 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : supportTickets.length === 0 ? (
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
+                    This user hasn't raised any support tickets
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {supportTickets.map((ticket) => {
+                      const meta = TICKET_STATUS_META[ticket.status];
+                      return (
+                        <button
+                          key={ticket._id}
+                          onClick={() => navigate(`/admin/support-tickets/${ticket._id}`)}
+                          className="w-full text-left flex items-center justify-between gap-3 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-800 hover:border-pink-300 dark:hover:border-pink-700 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{ticket.subject}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                              {ticket.lastMessageBySenderRole === 'admin' ? 'You: ' : ''}{ticket.lastMessagePreview}
+                            </p>
+                          </div>
+                          <span className={`shrink-0 px-2 py-1 rounded text-xs font-medium ${meta.className}`}>
+                            {meta.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

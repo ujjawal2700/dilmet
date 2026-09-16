@@ -257,8 +257,10 @@ export const getPendingFemales = async (pagination, status = 'pending') => {
     }
 
     // Regular query for active users
+    // AI companions are managed on their own admin page
     const query = {
-        role: 'female'
+        role: 'female',
+        isAiCompanion: { $ne: true }
     };
 
     if (status && status !== 'all') {
@@ -277,7 +279,7 @@ export const getPendingFemales = async (pagination, status = 'pending') => {
     // Get counts for all statuses for the tabs
     const [statusCounts, deletedCount] = await Promise.all([
         User.aggregate([
-            { $match: { role: 'female' } },
+            { $match: { role: 'female', isAiCompanion: { $ne: true } } },
             { $group: { _id: '$approvalStatus', count: { $sum: 1 } } }
         ]),
         (await import('../../models/DeletedAccount.js')).default.countDocuments({ role: 'female' })
@@ -373,7 +375,8 @@ export const listUsers = async (filters, pagination) => {
     const { search, role, status } = filters;
     const skip = (page - 1) * limit;
 
-    const query = {};
+    // AI companions are managed on their own admin page
+    const query = { isAiCompanion: { $ne: true } };
     if (role && role !== 'all') query.role = role;
     if (status === 'blocked') query.isBlocked = true;
     if (status === 'active') query.isBlocked = false;
@@ -586,6 +589,7 @@ export const updateAppSettings = async (newSettings, adminId) => {
     if (newSettings.videoCall) Object.assign(settings.videoCall, newSettings.videoCall);
     if (newSettings.security) Object.assign(settings.security, newSettings.security);
     if (newSettings.referral) Object.assign(settings.referral, newSettings.referral);
+    if (newSettings.aiCompanions) Object.assign(settings.aiCompanions, newSettings.aiCompanions);
     if (newSettings.adminPhones) settings.adminPhones = newSettings.adminPhones;
     if (newSettings.maleLevels) settings.maleLevels = newSettings.maleLevels;
 

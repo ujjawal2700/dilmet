@@ -16,6 +16,7 @@ import rewardRoutes from './reward/routes.js';
 import uploadRoutes from './upload/routes.js';
 import fcmRoutes from './fcm/routes.js';
 import taskRoutes from './task/routes.js';
+import supportRoutes from './support/routes.js';
 // import maleRoutes from './male/routes.js';
 // import femaleRoutes from './female/routes.js';
 
@@ -30,6 +31,7 @@ export {
     uploadRoutes,
     fcmRoutes,
     taskRoutes,
+    supportRoutes,
     //   maleRoutes,
     //   femaleRoutes,
 };

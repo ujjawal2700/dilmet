@@ -68,6 +68,9 @@ export const validateCallRequest = async (callerId, receiverId, callType = 'vide
     if (receiver.role !== 'female') {
         throw new ForbiddenError(`${callLabel === 'voice' ? 'Voice' : 'Video'} calls can only be made to female users`);
     }
+    if (receiver.isAiCompanion) {
+        throw new ForbiddenError(`AI companions can't take ${callLabel} calls`);
+    }
 
     // 3. Check for blocks
     if (caller.blockedUsers.some(id => id.toString() === receiverId.toString())) {

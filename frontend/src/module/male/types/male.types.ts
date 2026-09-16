@@ -39,6 +39,7 @@ export interface Chat {
   messageType?: 'text' | 'image' | 'photo' | 'gift';
   readStatus?: 'sent' | 'delivered' | 'read';
   distance?: string;
+  isAiCompanion?: boolean;
 }
 
 export interface MaleDashboardData {
@@ -59,6 +60,7 @@ export interface NearbyFemale {
   occupation?: string;
   bio?: string;
   chatCost: number;
+  isAiCompanion?: boolean;
 }
 
 export type FilterType = 'all' | 'nearby' | 'new' | 'popular';

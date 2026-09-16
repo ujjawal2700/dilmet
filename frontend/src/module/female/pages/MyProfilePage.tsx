@@ -363,6 +363,19 @@ export const MyProfilePage = () => {
             </button>
 
             <button
+              onClick={() => navigate("/female/support")}
+              className="w-full flex items-center justify-between px-5 py-4 group active:bg-pink-50/50 transition-colors"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="size-10 rounded-2xl bg-sky-50 flex items-center justify-center">
+                  <MaterialSymbol name="support_agent" size={20} className="text-sky-500" filled />
+                </div>
+                <span className="text-[13px] font-bold text-ink">{t("support")}</span>
+              </div>
+              <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            <button
               onClick={() => navigate("/female/settings")}
               className="w-full flex items-center justify-between px-5 py-4 group active:bg-pink-50/50 transition-colors"
             >
