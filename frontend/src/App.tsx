@@ -279,6 +279,11 @@ const FaqsManagementPage = lazy(() =>
 const FaqsPage = lazy(() =>
   import("./pages/FaqsPage").then((m) => ({ default: m.FaqsPage })),
 );
+const LegalDocumentPage = lazy(() =>
+  import("./pages/LegalDocumentPage").then((m) => ({
+    default: m.LegalDocumentPage,
+  })),
+);
 
 function App() {
   return (
@@ -342,6 +347,8 @@ function AppShell() {
                     {/* Auth routes */}
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/login" element={<LoginPage />} />
+                    {/* Legal documents - publicly accessible (pre-signup and from within the app) */}
+                    <Route path="/legal/:slug" element={<LegalDocumentPage />} />
                     <Route
                       path="/otp-verification"
                       element={<OtpVerificationPage />}

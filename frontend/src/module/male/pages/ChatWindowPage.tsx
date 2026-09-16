@@ -31,6 +31,7 @@ import { MaterialSymbol } from "../types/material-symbol";
 import { ChatSkeletonLoader } from "../components/ChatSkeletonLoader";
 import { FailedMessageModal } from "../components/FailedMessageModal";
 import type { Message } from "../types/male.types";
+import { validateMessageContent } from "../../../core/utils/contentModeration";
 
 // Message cost constant
 const MESSAGE_COST = 50;
@@ -41,7 +42,8 @@ export const ChatWindowPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const prefillMessage = (location.state as { prefillMessage?: string } | null)?.prefillMessage;
+  const prefillMessage = (location.state as { prefillMessage?: string } | null)
+    ?.prefillMessage;
   const {
     coinBalance,
     updateBalance,
@@ -49,6 +51,7 @@ export const ChatWindowPage = () => {
     chatCache,
     saveToChatCache,
     appSettings,
+    addNotification,
   } = useGlobalState();
   const { requestCall, isInCall, callPrice, voiceCallPrice } = useVideoCall();
 
@@ -476,6 +479,21 @@ export const ChatWindowPage = () => {
   const handleSendMessage = async (content: string) => {
     setHasInteracted(true);
     if (!chatId || isSending) return;
+
+    // Content moderation: prevent phone numbers (max 4 numbers allowed) and abusive words
+    const moderation = validateMessageContent(content);
+    if (!moderation.isValid) {
+      addNotification({
+        title:
+          moderation.reason === "phone_number"
+            ? "Number Sharing Blocked"
+            : "Message Blocked",
+        message:
+          moderation.message || "This message violates community guidelines.",
+        type: "system",
+      });
+      return;
+    }
 
     const optimisticMessageId = `temp_${Date.now()}`;
     const optimisticMessage: ApiMessage = {
@@ -905,7 +923,9 @@ export const ChatWindowPage = () => {
     const price = type === "voice" ? voiceCallPrice : callPrice;
     if (coinBalance < price) {
       setRequiredCoinsModal(price);
-      setModalAction(t(type === "voice" ? "actionVoiceCall" : "actionVideoCall"));
+      setModalAction(
+        t(type === "voice" ? "actionVoiceCall" : "actionVideoCall"),
+      );
       setIsBalanceModalOpen(true);
       return;
     }

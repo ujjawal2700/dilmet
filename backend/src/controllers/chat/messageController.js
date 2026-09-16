@@ -18,6 +18,7 @@ import { emitNewMessage, emitBalanceUpdate } from '../../socket/chatHandlers.js'
 import chatNotificationService from '../../services/notification/chatNotification.service.js';
 import earningBatchService from '../../services/wallet/earningBatchService.js';
 import taskService from '../../services/task/taskService.js';
+import { validateMessageContent } from '../../utils/contentModeration.js';
 
 // Counts words in a message (whitespace-separated, ignoring empty tokens)
 export const countWords = (text) => {
@@ -71,6 +72,14 @@ export const sendMessage = async (req, res, next) => {
 
         if (messageType === 'image' && (!attachments || attachments.length === 0)) {
             throw new BadRequestError('Attachments are required for image messages');
+        }
+
+        // Content moderation: prevent phone numbers (max 4 numbers allowed) and abusive language
+        if (content && typeof content === 'string' && content.trim().length > 0) {
+            const moderation = validateMessageContent(content);
+            if (!moderation.isValid) {
+                throw new BadRequestError(moderation.message);
+            }
         }
 
         // Verify chat exists and user is participant
@@ -508,6 +517,14 @@ export const sendGift = async (req, res, next) => {
 
         if (!giftIds || !Array.isArray(giftIds) || giftIds.length === 0) {
             throw new BadRequestError('At least one Gift ID is required');
+        }
+
+        // Content moderation: prevent phone numbers (max 4 numbers allowed) and abusive language in gift note
+        if (content && typeof content === 'string' && content.trim().length > 0) {
+            const moderation = validateMessageContent(content);
+            if (!moderation.isValid) {
+                throw new BadRequestError(moderation.message);
+            }
         }
 
         // Verify chat

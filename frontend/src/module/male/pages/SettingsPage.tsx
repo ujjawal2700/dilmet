@@ -5,12 +5,15 @@ import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
 import { useTranslation } from '../../../core/hooks/useTranslation';
 import { useGlobalState } from '../../../core/context/GlobalStateContext';
 import userService from '../../../core/services/user.service';
+import { legalDocuments } from '../../../core/content/legalDocuments';
 
 export const SettingsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { addNotification } = useGlobalState();
+  const { addNotification, appSettings } = useGlobalState();
+  const supportEmail = appSettings?.general?.supportEmail;
+  const supportPhone = appSettings?.general?.supportPhone;
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -54,8 +57,97 @@ export const SettingsPage = () => {
           </div>
         </section>
 
-        {/* Account Section */}
+        {/* About Dil Mate Section */}
         <section className="px-4 mt-4">
+          <div className="flex items-center gap-3 px-2 mb-2">
+            <div className="bg-[#f6ece7] size-8 rounded-xl flex items-center justify-center bg-transparent text-pink-600">
+              <MaterialSymbol name="info" size={18} />
+            </div>
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">
+              {t('aboutDilMate')}
+            </h3>
+          </div>
+
+          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden shadow-2xl p-4 space-y-2">
+            {Object.values(legalDocuments).map((doc) => (
+              <button
+                key={doc.slug}
+                onClick={() => navigate(`/legal/${doc.slug}`)}
+                className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
+              >
+                <div className="flex items-center gap-4">
+                  <MaterialSymbol
+                    name={doc.icon}
+                    size={20}
+                    className="text-muted-light group-hover:text-pink-500 transition-colors"
+                  />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-light group-hover:text-ink transition-colors">
+                    {doc.title}
+                  </span>
+                </div>
+                <MaterialSymbol
+                  name="chevron_right"
+                  size={20}
+                  className="text-muted-light group-hover:translate-x-1 transition-transform"
+                />
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Support Section */}
+        {(supportEmail || supportPhone) && (
+          <section className="px-4 mt-6">
+            <div className="flex items-center gap-3 px-2 mb-2">
+              <div className="bg-[#f6ece7] size-8 rounded-xl flex items-center justify-center bg-transparent text-pink-600">
+                <MaterialSymbol name="support_agent" size={18} />
+              </div>
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">
+                {t('support')}
+              </h3>
+            </div>
+
+            <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden shadow-2xl p-4 space-y-2">
+              {supportEmail && (
+                <a
+                  href={`mailto:${supportEmail}`}
+                  className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
+                >
+                  <div className="flex items-center gap-4">
+                    <MaterialSymbol name="mail" size={20} className="text-muted-light group-hover:text-pink-500 transition-colors" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-light">
+                        {t('emailUs')}
+                      </span>
+                      <span className="text-xs font-semibold text-ink">{supportEmail}</span>
+                    </div>
+                  </div>
+                  <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-1 transition-transform" />
+                </a>
+              )}
+              {supportPhone && (
+                <a
+                  href={`tel:${supportPhone}`}
+                  className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
+                >
+                  <div className="flex items-center gap-4">
+                    <MaterialSymbol name="call" size={20} className="text-muted-light group-hover:text-pink-500 transition-colors" />
+                    <div className="flex flex-col items-start">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-light">
+                        {t('callUs')}
+                      </span>
+                      <span className="text-xs font-semibold text-ink">{supportPhone}</span>
+                    </div>
+                  </div>
+                  <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-1 transition-transform" />
+                </a>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Account Section */}
+        <section className="px-4 mt-6">
           <div className="flex items-center gap-3 px-2 mb-2">
             <div className="bg-[#f6ece7] size-8 rounded-xl flex items-center justify-center bg-transparent text-pink-600">
               <MaterialSymbol name="manage_accounts" size={18} />

@@ -1,8 +1,8 @@
-import React, { Suspense } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { BottomNavigation } from './BottomNavigation';
-import { PageSkeletonLoader } from './PageSkeletonLoader';
-import { useMaleNavigation } from '../hooks/useMaleNavigation';
+import React, { Suspense } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { BottomNavigation } from "./BottomNavigation";
+import { PageSkeletonLoader } from "./PageSkeletonLoader";
+import { useMaleNavigation } from "../hooks/useMaleNavigation";
 
 export const MaleLayout: React.FC = () => {
   const { navigationItems, handleNavigationClick } = useMaleNavigation();
@@ -12,14 +12,16 @@ export const MaleLayout: React.FC = () => {
   // 1. Active chat window (/male/chat/:chatId, but NOT /male/chats)
   // 2. Female profile detail page (/male/profile/:id)
   const isChatWindow =
-    location.pathname.startsWith('/male/chat/') &&
-    !location.pathname.startsWith('/male/chats');
+    location.pathname.startsWith("/male/chat/") &&
+    !location.pathname.startsWith("/male/chats");
 
-  const isProfileView = location.pathname.startsWith('/male/profile/');
-  const isBuyCoins = location.pathname === '/male/buy-coins';
-  const isEditProfile = location.pathname === '/male/edit-profile';
+  const isProfileView = location.pathname.startsWith("/male/profile/");
+  const isBuyCoins = location.pathname === "/male/buy-coins";
+  const isEditProfile = location.pathname === "/male/edit-profile";
+  const isReferral = location.pathname === "/male/referral";
 
-  const hideBottomNav = isChatWindow || isProfileView || isBuyCoins || isEditProfile;
+  const hideBottomNav =
+    isChatWindow || isProfileView || isBuyCoins || isEditProfile || isReferral;
 
   return (
     <div className="min-h-screen relative w-full bg-background-light">

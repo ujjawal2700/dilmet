@@ -16,13 +16,14 @@ import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
 import { ImageModal } from "../../../shared/components/ImageModal";
 import type { Message, Chat } from "../types/female.types";
 import { ChatSkeletonLoader } from "../../male/components/ChatSkeletonLoader";
+import { validateMessageContent } from "../../../core/utils/contentModeration";
 
 export const ChatWindowPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { coinBalance, updateBalance } = useGlobalState();
+  const { coinBalance, updateBalance, addNotification } = useGlobalState();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatInfo, setChatInfo] = useState<Chat | null>(null);
@@ -110,6 +111,22 @@ export const ChatWindowPage = () => {
 
   const handleSendMessage = async (content: string) => {
     if (!chatId || !content.trim()) return;
+
+    // Content moderation: prevent phone numbers (max 4 numbers allowed) and abusive words
+    const moderation = validateMessageContent(content);
+    if (!moderation.isValid) {
+      addNotification({
+        title:
+          moderation.reason === "phone_number"
+            ? "Number Sharing Blocked"
+            : "Message Blocked",
+        message:
+          moderation.message || "This message violates community guidelines.",
+        type: "system",
+      });
+      return;
+    }
+
     setIsSending(true);
     try {
       const response = await chatService.sendMessage(chatId, content);

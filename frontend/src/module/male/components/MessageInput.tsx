@@ -5,6 +5,7 @@ import {
   ImagePickerRef,
 } from "../../../shared/components/ImagePicker";
 import { CameraCapture } from "../../../shared/components/CameraCapture";
+import { validateMessageContent } from "../../../core/utils/contentModeration";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -33,6 +34,9 @@ export const MessageInput = ({
 }: MessageInputProps) => {
   const [message, setMessage] = useState(initialMessage);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [validationWarning, setValidationWarning] = useState<string | null>(
+    null,
+  );
 
   const quickReplies = [
     "Hi! 👋",
@@ -54,6 +58,14 @@ export const MessageInput = ({
     if (message.trim() && !isSending) {
       if (disabled) return;
 
+      const moderation = validateMessageContent(message.trim());
+      if (!moderation.isValid) {
+        setValidationWarning(moderation.message || "Message not allowed");
+        setTimeout(() => setValidationWarning(null), 5000);
+        return;
+      }
+
+      setValidationWarning(null);
       onSendMessage(message.trim());
       setMessage("");
       inputRef.current?.focus();
@@ -75,6 +87,9 @@ export const MessageInput = ({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setMessage(value);
+      if (validationWarning) {
+        setValidationWarning(null);
+      }
 
       // Start typing indicator
       if (value && onTypingStart) {
@@ -91,7 +106,7 @@ export const MessageInput = ({
         }
       }, 2000);
     },
-    [onTypingStart, onTypingStop],
+    [onTypingStart, onTypingStop, validationWarning],
   );
 
   // Cleanup
@@ -105,6 +120,18 @@ export const MessageInput = ({
 
   return (
     <div className="flex flex-col bg-transparent pb-5 pt-2">
+      {/* Moderation Warning Toast/Banner */}
+      {validationWarning && (
+        <div className="mx-3 mb-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm animate-fadeIn">
+          <MaterialSymbol
+            name="warning"
+            size={18}
+            className="text-rose-500 shrink-0"
+          />
+          <span className="leading-snug">{validationWarning}</span>
+        </div>
+      )}
+
       {/* Quick Replies Sidebar/Bar (Instagram-like suggestions) */}
       {showQuickReplies && (
         <div className="flex items-center gap-2 overflow-x-auto px-4 mb-3 no-scrollbar scroll-smooth">

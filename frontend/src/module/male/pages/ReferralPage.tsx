@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../core/context/AuthContext";
 import { useGlobalState } from "../../../core/context/GlobalStateContext";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
@@ -15,6 +16,7 @@ interface ReferralHistoryItem {
 
 export const ReferralPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const { appSettings } = useGlobalState();
@@ -66,228 +68,231 @@ export const ReferralPage = () => {
   };
 
   return (
-    <div className="bg-[#fff8fb] min-h-screen pb-32 relative overflow-hidden font-display selection:bg-pink-600 selection:text-white antialiased">
-      {/* Background Decor */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-pink-500/5 blur-[120px] rounded-full animate-blob-shift" />
-        <div
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-500/5 blur-[120px] rounded-full animate-blob-shift"
-          style={{ animationDelay: "-6s" }}
-        />
-      </div>
-
-      {/* Header Removed for Immersive View */}
+    <div className="bg-[#f8f4f6] min-h-screen pb-24 relative overflow-hidden font-display selection:bg-pink-600 selection:text-white antialiased">
+      {/* ── Sticky Header ── */}
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 pt-3 pb-3 bg-white/90 backdrop-blur-xl border-b border-pink-100/50 shadow-xs">
+        <button
+          onClick={() => navigate(-1)}
+          className="size-10 flex items-center justify-center rounded-2xl bg-pink-50 text-pink-600 active:scale-90 transition-all shadow-xs"
+          aria-label="Back">
+          <MaterialSymbol name="arrow_back" size={22} />
+        </button>
+        <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
+          REFER & EARN
+        </h1>
+        <div className="size-10" />
+      </header>
 
       <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto w-full flex flex-col relative z-10">
-        <main className="p-4 space-y-8 mt-2">
+        <main className="p-4 space-y-6">
           {/* Premium Reward Hero */}
           <div className="relative group">
-            {/* Glow Behind Hero */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-rose-500 rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-
-            <div className="relative bg-white shadow-card bg-premium-pink text-white rounded-[2.5rem] p-8 overflow-hidden shadow-2xl">
-              {/* Animated Background Icon */}
-              <div className="absolute -top-6 -right-6 opacity-10 rotate-12 transition-transform group-hover:scale-110 duration-700">
-                <MaterialSymbol name="redeem" size={200} filled />
+            <div className="relative bg-gradient-to-br from-pink-600 via-rose-500 to-indigo-600 text-white rounded-[2rem] p-7 overflow-hidden shadow-xl">
+              {/* Background watermark icon */}
+              <div className="absolute -top-6 -right-6 opacity-15 rotate-12 transition-transform group-hover:scale-110 duration-700 pointer-events-none">
+                <MaterialSymbol name="redeem" size={180} filled />
               </div>
 
               <div className="relative z-10 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90 drop-shadow-sm">
-                  {t("Invite Your Circle")}
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/90">
+                  {t("Invite Your Circle") || "INVITE YOUR CIRCLE"}
                 </span>
-                <h2 className="text-4xl font-black tracking-tighter leading-tight bg-clip-text text-white drop-shadow-[0_2px_15px_rgba(0,0,0,0.15)]">
-                  {t("Invite & Get")}
+                <h2 className="text-3xl font-black tracking-tight leading-tight text-white drop-shadow-sm">
+                  {t("Invite & Get") || "Invite & Get"}
                 </h2>
 
-                <div className="flex items-center gap-3 py-4">
-                  <div className="bg-white/20 backdrop-blur-xl rounded-3xl px-6 py-4 border border-white/30 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)]">
+                <div className="flex items-center gap-3 py-3">
+                  <div className="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/30 shadow-inner">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-black text-glow-gold text-[#FFD93D]">
+                      <span className="text-4xl font-black text-[#FFD93D] drop-shadow-sm">
                         {rewardAmount}
                       </span>
-                      <span className="text-xs font-black uppercase tracking-widest text-[#FFD93D] opacity-90">
-                        {t("Coins")}
+                      <span className="text-xs font-black uppercase tracking-wider text-[#FFD93D]">
+                        {t("Coins") || "COINS"}
                       </span>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="h-0.5 w-12 bg-white/30 rounded-full mb-2"></div>
-                    <p className="text-[11px] font-black leading-relaxed text-white drop-shadow-sm">
-                      {t("when your friend makes their first recharge")}
+                    <div className="h-0.5 w-10 bg-white/40 rounded-full mb-1.5" />
+                    <p className="text-[11px] font-black leading-snug text-white/95">
+                      {t("when your friend makes their first recharge") ||
+                        "when your friend makes their first recharge"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/20 items-end flex px-8 pb-4 pointer-events-none">
-                <p className="text-[10px] font-black tracking-wide text-white/80 uppercase">
-                  Limitless earning potential
-                </p>
+              <div className="pt-2">
+                <span className="text-[9px] font-black tracking-widest text-white/80 uppercase bg-white/10 px-3 py-1 rounded-full inline-block">
+                  Limitless Earning Potential
+                </span>
               </div>
             </div>
           </div>
 
           {/* Referral ID "The Vault" */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black text-muted-light uppercase tracking-widest">
-                {t("Your Secret Code")}
-              </h3>
-              <div className="h-px flex-1 bg-slate-100 mx-4"></div>
-            </div>
+          <div className="space-y-2">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-widest px-1">
+              {t("Your Secret Code") || "YOUR SECRET CODE"}
+            </h3>
 
-            <div className="bg-white shadow-card rounded-[2rem] p-5 relative overflow-hidden group">
-              <div className="absolute inset-0 opacity-30 pointer-events-none" />
-
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="flex-1 rounded-2xl p-4 flex items-center justify-center bg-gray-50">
-                  <span className="text-2xl font-black tracking-[.25em] text-pink-600 font-mono drop-shadow-[0_4px_8px_rgba(255,77,109,0.1)]">
-                    {referralId}
-                  </span>
-                </div>
-                <button
-                  onClick={handleCopy}
-                  className={`bg-white shadow-card-bold flex-shrink-0 flex items-center gap-2 px-6 h-[64px] rounded-2xl transition-all duration-300 ${copied ? "from-green-500 to-emerald-600" : ""}`}>
-                  <MaterialSymbol
-                    name={copied ? "check" : "content_copy"}
-                    size={24}
-                    className="text-white"
-                  />
-                  <span className="text-xs font-black uppercase tracking-widest text-white">
-                    {copied ? t("Done") : t("Copy")}
-                  </span>
-                </button>
+            <div className="bg-white rounded-[1.5rem] p-4 shadow-card border border-pink-50 flex items-center gap-3">
+              <div className="flex-1 rounded-2xl py-3 px-4 flex items-center justify-center bg-[#f8f4f6] border border-pink-100">
+                <span className="text-2xl font-black tracking-[0.25em] text-pink-600 font-mono select-all">
+                  {referralId}
+                </span>
               </div>
+              <button
+                onClick={handleCopy}
+                className={`flex items-center gap-1.5 px-5 h-12 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 active:scale-95 shadow-md ${
+                  copied
+                    ? "bg-emerald-500 text-white shadow-emerald-500/30"
+                    : "bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-pink-500/30"
+                }`}>
+                <MaterialSymbol
+                  name={copied ? "check" : "content_copy"}
+                  size={18}
+                  className="text-white"
+                />
+                <span>
+                  {copied ? t("Done") || "COPIED" : t("Copy") || "COPY"}
+                </span>
+              </button>
             </div>
           </div>
 
           {/* How it works - Visual Flow */}
-          <div className="space-y-4">
-            <h3 className="text-[10px] font-black text-muted-light uppercase tracking-widest px-2">
-              {t("How the Magic Happens")}
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-widest px-1">
+              {t("How the Magic Happens") || "HOW IT WORKS"}
             </h3>
 
-            <div className="relative pl-8 space-y-6">
-              {/* Visual Timeline Line */}
-              <div className="absolute left-3.5 top-2 bottom-8 w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full opacity-20"></div>
-
+            <div className="space-y-2.5">
               {[
                 {
-                  icon: "share_windows",
-                  title: t("Broadcast your link"),
-                  desc: t("Send your unique link to your trusted circle."),
-                  color: "text-blue-500",
-                  bgColor: "bg-blue-500/10",
+                  icon: "share",
+                  title: t("Broadcast your link") || "1. Share Your Code",
+                  desc:
+                    t("Send your unique referral code to friends.") ||
+                    "Send your unique code to friends and contacts.",
+                  iconColor: "text-pink-600",
+                  iconBg: "bg-pink-50",
                 },
                 {
                   icon: "how_to_reg",
-                  title: t("The onboarding"),
-                  desc: t(
-                    "Your contacts register using your unique secret code.",
-                  ),
-                  color: "text-purple-500",
-                  bgColor: "bg-purple-500/10",
+                  title: t("The onboarding") || "2. Friend Registers",
+                  desc:
+                    t("Your contacts register using your secret code.") ||
+                    "Your friend signs up using your code.",
+                  iconColor: "text-rose-500",
+                  iconBg: "bg-rose-50",
                 },
                 {
-                  icon: "token",
-                  title: t("Claim the bounty"),
-                  desc: `${t("You receive")} ${rewardAmount} ${t("coins once they complete their first recharge.")}`,
-                  color: "text-amber-500",
-                  bgColor: "bg-amber-500/10",
+                  icon: "monetization_on",
+                  title: t("Claim the bounty") || "3. Get Instant Coins",
+                  desc: `${t("You receive") || "You receive"} ${rewardAmount} ${t("coins once they complete their first recharge.") || "coins when they make their first recharge."}`,
+                  iconColor: "text-indigo-600",
+                  iconBg: "bg-indigo-50",
                 },
               ].map((step, i) => (
                 <div
                   key={i}
-                  className="relative group transition-all hover:translate-x-1 duration-300">
-                  {/* Connecting Dot */}
-                  <div className="absolute -left-[24px] top-4 size-4 rounded-full border-4 border-white bg-cta-gradient z-10 shadow-[0_0_8px_rgba(255,77,109,0.4)]"></div>
-
-                  <div className="glass-card rounded-[1.5rem] p-4 flex gap-4 transition-all duration-300 hover:shadow-lg border-white/60">
-                    <div
-                      className={`size-12 rounded-2xl bg-[#f6ece7] flex-shrink-0 flex items-center justify-center ${step.bgColor}`}>
-                      <MaterialSymbol
-                        name={step.icon}
-                        size={28}
-                        className={step.color}
-                        filled
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-black text-ink uppercase tracking-tight">
-                        {step.title}
-                      </h4>
-                      <p className="text-[11px] font-bold text-muted-light leading-relaxed">
-                        {step.desc}
-                      </p>
-                    </div>
+                  className="bg-white rounded-[1.25rem] p-4 flex items-center gap-3.5 shadow-sm border border-pink-50 transition-all hover:border-pink-200">
+                  <div
+                    className={`size-12 rounded-2xl ${step.iconBg} flex items-center justify-center shrink-0`}>
+                    <MaterialSymbol
+                      name={step.icon}
+                      size={24}
+                      className={step.iconColor}
+                      filled
+                    />
+                  </div>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <h4 className="text-xs font-black text-ink uppercase tracking-tight">
+                      {step.title}
+                    </h4>
+                    <p className="text-[11px] font-semibold text-muted-light leading-snug">
+                      {step.desc}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Referral Stats "The Trophy Cabinet" */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white shadow-card rounded-[2.5rem] p-6 relative overflow-hidden group">
-              <div className="absolute inset-0 opacity-30" />
-              <div className="flex flex-col relative z-10">
-                <span className="text-[10px] font-black text-muted-light uppercase tracking-widest">
-                  {t("Your Referrals")}
-                </span>
-                <h4 className="text-4xl font-black text-ink tracking-tighter mt-1">
-                  {referralCount}
-                </h4>
-              </div>
-              <div className="absolute top-6 right-6 size-12 rounded-[1.2rem] flex items-center justify-center bg-blue-50">
-                <MaterialSymbol name="groups" className="text-blue-500" size={26} filled />
+          {/* Referral Stats Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-[1.5rem] p-5 shadow-card border border-pink-50 relative overflow-hidden">
+              <span className="text-[10px] font-black text-muted uppercase tracking-wider block">
+                {t("Your Referrals") || "REFERRALS"}
+              </span>
+              <h4 className="text-3xl font-black text-ink tracking-tight mt-1">
+                {referralCount}
+              </h4>
+              <div className="absolute top-4 right-4 size-10 rounded-xl flex items-center justify-center bg-pink-50">
+                <MaterialSymbol
+                  name="groups"
+                  className="text-pink-600"
+                  size={22}
+                  filled
+                />
               </div>
             </div>
 
-            <div className="bg-white shadow-card rounded-[2.5rem] p-6 relative overflow-hidden group">
-              <div className="absolute inset-0 opacity-30" />
-              <div className="flex flex-col relative z-10">
-                <span className="text-[10px] font-black text-muted-light uppercase tracking-widest">
-                  {t("Coins Earned")}
-                </span>
-                <h4 className="text-4xl font-black text-emerald-600 tracking-tighter mt-1">
-                  {totalCoinsEarned}
-                </h4>
-              </div>
-              <div className="absolute top-6 right-6 size-12 rounded-[1.2rem] flex items-center justify-center bg-amber-50">
-                <MaterialSymbol name="monetization_on" className="text-amber-500" size={26} filled />
+            <div className="bg-white rounded-[1.5rem] p-5 shadow-card border border-pink-50 relative overflow-hidden">
+              <span className="text-[10px] font-black text-muted uppercase tracking-wider block">
+                {t("Coins Earned") || "COINS EARNED"}
+              </span>
+              <h4 className="text-3xl font-black text-emerald-600 tracking-tight mt-1">
+                {totalCoinsEarned}
+              </h4>
+              <div className="absolute top-4 right-4 size-10 rounded-xl flex items-center justify-center bg-emerald-50">
+                <MaterialSymbol
+                  name="monetization_on"
+                  className="text-emerald-500"
+                  size={22}
+                  filled
+                />
               </div>
             </div>
           </div>
 
           {/* Referral History */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black text-muted-light uppercase tracking-widest">
-                {t("Referral History")}
-              </h3>
-              <div className="h-px flex-1 bg-slate-100 mx-4"></div>
-            </div>
+          <div className="space-y-2">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-widest px-1">
+              {t("Referral History") || "REFERRAL HISTORY"}
+            </h3>
 
             {isLoadingHistory ? (
-              <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-pink-400 border-t-transparent rounded-full animate-spin" />
+              <div className="flex justify-center py-6">
+                <div className="size-8 border-3 border-pink-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : history.length === 0 ? (
-              <div className="bg-white shadow-card rounded-[2rem] p-6 text-center">
+              <div className="bg-white rounded-[1.5rem] p-6 text-center shadow-card border border-pink-50">
                 <p className="text-xs font-bold text-muted-light">
-                  {t("No referrals yet. Share your code to get started!")}
+                  {t("No referrals yet. Share your code to get started!") ||
+                    "No referrals yet. Share your code to get started!"}
                 </p>
               </div>
             ) : (
-              <div className="bg-white shadow-card rounded-[2rem] overflow-hidden divide-y divide-gray-50">
+              <div className="bg-white rounded-[1.5rem] overflow-hidden divide-y divide-gray-50 shadow-card border border-pink-50">
                 {history.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between px-5 py-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className="size-10 rounded-2xl bg-pink-50 flex items-center justify-center">
-                        <MaterialSymbol name="person" size={20} className="text-pink-500" filled />
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between px-4 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-pink-50 flex items-center justify-center">
+                        <MaterialSymbol
+                          name="person"
+                          size={20}
+                          className="text-pink-500"
+                          filled
+                        />
                       </div>
                       <div>
-                        <p className="text-[13px] font-bold text-ink">{item.refereeName}</p>
+                        <p className="text-[13px] font-bold text-ink">
+                          {item.refereeName}
+                        </p>
                         <p className="text-[10px] font-bold text-muted-light">
                           {new Date(item.createdAt).toLocaleDateString()}
                         </p>
@@ -295,11 +300,11 @@ export const ReferralPage = () => {
                     </div>
                     {item.status === "rewarded" ? (
                       <span className="text-xs font-black text-emerald-600">
-                        +{item.rewardCoins} {t("Coins")}
+                        +{item.rewardCoins} {t("Coins") || "Coins"}
                       </span>
                     ) : (
-                      <span className="text-[10px] font-black uppercase tracking-wide text-orange-500 bg-orange-50 px-2.5 py-1 rounded-full">
-                        {t("Pending Recharge")}
+                      <span className="text-[10px] font-black uppercase tracking-wide text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+                        {t("Pending Recharge") || "Pending"}
                       </span>
                     )}
                   </div>
@@ -308,28 +313,18 @@ export const ReferralPage = () => {
             )}
           </div>
 
-          {/* Main Share Action */}
+          {/* Main Share CTA Button */}
           <button
             onClick={handleShare}
-            className="bg-white shadow-card-bold w-full h-20 rounded-[2rem] flex items-center justify-center gap-4 group transition-all hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden">
-            {/* Shimmer Effect */}
-            <div className="absolute inset-x-0 h-[200%] top-[-50%] bg-gradient-to-b from-transparent via-white/10 to-transparent rotate-45 transform transition-transform group-hover:translate-x-full duration-1000 -translate-x-full" />
-
-            <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <MaterialSymbol
-                name="send"
-                size={24}
-                className="text-white transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
-              />
-            </div>
-            <span className="text-sm font-black text-white uppercase tracking-[0.25em]">
-              {t("INVITE WITH FRIENDS")}
-            </span>
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-500 to-indigo-600 text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <MaterialSymbol
+              name="share"
+              size={20}
+              className="text-white"
+              filled
+            />
+            <span>{t("INVITE WITH FRIENDS") || "SHARE REFERRAL CODE"}</span>
           </button>
-
-          <p className="text-[9px] text-center font-bold text-muted-light uppercase tracking-widest pb-4">
-            Terms and conditions apply to all rewards
-          </p>
         </main>
       </div>
     </div>
