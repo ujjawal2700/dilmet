@@ -79,16 +79,16 @@ export const SettingsPage = () => {
                   <MaterialSymbol
                     name={doc.icon}
                     size={20}
-                    className="text-muted-light group-hover:text-pink-500 transition-colors"
+                    className="text-ink/60 group-hover:text-pink-500 transition-colors"
                   />
-                  <span className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-light group-hover:text-ink transition-colors">
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] text-ink/80 group-hover:text-ink transition-colors">
                     {doc.title}
                   </span>
                 </div>
                 <MaterialSymbol
                   name="chevron_right"
                   size={20}
-                  className="text-muted-light group-hover:translate-x-1 transition-transform"
+                  className="text-ink/40 group-hover:translate-x-1 group-hover:text-pink-500 transition-transform"
                 />
               </button>
             ))}
@@ -114,15 +114,15 @@ export const SettingsPage = () => {
                   className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
                 >
                   <div className="flex items-center gap-4">
-                    <MaterialSymbol name="mail" size={20} className="text-muted-light group-hover:text-pink-500 transition-colors" />
+                    <MaterialSymbol name="mail" size={20} className="text-ink/60 group-hover:text-pink-500 transition-colors" />
                     <div className="flex flex-col items-start">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-light">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink/60">
                         {t('emailUs')}
                       </span>
                       <span className="text-xs font-semibold text-ink">{supportEmail}</span>
                     </div>
                   </div>
-                  <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-1 transition-transform" />
+                  <MaterialSymbol name="chevron_right" size={20} className="text-ink/40 group-hover:translate-x-1 group-hover:text-pink-500 transition-transform" />
                 </a>
               )}
               {supportPhone && (
@@ -131,15 +131,15 @@ export const SettingsPage = () => {
                   className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
                 >
                   <div className="flex items-center gap-4">
-                    <MaterialSymbol name="call" size={20} className="text-muted-light group-hover:text-pink-500 transition-colors" />
+                    <MaterialSymbol name="call" size={20} className="text-ink/60 group-hover:text-pink-500 transition-colors" />
                     <div className="flex flex-col items-start">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-light">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink/60">
                         {t('callUs')}
                       </span>
                       <span className="text-xs font-semibold text-ink">{supportPhone}</span>
                     </div>
                   </div>
-                  <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-1 transition-transform" />
+                  <MaterialSymbol name="chevron_right" size={20} className="text-ink/40 group-hover:translate-x-1 group-hover:text-pink-500 transition-transform" />
                 </a>
               )}
             </div>
@@ -161,10 +161,10 @@ export const SettingsPage = () => {
               className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
             >
               <div className="flex items-center gap-4">
-                <MaterialSymbol name="power_settings_new" size={22} className="text-muted-light group-hover:text-amber-500 transition-colors" />
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-light group-hover:text-ink transition-colors">{t('logout')}</span>
+                <MaterialSymbol name="power_settings_new" size={22} className="text-ink/60 group-hover:text-amber-500 transition-colors" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-ink/80 group-hover:text-ink transition-colors">{t('logout')}</span>
               </div>
-              <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-1 transition-transform" />
+              <MaterialSymbol name="chevron_right" size={20} className="text-ink/40 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
