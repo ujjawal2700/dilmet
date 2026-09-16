@@ -3,6 +3,7 @@ import { AdminTopNavbar } from '../components/AdminTopNavbar';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from '../components/AdminNumberInput';
 import adminService from '../../../core/services/admin.service';
 
 interface FaqItem {
@@ -182,7 +183,7 @@ export const FaqsManagementPage = () => {
             
             <button
               onClick={handleOpenAddModal}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg active:scale-95 self-start md:self-auto"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg active:scale-95 self-start md:self-auto"
             >
               <MaterialSymbol name="add" size={20} />
               Add New FAQ
@@ -197,7 +198,7 @@ export const FaqsManagementPage = () => {
               <input
                 type="text"
                 placeholder="Search by question, answer, category..."
-                className="pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 focus:border-blue-500 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none w-full text-sm dark:text-white transition-all"
+                className="pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 focus:border-pink-500 rounded-xl focus:ring-2 focus:ring-pink-500/20 outline-none w-full text-sm dark:text-white transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -208,7 +209,7 @@ export const FaqsManagementPage = () => {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap uppercase tracking-wider">Category:</span>
               <select
-                className="bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500/20"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
@@ -222,7 +223,7 @@ export const FaqsManagementPage = () => {
           {/* Loading Indicator */}
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>
@@ -343,7 +344,7 @@ export const FaqsManagementPage = () => {
                   type="text"
                   required
                   placeholder="Enter question..."
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm dark:text-white transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none text-sm dark:text-white transition-all"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                 />
@@ -356,7 +357,7 @@ export const FaqsManagementPage = () => {
                   required
                   rows={4}
                   placeholder="Enter detailed answer..."
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm dark:text-white transition-all resize-y"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none text-sm dark:text-white transition-all resize-y"
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                 />
@@ -369,7 +370,7 @@ export const FaqsManagementPage = () => {
                   <input
                     type="text"
                     placeholder="e.g. General, Wallet, Chats"
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm dark:text-white transition-all"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none text-sm dark:text-white transition-all"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                   />
@@ -378,12 +379,10 @@ export const FaqsManagementPage = () => {
                 {/* Order */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Display Order</label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     min={0}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm dark:text-white transition-all"
                     value={order}
-                    onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+                    onChange={(val) => setOrder(val)}
                   />
                 </div>
               </div>
@@ -398,7 +397,7 @@ export const FaqsManagementPage = () => {
                   type="button"
                   onClick={() => setIsActive(!isActive)}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    isActive ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-800'
+                    isActive ? 'bg-pink-600' : 'bg-gray-200 dark:bg-gray-800'
                   }`}
                 >
                   <span
@@ -421,7 +420,7 @@ export const FaqsManagementPage = () => {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all shadow-md text-sm disabled:opacity-50"
+                  className="px-5 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all shadow-md text-sm disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : 'Save FAQ'}
                 </button>

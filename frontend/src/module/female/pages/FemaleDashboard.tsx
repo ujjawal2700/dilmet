@@ -6,9 +6,7 @@ import { useGlobalState } from '../../../core/context/GlobalStateContext';
 import { EarningsCard } from '../components/EarningsCard';
 import { FemaleStatsGrid } from '../components/FemaleStatsGrid';
 import { ActiveChatsList } from '../components/ActiveChatsList';
-import { FemaleBottomNavigation } from '../components/FemaleBottomNavigation';
 import { QuickActionsGrid } from '../components/QuickActionsGrid';
-import { useFemaleNavigation } from '../hooks/useFemaleNavigation';
 import { useSocket } from '../../../core/context/SocketContext';
 import socketService from '../../../core/services/socket.service';
 import userService from '../../../core/services/user.service';
@@ -24,8 +22,6 @@ const FemaleDashboardContent = () => {
   const { user } = useAuth();
   const { isConnected } = useSocket();
   const { addNotification } = useGlobalState();
-  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
-
 
   const quickActions = useMemo(() => [
     { id: 'earnings', icon: 'trending_up', label: t('viewEarnings') },
@@ -188,11 +184,6 @@ const FemaleDashboardContent = () => {
           chats={activeChatsForDisplay}
           onChatClick={(id) => navigate(`/female/chat/${id}`)}
           onSeeAllClick={() => navigate('/female/chats')}
-        />
-
-        <FemaleBottomNavigation
-          items={navigationItems}
-          onItemClick={handleNavigationClick}
         />
       </div>
     </div>

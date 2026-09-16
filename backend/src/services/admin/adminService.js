@@ -585,6 +585,7 @@ export const updateAppSettings = async (newSettings, adminId) => {
     if (newSettings.messageCosts) Object.assign(settings.messageCosts, newSettings.messageCosts);
     if (newSettings.videoCall) Object.assign(settings.videoCall, newSettings.videoCall);
     if (newSettings.security) Object.assign(settings.security, newSettings.security);
+    if (newSettings.referral) Object.assign(settings.referral, newSettings.referral);
     if (newSettings.adminPhones) settings.adminPhones = newSettings.adminPhones;
     if (newSettings.maleLevels) settings.maleLevels = newSettings.maleLevels;
 

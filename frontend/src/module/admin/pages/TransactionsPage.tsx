@@ -117,7 +117,7 @@ export const TransactionsPage = () => {
                 // TODO: Implement export functionality
                 console.log('Exporting transaction data...');
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               <MaterialSymbol name="download" size={20} />
               Export Data
@@ -214,7 +214,7 @@ export const TransactionsPage = () => {
           {/* Transaction Table */}
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <TransactionTable transactions={transactions} onViewDetails={handleViewDetails} />
@@ -228,7 +228,7 @@ export const TransactionsPage = () => {
                 <button
                   key={i}
                   onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1 rounded ${page === i + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-800'}`}
+                  className={`px-3 py-1 rounded ${page === i + 1 ? 'bg-pink-600 text-white' : 'bg-gray-200 dark:bg-gray-800'}`}
                 >
                   {i + 1}
                 </button>

@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../core/context/AuthContext";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
-import { FemaleBottomNavigation } from "../components/FemaleBottomNavigation";
-import { useFemaleNavigation } from "../hooks/useFemaleNavigation";
 import { useTranslation } from "../../../core/hooks/useTranslation";
 import userService from "../../../core/services/user.service";
 import { ProfileSkeletonLoader } from "../../../shared/components/ProfileSkeletonLoader";
@@ -12,7 +10,6 @@ export const MyProfilePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
 
   const [name, setName] = useState(user?.name || t("anonymous"));
   const [age, setAge] = useState(24);
@@ -353,19 +350,6 @@ export const MyProfilePage = () => {
           </div>
           <div className="bg-white rounded-[1.5rem] shadow-card overflow-hidden divide-y divide-gray-50">
             <button
-              onClick={() => navigate("/female/referral")}
-              className="w-full flex items-center justify-between px-5 py-4 group active:bg-pink-50/50 transition-colors"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="size-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <MaterialSymbol name="diversity_3" size={20} className="text-emerald-500" filled />
-                </div>
-                <span className="text-[13px] font-bold text-ink">{t("referAndEarn")}</span>
-              </div>
-              <MaterialSymbol name="chevron_right" size={20} className="text-muted-light group-hover:translate-x-0.5 transition-transform" />
-            </button>
-
-            <button
               onClick={() => navigate("/female/faqs")}
               className="w-full flex items-center justify-between px-5 py-4 group active:bg-pink-50/50 transition-colors"
             >
@@ -393,8 +377,6 @@ export const MyProfilePage = () => {
           </div>
         </section>
       </div>
-
-      <FemaleBottomNavigation items={navigationItems} onItemClick={handleNavigationClick} />
 
       {/* ── Photo Lightbox ── */}
       {selectedPhotoIndex !== null && (

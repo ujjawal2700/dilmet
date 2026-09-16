@@ -77,7 +77,7 @@ export const ReportsManagementPage = () => {
     };
 
     return (
-        <div className="relative flex h-full min-h-screen w-full flex-col bg-gray-50 dark:bg-[#0a0a0a] overflow-x-hidden">
+        <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden">
             <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
 
             <AdminSidebar
@@ -111,7 +111,7 @@ export const ReportsManagementPage = () => {
 
                     {isLoading ? (
                         <div className="flex items-center justify-center py-20">
-                            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
                         </div>
                     ) : reports.length === 0 ? (
                         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-20 text-center shadow-sm border border-gray-100 dark:border-gray-800">

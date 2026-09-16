@@ -75,7 +75,7 @@ export const AdminDashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <MaterialSymbol name="sync" size={48} className="text-blue-600 animate-spin mx-auto mb-4" />
+          <MaterialSymbol name="sync" size={48} className="text-pink-600 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export const AdminDashboard = () => {
           <p className="text-gray-600">{error || 'Failed to load dashboard data'}</p>
           <button
             onClick={fetchDashboardStats}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
           >
             Retry
           </button>
@@ -101,7 +101,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col bg-[#f0f0f1] dark:bg-[#1d2327] overflow-x-hidden transition-colors duration-300">
+    <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden transition-colors duration-300">
       {/* Top Navbar */}
       <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
 

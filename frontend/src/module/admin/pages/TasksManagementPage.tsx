@@ -3,6 +3,7 @@ import { AdminTopNavbar } from '../components/AdminTopNavbar';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from '../components/AdminNumberInput';
 import adminService from '../../../core/services/admin.service';
 import type { AdminTask } from '../types/admin.types';
 
@@ -151,7 +152,7 @@ export const TasksManagementPage = () => {
             </div>
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               <MaterialSymbol name="add" size={20} />
               Add Task
@@ -168,7 +169,7 @@ export const TasksManagementPage = () => {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto">
@@ -216,7 +217,7 @@ export const TasksManagementPage = () => {
                             onClick={() => handleToggleActive(task)}
                             className="relative inline-flex items-center cursor-pointer"
                           >
-                            <div className={`w-11 h-6 rounded-full transition-colors ${task.isActive ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'}`}>
+                            <div className={`w-11 h-6 rounded-full transition-colors ${task.isActive ? 'bg-pink-600' : 'bg-gray-300 dark:bg-gray-700'}`}>
                               <div className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-all ${task.isActive ? 'translate-x-full border-white' : ''}`} />
                             </div>
                           </button>
@@ -276,7 +277,7 @@ export const TasksManagementPage = () => {
                       value={form.taskKey}
                       onChange={(e) => setForm({ ...form, taskKey: e.target.value.trim() })}
                       placeholder="e.g. say_hi_10"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                     />
                   </div>
                 )}
@@ -288,7 +289,7 @@ export const TasksManagementPage = () => {
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="e.g. Say Hi to 10 Girls"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -299,7 +300,7 @@ export const TasksManagementPage = () => {
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Short description shown under the title"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -308,7 +309,7 @@ export const TasksManagementPage = () => {
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     {TASK_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -322,22 +323,18 @@ export const TasksManagementPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Count</label>
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       min={1}
                       value={form.targetCount}
-                      onChange={(e) => setForm({ ...form, targetCount: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(val) => setForm({ ...form, targetCount: val })}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reward Coins</label>
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       min={0}
                       value={form.rewardCoins}
-                      onChange={(e) => setForm({ ...form, rewardCoins: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(val) => setForm({ ...form, rewardCoins: val })}
                     />
                   </div>
                 </div>
@@ -352,7 +349,7 @@ export const TasksManagementPage = () => {
                       value={form.icon}
                       onChange={(e) => setForm({ ...form, icon: e.target.value })}
                       placeholder="task_alt"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                     />
                   </div>
                   <div>
@@ -362,7 +359,7 @@ export const TasksManagementPage = () => {
                       value={form.deepLink}
                       onChange={(e) => setForm({ ...form, deepLink: e.target.value })}
                       placeholder="/male/discover"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                     />
                   </div>
                 </div>
@@ -388,7 +385,7 @@ export const TasksManagementPage = () => {
                 <button
                   onClick={handleSave}
                   disabled={isSaving || !form.title || (!editingTask && !form.taskKey)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : editingTask ? 'Save Changes' : 'Create Task'}
                 </button>

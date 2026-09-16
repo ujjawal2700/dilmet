@@ -96,7 +96,7 @@ export const AdminLoginPage = () => {
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => handleChange(e.target.value)}
-                                    className={`flex-1 px-4 py-3 bg-gray-700 text-white border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-600'
+                                    className={`flex-1 px-4 py-3 bg-gray-700 text-white border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-pink-500 ${errors.phone ? 'border-red-500' : 'border-gray-600'
                                         }`}
                                     placeholder="9876543210"
                                     maxLength={10}
@@ -117,7 +117,7 @@ export const AdminLoginPage = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`w-full py-3 bg-pink-600 text-white font-bold rounded-lg hover:bg-pink-700 transition-all duration-200 shadow-lg ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {isLoading ? 'Sending Code...' : 'Login'}
                         </button>

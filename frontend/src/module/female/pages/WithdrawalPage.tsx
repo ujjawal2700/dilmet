@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
-import { FemaleBottomNavigation } from '../components/FemaleBottomNavigation';
-import { useFemaleNavigation } from '../hooks/useFemaleNavigation';
 import walletService from '../../../core/services/wallet.service';
 import type { Withdrawal as WalletWithdrawal } from '../../../core/types/wallet.types';
 import { useTranslation } from '../../../core/hooks/useTranslation';
@@ -11,7 +9,6 @@ import { useTranslation } from '../../../core/hooks/useTranslation';
 export const WithdrawalPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
 
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<'UPI' | 'bank'>('UPI');
@@ -337,8 +334,6 @@ export const WithdrawalPage = () => {
           </div>
         </div>
       </main>
-
-      <FemaleBottomNavigation items={navigationItems} onItemClick={handleNavigationClick} />
     </div>
   );
 };

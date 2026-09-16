@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
 import { ChatListItem } from "../components/ChatListItem";
-import { FemaleBottomNavigation } from "../components/FemaleBottomNavigation";
-import { useFemaleNavigation } from "../hooks/useFemaleNavigation";
 import { useGlobalState } from "../../../core/context/GlobalStateContext";
 import socketService from "../../../core/services/socket.service";
 import { useAuth } from "../../../core/context/AuthContext";
@@ -22,7 +20,6 @@ type FilterType = "all" | "online" | "unread";
 export const ChatListPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
   const { coinBalance } = useGlobalState();
   const { user: currentUser } = useAuth();
 
@@ -507,11 +504,6 @@ export const ChatListPage = () => {
           )}
         </main>
       </div>
-
-      <FemaleBottomNavigation
-        items={navigationItems}
-        onItemClick={handleNavigationClick}
-      />
     </div>
   );
 };

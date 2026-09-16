@@ -1,15 +1,12 @@
 import { useState, useMemo, useEffect, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
-import { FemaleBottomNavigation } from '../components/FemaleBottomNavigation';
-import { useFemaleNavigation } from '../hooks/useFemaleNavigation';
 import { useTranslation } from '../../../core/hooks/useTranslation';
 import { useGlobalState } from '../../../core/context/GlobalStateContext';
 
 export const NotificationsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { navigationItems, handleNavigationClick: handleNav } = useFemaleNavigation();
   const {
     persistentNotifications,
     markNotificationAsRead,
@@ -236,8 +233,6 @@ export const NotificationsPage = () => {
           )}
         </main>
       </div>
-
-      <FemaleBottomNavigation items={navigationItems} onItemClick={handleNav} />
     </div>
   );
 };

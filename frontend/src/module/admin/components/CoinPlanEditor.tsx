@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState } from 'react';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from './AdminNumberInput';
 import type { CoinPlan } from '../types/admin.types';
 
 interface CoinPlanEditorProps {
@@ -72,7 +73,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
         </div>
         <button
           onClick={handleAddNew}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
         >
           <MaterialSymbol name="add" size={20} />
           Add Plan
@@ -119,7 +120,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                       </span>
                       {plan.badge && (
                         <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded text-xs font-medium">
-                          {plan.badge}
+                          {plan.badge.replace('_', ' ')}
                         </span>
                       )}
                       {!plan.isActive && (
@@ -201,7 +202,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                     setEditingPlan({ ...editingPlan, name: e.target.value })
                   }
                   placeholder="e.g., Basic Plan"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
 
@@ -218,7 +219,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                       tier: e.target.value as CoinPlan['tier'],
                     })
                   }
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="basic">Basic</option>
                   <option value="silver">Silver</option>
@@ -233,36 +234,26 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Price (INR)
                   </label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     value={editingPlan.priceInINR}
-                    onChange={(e) =>
-                      setEditingPlan({
-                        ...editingPlan,
-                        priceInINR: parseFloat(e.target.value) || 0,
-                      })
+                    onChange={(val) =>
+                      setEditingPlan({ ...editingPlan, priceInINR: val })
                     }
-                    min="0"
-                    step="1"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min={0}
+                    step={1}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Base Coins
                   </label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     value={editingPlan.baseCoins}
-                    onChange={(e) =>
-                      setEditingPlan({
-                        ...editingPlan,
-                        baseCoins: parseInt(e.target.value) || 0,
-                      })
+                    onChange={(val) =>
+                      setEditingPlan({ ...editingPlan, baseCoins: val })
                     }
-                    min="0"
-                    step="1"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min={0}
+                    step={1}
                   />
                 </div>
               </div>
@@ -273,36 +264,26 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Bonus Coins
                   </label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     value={editingPlan.bonusCoins}
-                    onChange={(e) =>
-                      setEditingPlan({
-                        ...editingPlan,
-                        bonusCoins: parseInt(e.target.value) || 0,
-                      })
+                    onChange={(val) =>
+                      setEditingPlan({ ...editingPlan, bonusCoins: val })
                     }
-                    min="0"
-                    step="1"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min={0}
+                    step={1}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Display Order
                   </label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     value={editingPlan.displayOrder}
-                    onChange={(e) =>
-                      setEditingPlan({
-                        ...editingPlan,
-                        displayOrder: parseInt(e.target.value) || 0,
-                      })
+                    onChange={(val) =>
+                      setEditingPlan({ ...editingPlan, displayOrder: val })
                     }
-                    min="1"
-                    step="1"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min={1}
+                    step={1}
                   />
                 </div>
               </div>
@@ -333,11 +314,11 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                       badge: e.target.value || undefined,
                     } as CoinPlan)
                   }
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">No Badge</option>
                   <option value="POPULAR">Popular</option>
-                  <option value="BEST VALUE">Best Value</option>
+                  <option value="BEST_VALUE">Best Value</option>
                 </select>
               </div>
 
@@ -350,7 +331,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
                   onChange={(e) =>
                     setEditingPlan({ ...editingPlan, isActive: e.target.checked })
                   }
-                  className="size-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="size-5 rounded border-gray-300 text-blue-600 focus:ring-pink-500"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Plan is active (visible to users)
@@ -369,7 +350,7 @@ export const CoinPlanEditor = ({ plans, onSave, onDelete, onAdd }: CoinPlanEdito
               <button
                 onClick={handleSave}
                 disabled={!editingPlan.name || editingPlan.priceInINR <= 0 || editingPlan.baseCoins <= 0}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingNew ? 'Add Plan' : 'Save Changes'}
               </button>

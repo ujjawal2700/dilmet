@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState } from 'react';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from './AdminNumberInput';
 import type { PayoutSlab } from '../types/admin.types';
 
 interface PayoutSlabEditorProps {
@@ -53,7 +54,7 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
         </div>
         <button
           onClick={handleAddNew}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
         >
           <MaterialSymbol name="add" size={20} />
           Add Slab
@@ -129,18 +130,13 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Minimum Coins
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={editingSlab.minCoins}
-                  onChange={(e) =>
-                    setEditingSlab({
-                      ...editingSlab,
-                      minCoins: parseInt(e.target.value) || 0,
-                    })
+                  onChange={(val) =>
+                    setEditingSlab({ ...editingSlab, minCoins: val })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
 
@@ -151,17 +147,22 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
                 </label>
                 <input
                   type="number"
-                  value={editingSlab.maxCoins || ''}
-                  onChange={(e) =>
+                  value={editingSlab.maxCoins ?? ''}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setEditingSlab({ ...editingSlab, maxCoins: null });
+                      return;
+                    }
+                    const parsed = parseInt(e.target.value, 10);
                     setEditingSlab({
                       ...editingSlab,
-                      maxCoins: e.target.value === '' ? null : parseInt(e.target.value) || null,
-                    })
-                  }
+                      maxCoins: Number.isNaN(parsed) ? null : parsed,
+                    });
+                  }}
                   min={editingSlab.minCoins + 1}
                   step="1"
                   placeholder="Unlimited"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
 
@@ -170,25 +171,16 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Payout Percentage (%)
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={editingSlab.payoutPercentage}
-                    onChange={(e) =>
-                      setEditingSlab({
-                        ...editingSlab,
-                        payoutPercentage: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                    %
-                  </span>
-                </div>
+                <AdminNumberInput
+                  value={editingSlab.payoutPercentage}
+                  onChange={(val) =>
+                    setEditingSlab({ ...editingSlab, payoutPercentage: val })
+                  }
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  suffix="%"
+                />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Percentage of coins that will be paid out in INR
                 </p>
@@ -199,18 +191,13 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Order
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={editingSlab.displayOrder}
-                  onChange={(e) =>
-                    setEditingSlab({
-                      ...editingSlab,
-                      displayOrder: parseInt(e.target.value) || 0,
-                    })
+                  onChange={(val) =>
+                    setEditingSlab({ ...editingSlab, displayOrder: val })
                   }
-                  min="1"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={1}
+                  step={1}
                 />
               </div>
 
@@ -240,7 +227,7 @@ export const PayoutSlabEditor = ({ slabs, onSave, onDelete, onAdd }: PayoutSlabE
               <button
                 onClick={handleSave}
                 disabled={editingSlab.minCoins < 0 || editingSlab.payoutPercentage < 0 || editingSlab.payoutPercentage > 100}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingNew ? 'Add Slab' : 'Save Changes'}
               </button>

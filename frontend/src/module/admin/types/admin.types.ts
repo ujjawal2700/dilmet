@@ -82,7 +82,7 @@ export interface CoinPlan {
   totalCoins: number;
   isActive: boolean;
   displayOrder: number;
-  badge?: 'POPULAR' | 'BEST VALUE';
+  badge?: 'POPULAR' | 'BEST_VALUE';
 }
 
 export interface PayoutSlab {

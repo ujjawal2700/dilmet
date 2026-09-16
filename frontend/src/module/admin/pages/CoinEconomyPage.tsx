@@ -3,6 +3,7 @@ import { AdminTopNavbar } from '../components/AdminTopNavbar';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { CoinPlanEditor } from '../components/CoinPlanEditor';
 import { PayoutSlabEditor } from '../components/PayoutSlabEditor';
+import { AdminNumberInput } from '../components/AdminNumberInput';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
 import walletService from '../../../core/services/wallet.service';
@@ -46,7 +47,7 @@ const mapWalletPlanToAdminPlan = (plan: WalletCoinPlan): CoinPlan => ({
   totalCoins: plan.totalCoins,
   isActive: plan.isActive,
   displayOrder: plan.displayOrder,
-  badge: plan.badge === 'BEST_VALUE' ? 'BEST VALUE' : plan.badge || undefined,
+  badge: plan.badge || undefined,
 });
 
 const mapWalletSlabToAdminSlab = (slab: WalletPayoutSlab): PayoutSlab => ({
@@ -284,7 +285,7 @@ export const CoinEconomyPage = () => {
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
@@ -307,7 +308,7 @@ export const CoinEconomyPage = () => {
           {isSaving && (
             <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center gap-3">
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-pink-600 border-t-transparent rounded-full animate-spin" />
                 <span>Saving...</span>
               </div>
             </div>
@@ -358,7 +359,7 @@ export const CoinEconomyPage = () => {
                   onClick={() => setMessageCosts({ ...messageCosts, costMode: 'perMessage' })}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     messageCosts.costMode === 'perMessage'
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-pink-600 text-white shadow-sm'
                       : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
@@ -369,7 +370,7 @@ export const CoinEconomyPage = () => {
                   onClick={() => setMessageCosts({ ...messageCosts, costMode: 'perWord' })}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     messageCosts.costMode === 'perWord'
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-pink-600 text-white shadow-sm'
                       : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
@@ -385,19 +386,15 @@ export const CoinEconomyPage = () => {
                     Basic Tier
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.basic}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, basic: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, basic: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
                 <div>
@@ -405,19 +402,15 @@ export const CoinEconomyPage = () => {
                     Silver Tier
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.silver}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, silver: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, silver: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
                 <div>
@@ -425,19 +418,15 @@ export const CoinEconomyPage = () => {
                     Gold Tier
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.gold}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, gold: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, gold: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
                 <div>
@@ -445,19 +434,15 @@ export const CoinEconomyPage = () => {
                     Platinum Tier
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.platinum}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, platinum: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, platinum: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
                 <div>
@@ -465,19 +450,15 @@ export const CoinEconomyPage = () => {
                     Video Call
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.videoCall}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, videoCall: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, videoCall: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
                 <div>
@@ -485,19 +466,15 @@ export const CoinEconomyPage = () => {
                     Voice Call
                   </label>
                   <div className="relative">
-                    <input
-                      type="number"
+                    <AdminNumberInput
                       value={messageCosts.voiceCall}
-                      onChange={(e) =>
-                        setMessageCosts({ ...messageCosts, voiceCall: parseInt(e.target.value) || 0 })
+                      onChange={(val) =>
+                        setMessageCosts({ ...messageCosts, voiceCall: val })
                       }
-                      min="0"
-                      step="1"
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min={0}
+                      step={1}
+                      suffix="coins"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                      coins
-                    </span>
                   </div>
                 </div>
               </div>
@@ -509,22 +486,18 @@ export const CoinEconomyPage = () => {
                       Basic Tier
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.wordCosts.basic}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setMessageCosts({
                             ...messageCosts,
-                            wordCosts: { ...messageCosts.wordCosts, basic: parseInt(e.target.value) || 0 },
+                            wordCosts: { ...messageCosts.wordCosts, basic: val },
                           })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins/word"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins/word
-                      </span>
                     </div>
                   </div>
                   <div>
@@ -532,22 +505,18 @@ export const CoinEconomyPage = () => {
                       Silver Tier
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.wordCosts.silver}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setMessageCosts({
                             ...messageCosts,
-                            wordCosts: { ...messageCosts.wordCosts, silver: parseInt(e.target.value) || 0 },
+                            wordCosts: { ...messageCosts.wordCosts, silver: val },
                           })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins/word"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins/word
-                      </span>
                     </div>
                   </div>
                   <div>
@@ -555,22 +524,18 @@ export const CoinEconomyPage = () => {
                       Gold Tier
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.wordCosts.gold}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setMessageCosts({
                             ...messageCosts,
-                            wordCosts: { ...messageCosts.wordCosts, gold: parseInt(e.target.value) || 0 },
+                            wordCosts: { ...messageCosts.wordCosts, gold: val },
                           })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins/word"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins/word
-                      </span>
                     </div>
                   </div>
                   <div>
@@ -578,22 +543,18 @@ export const CoinEconomyPage = () => {
                       Platinum Tier
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.wordCosts.platinum}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setMessageCosts({
                             ...messageCosts,
-                            wordCosts: { ...messageCosts.wordCosts, platinum: parseInt(e.target.value) || 0 },
+                            wordCosts: { ...messageCosts.wordCosts, platinum: val },
                           })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins/word"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins/word
-                      </span>
                     </div>
                   </div>
                   <div>
@@ -601,19 +562,15 @@ export const CoinEconomyPage = () => {
                       Video Call
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.videoCall}
-                        onChange={(e) =>
-                          setMessageCosts({ ...messageCosts, videoCall: parseInt(e.target.value) || 0 })
+                        onChange={(val) =>
+                          setMessageCosts({ ...messageCosts, videoCall: val })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins
-                      </span>
                     </div>
                   </div>
                   <div>
@@ -621,19 +578,15 @@ export const CoinEconomyPage = () => {
                       Voice Call
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={messageCosts.voiceCall}
-                        onChange={(e) =>
-                          setMessageCosts({ ...messageCosts, voiceCall: parseInt(e.target.value) || 0 })
+                        onChange={(val) =>
+                          setMessageCosts({ ...messageCosts, voiceCall: val })
                         }
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min={0}
+                        step={1}
+                        suffix="coins"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -645,7 +598,7 @@ export const CoinEconomyPage = () => {
 
             <button
               onClick={handleSaveMessageCosts}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               Save Message Costs
             </button>
@@ -663,97 +616,87 @@ export const CoinEconomyPage = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Minimum Amount (coins)
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={withdrawalSettings.minAmount}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setWithdrawalSettings({
                       ...withdrawalSettings,
-                      minAmount: parseInt(e.target.value) || 0,
+                      minAmount: val,
                     })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Maximum Amount (coins)
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={withdrawalSettings.maxAmount}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setWithdrawalSettings({
                       ...withdrawalSettings,
-                      maxAmount: parseInt(e.target.value) || 0,
+                      maxAmount: val,
                     })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Processing Fee (coins)
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={withdrawalSettings.processingFee}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setWithdrawalSettings({
                       ...withdrawalSettings,
-                      processingFee: parseInt(e.target.value) || 0,
+                      processingFee: val,
                     })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Daily Limit (coins)
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={withdrawalSettings.dailyLimit}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setWithdrawalSettings({
                       ...withdrawalSettings,
-                      dailyLimit: parseInt(e.target.value) || 0,
+                      dailyLimit: val,
                     })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Weekly Limit (coins)
                 </label>
-                <input
-                  type="number"
+                <AdminNumberInput
                   value={withdrawalSettings.weeklyLimit}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setWithdrawalSettings({
                       ...withdrawalSettings,
-                      weeklyLimit: parseInt(e.target.value) || 0,
+                      weeklyLimit: val,
                     })
                   }
-                  min="0"
-                  step="1"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={0}
+                  step={1}
                 />
               </div>
             </div>
 
             <button
               onClick={handleSaveWithdrawalSettings}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               Save Withdrawal Settings
             </button>

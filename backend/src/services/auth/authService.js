@@ -191,11 +191,17 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
     let referrer = null;
 
     if (normalizedReferralCode) {
-        referrer = await User.findOne({ referralId: normalizedReferralCode, isDeleted: false });
-        if (!referrer) {
+        const codeOwner = await User.findOne({ referralId: normalizedReferralCode, isDeleted: false });
+        if (!codeOwner) {
             // User typed it wrong or it doesn't exist - but as per requirement, we should show error if wrong
             // Except for casing and spacing which are already handled by normalizeReferralCode
             throw new BadRequestError('Invalid referral ID. Please check and try again.');
+        }
+        // Referral program is male-only - a code belonging to a female user is a valid
+        // code that simply isn't eligible for a reward, so signup proceeds without a referrer
+        // rather than hard-blocking someone who already has a female friend's code.
+        if (codeOwner.role === 'male') {
+            referrer = codeOwner;
         }
     }
 
@@ -280,7 +286,7 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
                 setImmediate(async () => {
                     try {
                         const Notification = (await import('../../models/Notification.js')).default;
-                        const referralPath = referrer.role === 'female' ? '/female/referral' : '/male/referral';
+                        const referralPath = '/male/referral';
                         const notification = await Notification.create({
                             userId: referrer._id,
                             type: 'system',

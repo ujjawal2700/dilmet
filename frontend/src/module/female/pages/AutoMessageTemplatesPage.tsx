@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
-import { FemaleBottomNavigation } from '../components/FemaleBottomNavigation';
-import { useFemaleNavigation } from '../hooks/useFemaleNavigation';
 import type { AutoMessageTemplate } from '../types/female.types';
 import autoMessageService from '../../../core/services/autoMessage.service';
 import { useTranslation } from '../../../core/hooks/useTranslation';
@@ -11,7 +9,6 @@ import { useTranslation } from '../../../core/hooks/useTranslation';
 export const AutoMessageTemplatesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { navigationItems, handleNavigationClick } = useFemaleNavigation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -271,8 +268,6 @@ export const AutoMessageTemplatesPage = () => {
           </div>
         </>
       )}
-
-      <FemaleBottomNavigation items={navigationItems} onItemClick={handleNavigationClick} />
     </div>
   );
 };

@@ -150,7 +150,7 @@ export const WithdrawalManagementPage = () => {
   const totalPaid = withdrawals.filter((w) => w.status === 'paid').reduce((sum, w) => sum + (w.payoutAmountINR || 0), 0);
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col bg-gray-50 dark:bg-[#0a0a0a] overflow-x-hidden">
+    <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden">
       {/* Top Navbar */}
       <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
 
@@ -173,7 +173,7 @@ export const WithdrawalManagementPage = () => {
             </div>
             <button
               onClick={fetchWithdrawals}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               <MaterialSymbol name="refresh" size={20} />
               Refresh
@@ -183,7 +183,7 @@ export const WithdrawalManagementPage = () => {
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
@@ -284,7 +284,7 @@ export const WithdrawalManagementPage = () => {
                         placeholder="Search by user name or request ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -294,7 +294,7 @@ export const WithdrawalManagementPage = () => {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     >
                       <option value="all">All Status</option>
                       <option value="pending">Pending</option>
@@ -310,7 +310,7 @@ export const WithdrawalManagementPage = () => {
                   <button
                     onClick={() => setPayoutMethodFilter('all')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${payoutMethodFilter === 'all'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-pink-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                   >
@@ -319,7 +319,7 @@ export const WithdrawalManagementPage = () => {
                   <button
                     onClick={() => setPayoutMethodFilter('UPI')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${payoutMethodFilter === 'UPI'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-pink-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                   >
@@ -328,7 +328,7 @@ export const WithdrawalManagementPage = () => {
                   <button
                     onClick={() => setPayoutMethodFilter('bank')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${payoutMethodFilter === 'bank'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-pink-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                   >

@@ -124,7 +124,7 @@ export const UserDetailPage = () => {
           onItemClick={handleNavigationClick}
         />
         <div className="flex-1 p-4 md:p-6 mt-[57px] lg:ml-64 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -132,7 +132,7 @@ export const UserDetailPage = () => {
 
   if (!user) {
     return (
-      <div className="relative flex h-full min-h-screen w-full flex-col bg-gray-50 dark:bg-[#0a0a0a] overflow-x-hidden">
+      <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden">
         <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
         <AdminSidebar
           isOpen={isSidebarOpen}
@@ -147,7 +147,7 @@ export const UserDetailPage = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-4">The user you're looking for doesn't exist.</p>
             <button
               onClick={() => navigate('/admin/users')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               Back to Users
             </button>
@@ -183,7 +183,7 @@ export const UserDetailPage = () => {
 
           {/* User Profile Card */}
           <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+            <div className="bg-gradient-to-r from-pink-600 to-purple-600 p-6">
               <div className="flex items-center gap-6">
                 <div className="size-24 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden">
                   {user.profile?.photos?.[0] ? (
@@ -321,7 +321,7 @@ export const UserDetailPage = () => {
                   disabled={isProcessing}
                   className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50 ${user.isVerified
                     ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                    : 'bg-gradient-to-r from-pink-600 to-pink-700 text-white hover:from-blue-700 hover:to-blue-800'
                     }`}
                 >
                   <MaterialSymbol name={user.isVerified ? 'verified' : 'verified_user'} size={20} />

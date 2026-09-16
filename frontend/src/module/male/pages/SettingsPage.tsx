@@ -68,7 +68,7 @@ export const SettingsPage = () => {
             </h3>
           </div>
 
-          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden shadow-2xl p-4 space-y-2">
+          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden p-4 space-y-2">
             {Object.values(legalDocuments).map((doc) => (
               <button
                 key={doc.slug}
@@ -107,7 +107,7 @@ export const SettingsPage = () => {
               </h3>
             </div>
 
-            <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden shadow-2xl p-4 space-y-2">
+            <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden p-4 space-y-2">
               {supportEmail && (
                 <a
                   href={`mailto:${supportEmail}`}
@@ -155,7 +155,7 @@ export const SettingsPage = () => {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted">{t('account')}</h3>
           </div>
 
-          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden shadow-2xl p-4 space-y-2">
+          <div className="bg-white shadow-card rounded-[2rem] border-white/60 overflow-hidden p-4 space-y-2">
             <button
               onClick={() => setShowLogoutModal(true)}
               className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
@@ -181,30 +181,30 @@ export const SettingsPage = () => {
         </section>
       </div>
 
-      {/* Redesigned Premium Logout Modal */}
+      {/* Logout Modal */}
       {showLogoutModal && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-ink/50 backdrop-blur-md animate-in fade-in duration-300"
           onClick={() => setShowLogoutModal(false)}
         >
           <div
-            className="shadow-card bg-slate-900/90 rounded-[2.5rem] p-10 max-w-sm w-full border border-white/10 shadow-2xl space-y-10 animate-in zoom-in-95 duration-300 relative overflow-hidden"
+            className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-card-lg space-y-8 animate-in zoom-in-95 duration-300 relative overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             {/* Background Mesh Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-56 bg-amber-400/15 blur-[70px] rounded-full pointer-events-none" />
 
-            <div className="flex flex-col items-center text-center space-y-6 relative z-10">
-              <div className="size-24 rounded-[2rem] flex items-center justify-center bg-amber-500/10 text-amber-500 shadow-inner">
-                <MaterialSymbol name="power_settings_new" size={56} filled />
+            <div className="flex flex-col items-center text-center space-y-5 relative z-10">
+              <div className="size-20 rounded-[1.75rem] flex items-center justify-center bg-amber-50 text-amber-500">
+                <MaterialSymbol name="power_settings_new" size={44} filled />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-3xl font-black tracking-tighter text-white leading-none">{t('signOutOfVault')}</h3>
-                <p className="text-[12px] font-medium text-muted-light leading-relaxed px-4 opacity-80">{t('logoutConfirmText')}</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black tracking-tight text-ink leading-none">{t('signOutOfVault')}</h3>
+                <p className="text-[13px] font-medium text-muted leading-relaxed px-2">{t('logoutConfirmText')}</p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 relative z-10">
+            <div className="flex flex-col gap-3 relative z-10">
               <button
                 disabled={isLoggingOut}
                 onClick={() => {
@@ -214,13 +214,13 @@ export const SettingsPage = () => {
                   logout();
                   navigate('/login');
                 }}
-                className="h-16 bg-white shadow-card-bold bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl text-white text-[12px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-amber-500/20"
+                className="h-14 bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl text-white text-[12px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-amber-500/25"
               >
-                {isLoggingOut ? <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" /> : t('confirmLogout')}
+                {isLoggingOut ? <div className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : t('confirmLogout')}
               </button>
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="h-14 bg-white shadow-card-outline bg-white/5 rounded-2xl text-muted-light text-[11px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all border border-white/10 hover:bg-white/10"
+                className="h-14 bg-slate-50 rounded-2xl text-ink/70 text-[11px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all hover:bg-slate-100"
               >
                 {t('stayInVault')}
               </button>
@@ -231,37 +231,37 @@ export const SettingsPage = () => {
 
       {showDeleteConfirm && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-ink/50 backdrop-blur-md animate-in fade-in duration-300"
           onClick={() => setShowDeleteConfirm(false)}
         >
           <div
-            className="shadow-card bg-slate-900/90 rounded-[2.5rem] p-10 max-w-sm w-full border border-white/10 shadow-2xl space-y-10 animate-in zoom-in-95 duration-300 relative overflow-hidden"
+            className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-card-lg space-y-8 animate-in zoom-in-95 duration-300 relative overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             {/* Destructive Mesh Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-red-500/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-56 bg-red-400/15 blur-[70px] rounded-full pointer-events-none" />
 
-            <div className="flex flex-col items-center text-center space-y-6 relative z-10">
-              <div className="size-24 rounded-[2rem] flex items-center justify-center bg-red-500/10 text-red-500 shadow-inner">
-                <MaterialSymbol name="delete_forever" size={56} filled />
+            <div className="flex flex-col items-center text-center space-y-5 relative z-10">
+              <div className="size-20 rounded-[1.75rem] flex items-center justify-center bg-red-50 text-red-500">
+                <MaterialSymbol name="delete_forever" size={44} filled />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-3xl font-black tracking-tighter text-white leading-none">{t('selfDestructTitle')}</h3>
-                <p className="text-[12px] font-medium text-muted-light leading-relaxed px-4 opacity-80">{t('deleteAccountConfirm')}</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black tracking-tight text-ink leading-none">{t('selfDestructTitle')}</h3>
+                <p className="text-[13px] font-medium text-muted leading-relaxed px-2">{t('deleteAccountConfirm')}</p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 relative z-10">
+            <div className="flex flex-col gap-3 relative z-10">
               <button
                 disabled={isDeleting}
                 onClick={handleDeleteAccount}
-                className="h-16 bg-white shadow-card-bold bg-gradient-to-r from-red-500 to-red-600 rounded-2xl text-white text-[12px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-red-500/20"
+                className="h-14 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl text-white text-[12px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-red-500/25"
               >
-                {isDeleting ? <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" /> : t('confirmDelete')}
+                {isDeleting ? <div className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : t('confirmDelete')}
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="h-14 bg-white shadow-card-outline bg-white/5 rounded-2xl text-muted-light text-[11px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all border border-white/10 hover:bg-white/10"
+                className="h-14 bg-slate-50 rounded-2xl text-ink/70 text-[11px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all hover:bg-slate-100"
               >
                 {t('abortAction')}
               </button>

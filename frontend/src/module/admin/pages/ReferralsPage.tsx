@@ -3,8 +3,9 @@ import { AdminTopNavbar } from '../components/AdminTopNavbar';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from '../components/AdminNumberInput';
 import adminService from '../../../core/services/admin.service';
-import type { AdminReferral, AdminReferralSummary } from '../types/admin.types';
+import type { AdminReferral, AdminReferralSummary, AdminSettings } from '../types/admin.types';
 
 export const ReferralsPage = () => {
   const [referrals, setReferrals] = useState<AdminReferral[]>([]);
@@ -19,6 +20,13 @@ export const ReferralsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: '', status: 'all' });
+
+  // Reward configuration
+  const [referralSettings, setReferralSettings] = useState<AdminSettings['referral'] | null>(null);
+  const [rewardDraft, setRewardDraft] = useState(0);
+  const [isSavingReward, setIsSavingReward] = useState(false);
+  const [rewardSaved, setRewardSaved] = useState(false);
+
   const {
     isSidebarOpen,
     setIsSidebarOpen,
@@ -36,6 +44,7 @@ export const ReferralsPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchReferrals();
+    fetchReferralSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filters]);
 
@@ -51,6 +60,49 @@ export const ReferralsPage = () => {
       console.error('Failed to fetch referrals:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchReferralSettings = async () => {
+    try {
+      const settings = await adminService.getAppSettings();
+      setReferralSettings(settings.referral);
+      setRewardDraft(settings.referral?.rewardAmount ?? 0);
+    } catch (error) {
+      console.error('Failed to fetch referral settings:', error);
+    }
+  };
+
+  const handleSaveRewardSettings = async () => {
+    if (!referralSettings) return;
+    try {
+      setIsSavingReward(true);
+      const updated = await adminService.updateAppSettings({
+        referral: { ...referralSettings, rewardAmount: rewardDraft },
+      });
+      setReferralSettings(updated.referral);
+      setRewardDraft(updated.referral?.rewardAmount ?? rewardDraft);
+      setRewardSaved(true);
+      setTimeout(() => setRewardSaved(false), 2500);
+    } catch (error) {
+      console.error('Failed to save referral reward settings:', error);
+      alert('Failed to save reward settings. Please try again.');
+    } finally {
+      setIsSavingReward(false);
+    }
+  };
+
+  const handleToggleReferralEnabled = async () => {
+    if (!referralSettings) return;
+    const nextEnabled = !referralSettings.isEnabled;
+    try {
+      const updated = await adminService.updateAppSettings({
+        referral: { ...referralSettings, isEnabled: nextEnabled },
+      });
+      setReferralSettings(updated.referral);
+    } catch (error) {
+      console.error('Failed to toggle referral program:', error);
+      alert('Failed to update referral program status. Please try again.');
     }
   };
 
@@ -83,6 +135,71 @@ export const ReferralsPage = () => {
             <p className="text-gray-600 dark:text-gray-400">
               Track every referral and the coin rewards paid out ({total} total)
             </p>
+          </div>
+
+          {/* Reward Settings */}
+          <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <MaterialSymbol name="settings" size={18} className="text-pink-600 dark:text-pink-400" />
+                  <h2 className="text-sm font-bold text-gray-900 dark:text-white">Reward Settings</h2>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                  Set how many coins a referrer earns once their referred friend completes their first recharge.
+                </p>
+                <div className="max-w-xs">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Reward Amount (coins)
+                  </label>
+                  <AdminNumberInput
+                    value={rewardDraft}
+                    onChange={setRewardDraft}
+                    min={0}
+                    step={1}
+                    suffix="coins"
+                    disabled={!referralSettings}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Program {referralSettings?.isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleToggleReferralEnabled}
+                    disabled={!referralSettings}
+                    className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50 ${
+                      referralSettings?.isEnabled ? 'bg-pink-600' : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        referralSettings?.isEnabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </label>
+
+                <button
+                  onClick={handleSaveRewardSettings}
+                  disabled={!referralSettings || isSavingReward || rewardDraft === referralSettings?.rewardAmount}
+                  className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingReward ? (
+                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : rewardSaved ? (
+                    <MaterialSymbol name="check" size={18} />
+                  ) : (
+                    <MaterialSymbol name="save" size={18} />
+                  )}
+                  {rewardSaved ? 'Saved' : 'Save'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -154,13 +271,13 @@ export const ReferralsPage = () => {
                 placeholder="Search by referrer or friend name/phone"
                 value={filters.search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
             </div>
             <select
               value={filters.status}
               onChange={(e) => updateFilters({ status: e.target.value })}
-              className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Awaiting First Recharge</option>
@@ -171,7 +288,7 @@ export const ReferralsPage = () => {
           {/* Table */}
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto">
@@ -249,7 +366,7 @@ export const ReferralsPage = () => {
                 <button
                   key={i}
                   onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1 rounded ${page === i + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-800'}`}
+                  className={`px-3 py-1 rounded ${page === i + 1 ? 'bg-pink-600 text-white' : 'bg-gray-200 dark:bg-gray-800'}`}
                 >
                   {i + 1}
                 </button>

@@ -91,7 +91,7 @@ export const RejectWithdrawalPage = () => {
           onItemClick={handleNavigationClick}
         />
         <div className="flex-1 p-4 md:p-6 mt-[57px] lg:ml-64 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -99,7 +99,7 @@ export const RejectWithdrawalPage = () => {
 
   if (isLoading) {
     return (
-      <div className="relative flex h-full min-h-screen w-full flex-col bg-gray-50 dark:bg-[#0a0a0a] overflow-x-hidden">
+      <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden">
         <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
         <AdminSidebar
           isOpen={isSidebarOpen}
@@ -108,7 +108,7 @@ export const RejectWithdrawalPage = () => {
           onItemClick={handleNavigationClick}
         />
         <div className="flex-1 p-4 md:p-6 mt-[57px] lg:ml-64 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -131,7 +131,7 @@ export const RejectWithdrawalPage = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-4">The withdrawal request you're looking for doesn't exist.</p>
             <button
               onClick={() => navigate('/admin/withdrawals')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
             >
               Back to Withdrawals
             </button>

@@ -97,7 +97,7 @@ export const UsersManagementPage = () => {
                 <input
                   type="text"
                   placeholder="Search users..."
-                  className="pl-10 pr-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-64 text-sm dark:text-white"
+                  className="pl-10 pr-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none w-full sm:w-64 text-sm dark:text-white"
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 />
@@ -105,7 +105,7 @@ export const UsersManagementPage = () => {
               </div>
               <button
                 onClick={handleExport}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-600 to-pink-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
               >
                 <MaterialSymbol name="download" size={20} />
                 Export Data
@@ -115,7 +115,7 @@ export const UsersManagementPage = () => {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>

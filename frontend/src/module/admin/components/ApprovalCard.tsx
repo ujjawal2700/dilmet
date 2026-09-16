@@ -94,7 +94,7 @@ export const ApprovalCard = ({
       <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={onViewAction}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-pink-600 text-white rounded-xl font-medium hover:bg-pink-700 transition-colors shadow-sm active:scale-95"
         >
           <span>Action</span>
           <MaterialSymbol name="arrow_forward" size={20} />

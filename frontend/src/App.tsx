@@ -15,6 +15,7 @@ import { SocketQuerySync } from "./core/components/SocketQuerySync";
 import { ErrorBoundary } from "./shared/components/ErrorBoundary";
 import { ProtectedRoute } from "./core/components/ProtectedRoute";
 import { MaleLayout } from "./module/male/components/MaleLayout";
+import { FemaleLayout } from "./module/female/components/FemaleLayout";
 import { PageSkeletonLoader } from "./shared/components/PageSkeletonLoader";
 import { ScrollToTop } from "./core/components/ScrollToTop";
 
@@ -187,11 +188,6 @@ const FemaleUserProfilePage = lazy(() =>
 const FemaleSettingsPage = lazy(() =>
   import("./module/female/pages/SettingsPage").then((m) => ({
     default: m.SettingsPage,
-  })),
-);
-const FemaleReferralPage = lazy(() =>
-  import("./module/female/pages/ReferralPage").then((m) => ({
-    default: m.ReferralPage,
   })),
 );
 
@@ -434,55 +430,53 @@ function AppShell() {
                     {/* Female Routes */}
                     <Route
                       element={<ProtectedRoute allowedRoles={["female"]} />}>
-                      <Route
-                        path="/female/dashboard"
-                        element={<FemaleDashboard />}
-                      />
-                      <Route
-                        path="/female/chats"
-                        element={<FemaleChatListPage />}
-                      />
-                      <Route
-                        path="/female/chat/:chatId"
-                        element={<FemaleChatWindowPage />}
-                      />
-                      <Route
-                        path="/female/earnings"
-                        element={<EarningsPage />}
-                      />
-                      <Route
-                        path="/female/withdrawal"
-                        element={<WithdrawalPage />}
-                      />
-                      <Route
-                        path="/female/auto-messages"
-                        element={<AutoMessageTemplatesPage />}
-                      />
-                      <Route
-                        path="/female/my-profile"
-                        element={<FemaleMyProfilePage />}
-                      />
-                      <Route
-                        path="/female/edit-profile"
-                        element={<FemaleProfileEditPage />}
-                      />
-                      <Route
-                        path="/female/notifications"
-                        element={<FemaleNotificationsPage />}
-                      />
-                      <Route
-                        path="/female/profile/:profileId"
-                        element={<FemaleUserProfilePage />}
-                      />
-                      <Route
-                        path="/female/settings"
-                        element={<FemaleSettingsPage />}
-                      />
-                      <Route
-                        path="/female/referral"
-                        element={<FemaleReferralPage />}
-                      />
-                      <Route path="/female/faqs" element={<FaqsPage />} />
+                      <Route element={<FemaleLayout />}>
+                        <Route
+                          path="/female/dashboard"
+                          element={<FemaleDashboard />}
+                        />
+                        <Route
+                          path="/female/chats"
+                          element={<FemaleChatListPage />}
+                        />
+                        <Route
+                          path="/female/chat/:chatId"
+                          element={<FemaleChatWindowPage />}
+                        />
+                        <Route
+                          path="/female/earnings"
+                          element={<EarningsPage />}
+                        />
+                        <Route
+                          path="/female/withdrawal"
+                          element={<WithdrawalPage />}
+                        />
+                        <Route
+                          path="/female/auto-messages"
+                          element={<AutoMessageTemplatesPage />}
+                        />
+                        <Route
+                          path="/female/my-profile"
+                          element={<FemaleMyProfilePage />}
+                        />
+                        <Route
+                          path="/female/edit-profile"
+                          element={<FemaleProfileEditPage />}
+                        />
+                        <Route
+                          path="/female/notifications"
+                          element={<FemaleNotificationsPage />}
+                        />
+                        <Route
+                          path="/female/profile/:profileId"
+                          element={<FemaleUserProfilePage />}
+                        />
+                        <Route
+                          path="/female/settings"
+                          element={<FemaleSettingsPage />}
+                        />
+                        <Route path="/female/faqs" element={<FaqsPage />} />
+                      </Route>
                     </Route>
 
                     {/* Admin Routes */}

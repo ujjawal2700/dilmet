@@ -3,8 +3,55 @@ import { AdminTopNavbar } from '../components/AdminTopNavbar';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { useAdminNavigation } from '../hooks/useAdminNavigation';
 import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
+import { AdminNumberInput } from '../components/AdminNumberInput';
 import adminService from '../../../core/services/admin.service';
 import type { AdminSettings, AdminGift } from '../types/admin.types';
+
+// Small inline-edit number field for the gift cost grid: commits on blur/Enter
+// instead of on every keystroke (the previous version fired an API call + a
+// blocking alert() on every single digit typed, making it impossible to type
+// a multi-digit cost).
+const GiftCostInput = ({
+  value,
+  onCommit,
+}: {
+  value: number;
+  onCommit: (newValue: number) => void;
+}) => {
+  const [raw, setRaw] = useState<string>(value === 0 ? '' : String(value));
+
+  useEffect(() => {
+    setRaw(value === 0 ? '' : String(value));
+  }, [value]);
+
+  const commit = () => {
+    const parsed = raw === '' ? 0 : parseInt(raw, 10);
+    const next = Number.isNaN(parsed) ? 0 : parsed;
+    if (next !== value) {
+      onCommit(next);
+    } else if (raw !== (value === 0 ? '' : String(value))) {
+      // Normalize stray input (e.g. leading zeros) back to the canonical display
+      setRaw(value === 0 ? '' : String(value));
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      value={raw}
+      onChange={(e) => setRaw(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.currentTarget.blur();
+        }
+      }}
+      min="0"
+      step="1"
+      className="w-24 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+    />
+  );
+};
 
 // Mock data - replace with actual API calls
 const mockSettings: AdminSettings = {
@@ -204,7 +251,6 @@ export const SettingsPage = () => {
         ...updatedLevels[index],
         [field]: field === 'badgeName' ? value : (parseInt(value) || 0)
       };
-      updatedLevels.sort((a, b) => a.level - b.level);
       return {
         ...prev,
         maleLevels: updatedLevels
@@ -265,7 +311,7 @@ export const SettingsPage = () => {
   }
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col bg-gray-50 dark:bg-[#0a0a0a] overflow-x-hidden">
+    <div className="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#1a1a1a] dark:to-[#0a0a0a] overflow-x-hidden">
       {/* Top Navbar */}
       <AdminTopNavbar onMenuClick={() => setIsSidebarOpen(true)} />
 
@@ -298,7 +344,7 @@ export const SettingsPage = () => {
               <button
                 onClick={handleSave}
                 disabled={!hasChanges || isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? (
                   <>
@@ -323,7 +369,7 @@ export const SettingsPage = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={`flex-1 px-6 py-4 text-center font-medium transition-colors border-b-2 ${activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    ? 'border-pink-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                 >
@@ -349,7 +395,7 @@ export const SettingsPage = () => {
                       type="text"
                       value={settings.general.platformName}
                       onChange={(e) => handleGeneralChange('platformName', e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -362,7 +408,7 @@ export const SettingsPage = () => {
                       type="email"
                       value={settings.general.supportEmail}
                       onChange={(e) => handleGeneralChange('supportEmail', e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -375,7 +421,7 @@ export const SettingsPage = () => {
                       type="tel"
                       value={settings.general.supportPhone}
                       onChange={(e) => handleGeneralChange('supportPhone', e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -388,7 +434,7 @@ export const SettingsPage = () => {
                       type="url"
                       value={settings.general.termsOfServiceUrl}
                       onChange={(e) => handleGeneralChange('termsOfServiceUrl', e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -401,7 +447,7 @@ export const SettingsPage = () => {
                       type="url"
                       value={settings.general.privacyPolicyUrl}
                       onChange={(e) => handleGeneralChange('privacyPolicyUrl', e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -423,7 +469,7 @@ export const SettingsPage = () => {
                           onChange={(e) => handleGeneralChange('maintenanceMode', e.target.checked)}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-pink-600"></div>
                       </label>
                     </div>
 
@@ -443,7 +489,7 @@ export const SettingsPage = () => {
                           onChange={(e) => handleGeneralChange('registrationEnabled', e.target.checked)}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-pink-600"></div>
                       </label>
                     </div>
                   </div>
@@ -462,13 +508,11 @@ export const SettingsPage = () => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Minimum Amount (coins)
                       </label>
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={settings.withdrawal.minAmount}
-                        onChange={(e) => handleWithdrawalChange('minAmount', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(val) => handleWithdrawalChange('minAmount', val)}
+                        min={0}
+                        step={1}
                       />
                     </div>
 
@@ -477,13 +521,11 @@ export const SettingsPage = () => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Maximum Amount (coins)
                       </label>
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={settings.withdrawal.maxAmount}
-                        onChange={(e) => handleWithdrawalChange('maxAmount', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(val) => handleWithdrawalChange('maxAmount', val)}
+                        min={0}
+                        step={1}
                       />
                     </div>
 
@@ -492,13 +534,11 @@ export const SettingsPage = () => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Processing Fee (coins)
                       </label>
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={settings.withdrawal.processingFee}
-                        onChange={(e) => handleWithdrawalChange('processingFee', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(val) => handleWithdrawalChange('processingFee', val)}
+                        min={0}
+                        step={1}
                       />
                     </div>
 
@@ -507,13 +547,11 @@ export const SettingsPage = () => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Daily Limit (coins)
                       </label>
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={settings.withdrawal.dailyLimit}
-                        onChange={(e) => handleWithdrawalChange('dailyLimit', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(val) => handleWithdrawalChange('dailyLimit', val)}
+                        min={0}
+                        step={1}
                       />
                     </div>
 
@@ -522,13 +560,11 @@ export const SettingsPage = () => {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Weekly Limit (coins)
                       </label>
-                      <input
-                        type="number"
+                      <AdminNumberInput
                         value={settings.withdrawal.weeklyLimit}
-                        onChange={(e) => handleWithdrawalChange('weeklyLimit', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(val) => handleWithdrawalChange('weeklyLimit', val)}
+                        min={0}
+                        step={1}
                       />
                     </div>
                   </div>
@@ -554,17 +590,13 @@ export const SettingsPage = () => {
                           Basic Tier
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.basic}
-                            onChange={(e) => handleMessageCostChange('basic', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('basic', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
 
@@ -574,17 +606,13 @@ export const SettingsPage = () => {
                           Silver Tier
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.silver}
-                            onChange={(e) => handleMessageCostChange('silver', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('silver', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
 
@@ -594,17 +622,13 @@ export const SettingsPage = () => {
                           Gold Tier
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.gold}
-                            onChange={(e) => handleMessageCostChange('gold', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('gold', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
 
@@ -614,17 +638,13 @@ export const SettingsPage = () => {
                           Platinum Tier
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.platinum}
-                            onChange={(e) => handleMessageCostChange('platinum', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('platinum', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
                     </div>
@@ -640,17 +660,13 @@ export const SettingsPage = () => {
                           First "Hi" Message
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.hiMessage}
-                            onChange={(e) => handleMessageCostChange('hiMessage', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('hiMessage', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cost for the initial "Hi" message to start a conversation</p>
                       </div>
@@ -661,17 +677,13 @@ export const SettingsPage = () => {
                           Image/Photo Message
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.imageMessage}
-                            onChange={(e) => handleMessageCostChange('imageMessage', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('imageMessage', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cost for sending an image or taking a photo in chat</p>
                       </div>
@@ -688,17 +700,13 @@ export const SettingsPage = () => {
                           Video Call Cost (per call)
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.videoCall}
-                            onChange={(e) => handleMessageCostChange('videoCall', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('videoCall', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
 
@@ -708,17 +716,13 @@ export const SettingsPage = () => {
                           Voice Call Cost (per call)
                         </label>
                         <div className="relative">
-                          <input
-                            type="number"
+                          <AdminNumberInput
                             value={settings.messageCosts.voiceCall}
-                            onChange={(e) => handleMessageCostChange('voiceCall', parseInt(e.target.value) || 0)}
-                            min="0"
-                            step="1"
-                            className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onChange={(val) => handleMessageCostChange('voiceCall', val)}
+                            min={0}
+                            step={1}
+                            suffix="coins"
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                            coins
-                          </span>
                         </div>
                       </div>
                     </div>
@@ -753,7 +757,7 @@ export const SettingsPage = () => {
                         onChange={(e) => handleReferralChange('isEnabled', e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-pink-600"></div>
                     </label>
                   </div>
                 </div>
@@ -763,19 +767,13 @@ export const SettingsPage = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Reward Amount (coins)
                     </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={settings.referral?.rewardAmount ?? 200}
-                        onChange={(e) => handleReferralChange('rewardAmount', parseInt(e.target.value) || 0)}
-                        min="0"
-                        step="1"
-                        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                        coins
-                      </span>
-                    </div>
+                    <AdminNumberInput
+                      value={settings.referral?.rewardAmount ?? 200}
+                      onChange={(val) => handleReferralChange('rewardAmount', val)}
+                      min={0}
+                      step={1}
+                      suffix="coins"
+                    />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Amount of coins awarded to the referrer once the friend they referred completes their first coin recharge.
                     </p>
@@ -828,7 +826,7 @@ export const SettingsPage = () => {
                     <p className="text-gray-600 dark:text-gray-400">No gifts found</p>
                     <button
                       onClick={() => setShowAddGiftModal(true)}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                      className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
                     >
                       Add Your First Gift
                     </button>
@@ -843,18 +841,9 @@ export const SettingsPage = () => {
                             <h4 className="font-semibold text-gray-900 dark:text-white">{gift.name}</h4>
                             <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{gift.category}</p>
                             <div className="mt-2 flex items-center gap-2">
-                              <input
-                                type="number"
+                              <GiftCostInput
                                 value={gift.cost}
-                                onChange={(e) => {
-                                  const newCost = parseInt(e.target.value) || 0;
-                                  if (newCost !== gift.cost) {
-                                    handleGiftCostUpdate(gift._id, newCost);
-                                  }
-                                }}
-                                min="0"
-                                step="1"
-                                className="w-24 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onCommit={(newCost) => handleGiftCostUpdate(gift._id, newCost)}
                               />
                               <span className="text-sm text-gray-500 dark:text-gray-400">coins</span>
                               <button
@@ -896,7 +885,7 @@ export const SettingsPage = () => {
                   <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Current Admin</h3>
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center">
                         <MaterialSymbol name="admin_panel_settings" className="text-white" size={24} />
                       </div>
                       <div>
@@ -920,7 +909,7 @@ export const SettingsPage = () => {
                           setAdminOtpInput('');
                           setOtpSent(false);
                         }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
                       >
                         Add Admin Phone Number
                       </button>
@@ -931,7 +920,7 @@ export const SettingsPage = () => {
                           placeholder="Enter phone number (10 digits)"
                           value={adminPhoneInput}
                           onChange={(e) => setAdminPhoneInput(e.target.value)}
-                          className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                         />
                         {!otpSent ? (
                           <button
@@ -952,7 +941,7 @@ export const SettingsPage = () => {
                               }
                             }}
                             disabled={isAdminLoading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50"
                           >
                             {isAdminLoading ? 'Sending...' : 'Send OTP'}
                           </button>
@@ -964,7 +953,7 @@ export const SettingsPage = () => {
                               value={adminOtpInput}
                               onChange={(e) => setAdminOtpInput(e.target.value)}
                               maxLength={6}
-                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                             />
                             <div className="flex gap-2">
                               <button
@@ -1028,7 +1017,7 @@ export const SettingsPage = () => {
                           placeholder="Your phone number (for verification)"
                           value={adminPhoneInput}
                           onChange={(e) => setAdminPhoneInput(e.target.value)}
-                          className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                         />
                         {!otpSent ? (
                           <button
@@ -1049,7 +1038,7 @@ export const SettingsPage = () => {
                               }
                             }}
                             disabled={isAdminLoading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50"
                           >
                             {isAdminLoading ? 'Sending...' : 'Send OTP'}
                           </button>
@@ -1061,14 +1050,14 @@ export const SettingsPage = () => {
                               value={adminOtpInput}
                               onChange={(e) => setAdminOtpInput(e.target.value)}
                               maxLength={6}
-                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                             />
                             <input
                               type="text"
                               placeholder="New secret key (min 6 characters)"
                               value={adminSecretInput}
                               onChange={(e) => setAdminSecretInput(e.target.value)}
-                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                             />
                             <div className="flex gap-2">
                               <button
@@ -1142,7 +1131,7 @@ export const SettingsPage = () => {
                       <p className="text-gray-600 dark:text-gray-400">No custom levels defined. Default levels will be used.</p>
                       <button
                         onClick={handleAddMaleLevel}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
                       >
                         Create Level 1
                       </button>
@@ -1162,22 +1151,22 @@ export const SettingsPage = () => {
                           {(settings.maleLevels || []).map((lvl, index) => (
                             <tr key={index} className="text-gray-900 dark:text-white">
                               <td className="py-3 px-4">
-                                <input
-                                    type="number"
-                                    value={lvl.level}
-                                    onChange={(e) => handleMaleLevelsChange(index, 'level', e.target.value)}
-                                    min="1"
-                                    className="w-20 px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <div className="w-20">
+                                  <AdminNumberInput
+                                      value={lvl.level}
+                                      onChange={(val) => handleMaleLevelsChange(index, 'level', val)}
+                                      min={1}
+                                  />
+                                </div>
                               </td>
                               <td className="py-3 px-4">
-                                <input
-                                    type="number"
-                                    value={lvl.minCoinsSpent}
-                                    onChange={(e) => handleMaleLevelsChange(index, 'minCoinsSpent', e.target.value)}
-                                    min="0"
-                                    className="w-36 px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <div className="w-36">
+                                  <AdminNumberInput
+                                      value={lvl.minCoinsSpent}
+                                      onChange={(val) => handleMaleLevelsChange(index, 'minCoinsSpent', val)}
+                                      min={0}
+                                  />
+                                </div>
                               </td>
                               <td className="py-3 px-4">
                                 <input
@@ -1185,7 +1174,7 @@ export const SettingsPage = () => {
                                     value={lvl.badgeName}
                                     onChange={(e) => handleMaleLevelsChange(index, 'badgeName', e.target.value)}
                                     placeholder="e.g. Explorer"
-                                    className="w-full max-w-xs px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full max-w-xs px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                                 />
                               </td>
                               <td className="py-3 px-4 text-right">
@@ -1255,7 +1244,7 @@ export const SettingsPage = () => {
                     value={newGift.name}
                     onChange={(e) => setNewGift(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Red Rose"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -1266,7 +1255,7 @@ export const SettingsPage = () => {
                   <select
                     value={newGift.category}
                     onChange={(e) => setNewGift(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="romantic">Romantic</option>
                     <option value="funny">Funny</option>
@@ -1285,7 +1274,7 @@ export const SettingsPage = () => {
                     value={newGift.imageUrl}
                     onChange={(e) => setNewGift(prev => ({ ...prev, imageUrl: e.target.value }))}
                     placeholder="https://example.com/gift-image.png"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -1293,12 +1282,10 @@ export const SettingsPage = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Cost (coins) *
                   </label>
-                  <input
-                    type="number"
+                  <AdminNumberInput
                     value={newGift.cost}
-                    onChange={(e) => setNewGift(prev => ({ ...prev, cost: parseInt(e.target.value) || 0 }))}
-                    min="0"
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(val) => setNewGift(prev => ({ ...prev, cost: val }))}
+                    min={0}
                   />
                 </div>
 
@@ -1311,7 +1298,7 @@ export const SettingsPage = () => {
                     onChange={(e) => setNewGift(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="A beautiful gift for your loved one"
                     rows={2}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
                   />
                 </div>
               </div>
@@ -1343,7 +1330,7 @@ export const SettingsPage = () => {
                     }
                   }}
                   disabled={isAddingGift}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50"
                 >
                   {isAddingGift ? 'Adding...' : 'Add Gift'}
                 </button>

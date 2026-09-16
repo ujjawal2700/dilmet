@@ -67,14 +67,14 @@ export const legalDocuments: Record<string, LegalDocument> = {
             {
                 heading: '4. Earning Coins and Withdrawals',
                 paragraphs: [
-                    'Female users may earn Coins by receiving messages, gifts, and calls from other users, by participating in the referral program, and by completing daily tasks where offered. Earned Coins may be withdrawn as real money, subject to the minimum withdrawal amount, payout slabs, and processing timelines set out in the App at the time of the request.',
+                    'Female users may earn Coins by receiving messages, gifts, and calls from other users, and by completing daily tasks where offered. Earned Coins may be withdrawn as real money, subject to the minimum withdrawal amount, payout slabs, and processing timelines set out in the App at the time of the request.',
                     'We reserve the right to review withdrawal requests for fraud or abuse (including fake engagement, bot activity, or coordinated coin-farming) before releasing payment, and to decline or reverse a withdrawal where such activity is confirmed.',
                 ],
             },
             {
                 heading: '5. Referral Program & Daily Tasks',
                 paragraphs: [
-                    'Where offered, the referral program and daily tasks award bonus Coins for specific actions (such as a referred friend completing their first recharge, or completing a daily task like messaging a set number of users). Reward amounts, targets, and eligibility rules are configurable by us and may change at any time. Daily task progress resets every day at 12:00 AM IST. Attempting to abuse these programs (e.g. self-referral, fake accounts, or automated task completion) is a violation of these Terms and may result in forfeiture of rewards and account suspension.',
+                    'The referral program is available to male users only. Where offered, it and the daily tasks feature award bonus Coins for specific actions (such as a referred friend completing their first recharge, or completing a daily task like messaging a set number of users). Reward amounts, targets, and eligibility rules are configurable by us and may change at any time. Daily task progress resets every day at 12:00 AM IST. Attempting to abuse these programs (e.g. self-referral, fake accounts, or automated task completion) is a violation of these Terms and may result in forfeiture of rewards and account suspension.',
                 ],
             },
             {
@@ -335,7 +335,7 @@ export const legalDocuments: Record<string, LegalDocument> = {
             {
                 heading: 'Referral Program',
                 bullets: [
-                    'Every user has a unique referral code, shareable with friends.',
+                    'The referral program is available to male users only. Every male user has a unique referral code, shareable with friends.',
                     'When someone signs up using your code and completes their first coin recharge, you receive a reward - the reward amount is set by the platform and shown in the Refer & Earn page.',
                     'Referral rewards are paid once per successful referred recharge, not per signup - a signup alone does not trigger a reward.',
                     'Self-referral, fake accounts, or coordinated referral abuse voids the reward and may result in account action.',

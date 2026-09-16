@@ -103,7 +103,7 @@ export const FemaleApprovalPage = () => {
             {filter === 'pending' && filteredApprovals.length > 0 && (
               <button
                 onClick={() => setShowBulkActions(!showBulkActions)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
               >
                 <MaterialSymbol name="checklist" size={20} />
                 Bulk Actions
@@ -212,7 +212,7 @@ export const FemaleApprovalPage = () => {
             <button
               onClick={() => setFilter('resubmit_requested')}
               className={`flex-1 min-w-[100px] px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 ${filter === 'resubmit_requested'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-pink-600 text-white shadow-md'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
             >
@@ -264,7 +264,7 @@ export const FemaleApprovalPage = () => {
                         type="checkbox"
                         checked={selectedApprovals.has(approval.userId)}
                         onChange={() => toggleSelection(approval.userId)}
-                        className="size-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="size-5 rounded border-gray-300 text-blue-600 focus:ring-pink-500"
                       />
                     </div>
                   )}
