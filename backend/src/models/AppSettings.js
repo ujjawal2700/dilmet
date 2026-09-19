@@ -70,8 +70,8 @@ const appSettingsSchema = new mongoose.Schema(
         aiCompanions: {
             enabled: { type: Boolean, default: true },
             // Default reply delay range, used when a persona doesn't set its own
-            replyDelayMinSeconds: { type: Number, default: 60 },
-            replyDelayMaxSeconds: { type: Number, default: 240 },
+            replyDelayMinSeconds: { type: Number, default: 1 },
+            replyDelayMaxSeconds: { type: Number, default: 3 },
             // Max AI opener messages a single male user receives per day
             openersPerUserPerDay: { type: Number, default: 2 },
             // Max AI replies a single male user receives per day (cost control)

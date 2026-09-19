@@ -38,6 +38,7 @@ const COMPANIONS = [
         backstory: 'Works as a UX designer at a small startup. Fills sketchbooks on weekends, has strong opinions about fonts, and is always hunting for the perfect cutting chai.',
         languageStyle: 'mirror',
         avatar: { top: 'straight01', hairColor: '2c1b18', skinColor: 'd08b5b', mouth: 'smile', eyes: 'happy', clothing: 'blazerAndShirt', clothesColor: 'a7ffc4', backgroundColor: 'ffd5dc' },
+        photoUrl: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Priya', age: 26, occupation: 'School Teacher',
@@ -47,6 +48,7 @@ const COMPANIONS = [
         backstory: 'Teaches class 3 at a primary school. Has a balcony full of plants, rewatches old Shah Rukh Khan movies, and makes the best maggi in her friend group.',
         languageStyle: 'hinglish',
         avatar: { top: 'bun', hairColor: '2c1b18', skinColor: 'ae5d29', mouth: 'twinkle', eyes: 'default', clothing: 'collarAndSweater', clothesColor: 'ff5c5c', backgroundColor: 'ffdfbf' },
+        photoUrl: 'https://images.unsplash.com/photo-1596215143922-eedeaba0d91c?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Kavya', age: 23, occupation: 'MBA Student',
@@ -56,6 +58,7 @@ const COMPANIONS = [
         backstory: 'Final-year MBA student interested in marketing. Follows IPL closely, listens to business podcasts on walks, and dreams of a solo trip to Ladakh.',
         languageStyle: 'english',
         avatar: { top: 'longButNotTooLong', hairColor: '4a312c', skinColor: 'edb98a', mouth: 'smile', eyes: 'default', clothing: 'shirtVNeck', clothesColor: '65c9ff', accessories: 'prescription02', backgroundColor: 'd1d4f9' },
+        photoUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Sneha', age: 25, occupation: 'Fitness Trainer',
@@ -65,6 +68,7 @@ const COMPANIONS = [
         backstory: 'Works as a personal trainer at a gym and teaches weekend yoga. Believes in balance, which is why she never says no to gol gappe.',
         languageStyle: 'hinglish',
         avatar: { top: 'straightAndStrand', hairColor: '2c1b18', skinColor: 'd08b5b', mouth: 'smile', eyes: 'wink', clothing: 'hoodie', clothesColor: 'ff488e', backgroundColor: 'c0aede' },
+        photoUrl: 'https://images.unsplash.com/photo-1614289371518-722f2615943d?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Riya', age: 22, occupation: 'Fashion Design Student',
@@ -74,6 +78,7 @@ const COMPANIONS = [
         backstory: 'Studies fashion design. Spends Sundays at flea markets, restyles old clothes, and takes way too many photos of sunsets.',
         languageStyle: 'mirror',
         avatar: { top: 'curvy', hairColor: '724133', skinColor: 'edb98a', mouth: 'twinkle', eyes: 'happy', clothing: 'overall', clothesColor: 'ffafb9', backgroundColor: 'ffd5dc' },
+        photoUrl: 'https://images.unsplash.com/photo-1621784563330-caee0b138a00?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Meera', age: 27, occupation: 'Bank Officer',
@@ -83,6 +88,7 @@ const COMPANIONS = [
         backstory: 'Works as an officer at a bank. Writes shayari in a diary she never shows anyone and listens to Jagjit Singh every evening.',
         languageStyle: 'hindi',
         avatar: { top: 'miaWallace', hairColor: '2c1b18', skinColor: 'ae5d29', mouth: 'default', eyes: 'default', clothing: 'shirtScoopNeck', clothesColor: '5199e4', backgroundColor: 'ffdfbf' },
+        photoUrl: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Ishita', age: 24, occupation: 'Content Writer',
@@ -92,6 +98,7 @@ const COMPANIONS = [
         backstory: 'Writes blogs and ad copy for a marketing agency. Keeps a reading journal, loves monsoon evenings, and is slowly writing a short story collection.',
         languageStyle: 'english',
         avatar: { top: 'bob', hairColor: '2c1b18', skinColor: 'edb98a', mouth: 'smile', eyes: 'default', clothing: 'collarAndSweater', clothesColor: '929598', accessories: 'round', backgroundColor: 'b6e3f4' },
+        photoUrl: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Pooja', age: 28, occupation: 'Nurse',
@@ -101,6 +108,7 @@ const COMPANIONS = [
         backstory: 'Works night shifts as a nurse at a hospital. Unwinds with long drives, 90s songs, and cooking rajma chawal on her day off.',
         languageStyle: 'hinglish',
         avatar: { top: 'straight02', hairColor: '4a312c', skinColor: 'd08b5b', mouth: 'smile', eyes: 'default', clothing: 'shirtCrewNeck', clothesColor: '3c4f5c', backgroundColor: 'd1d4f9' },
+        photoUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Tanvi', age: 23, occupation: 'Kathak Dancer',
@@ -110,6 +118,7 @@ const COMPANIONS = [
         backstory: 'Trained in Kathak since childhood and now teaches kids at a dance academy. Recently started salsa classes and is still bad at it (her words).',
         languageStyle: 'mirror',
         avatar: { top: 'frida', hairColor: '2c1b18', skinColor: 'ae5d29', mouth: 'twinkle', eyes: 'happy', clothing: 'shirtScoopNeck', clothesColor: 'ffdeb5', backgroundColor: 'ffdfbf' },
+        photoUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&h=600&fit=crop&crop=faces',
     },
     {
         name: 'Nisha', age: 26, occupation: 'Software Developer',
@@ -119,6 +128,7 @@ const COMPANIONS = [
         backstory: 'Backend developer at an IT company. Plays online games on weekends, watches anime, and will argue that biryani is a personality trait.',
         languageStyle: 'hinglish',
         avatar: { top: 'curly', hairColor: '2c1b18', skinColor: 'edb98a', mouth: 'smile', eyes: 'default', clothing: 'hoodie', clothesColor: '25557c', accessories: 'prescription01', backgroundColor: 'c0aede' },
+        photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=600&fit=crop&crop=faces',
     },
 ];
 
@@ -139,15 +149,23 @@ async function seedAiCompanions() {
     console.log('Connected to MongoDB');
 
     let created = 0;
-    for (const { avatar, ...data } of COMPANIONS) {
+    for (const { photoUrl, avatar, ...data } of COMPANIONS) {
         const exists = await User.exists({ isAiCompanion: true, isDeleted: false, 'profile.name': data.name });
         if (exists) {
             console.log(`- ${data.name}: already exists, skipped`);
             continue;
         }
 
-        const dataUrl = await fetchAsDataUrl(avatarUrl(data.name, avatar));
-        const { url } = await uploadImageToCloudinary(dataUrl, 'ai-companions');
+        let url = photoUrl;
+        if (photoUrl) {
+            const dataUrl = await fetchAsDataUrl(photoUrl);
+            const uploaded = await uploadImageToCloudinary(dataUrl, 'ai-companions');
+            url = uploaded.url;
+        } else if (avatar) {
+            const dataUrl = await fetchAsDataUrl(avatarUrl(data.name, avatar));
+            const uploaded = await uploadImageToCloudinary(dataUrl, 'ai-companions');
+            url = uploaded.url;
+        }
 
         await aiCompanionService.createCompanion({ ...data, photos: [url] });
         created++;

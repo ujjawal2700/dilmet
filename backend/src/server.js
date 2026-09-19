@@ -95,6 +95,19 @@ const startServer = async () => {
       logger.warn('⚠️ Razorpay credentials not found. Payment features will be disabled.');
     }
 
+    // Handle server listen errors gracefully
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        logger.warn(`⚠️ Port ${port} is currently in use, retrying in 1.5s...`);
+        setTimeout(() => {
+          server.close();
+          server.listen(port, '0.0.0.0');
+        }, 1500);
+      } else {
+        logger.error('❌ Server error:', err);
+      }
+    });
+
     // Start HTTP server
     server.listen(port, '0.0.0.0', () => {
       logger.info(`🚀 Server running in ${nodeEnv} mode on port ${port}`);
@@ -125,6 +138,24 @@ const startServer = async () => {
       logger.info('👋 SIGTERM received. Shutting down gracefully...');
       server.close(() => {
         logger.info('✅ Process terminated');
+        process.exit(0);
+      });
+    });
+
+    // Handle SIGINT (Ctrl+C / nodemon)
+    process.on('SIGINT', () => {
+      logger.info('👋 SIGINT received. Shutting down gracefully...');
+      server.close(() => {
+        logger.info('✅ Process terminated');
+        process.exit(0);
+      });
+    });
+
+    // Handle SIGUSR2 (nodemon standard restart)
+    process.once('SIGUSR2', () => {
+      logger.info('👋 SIGUSR2 received. Shutting down server for restart...');
+      server.close(() => {
+        process.kill(process.pid, 'SIGUSR2');
       });
     });
   } catch (error) {

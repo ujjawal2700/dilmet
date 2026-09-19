@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError } from '../../utils/errors.js';
 import { invalidateUserCache } from '../../middleware/auth.js';
 import * as imageUploadService from '../upload/imageUploadService.js';
 import config from '../../config/env.js';
+import { resolveUserCity } from '../../utils/cityResolver.js';
 
 /**
  * Resubmit verification document
@@ -93,8 +94,8 @@ export const updateUserProfile = async (userId, data) => {
         // Update full address - prioritize 'location' field which contains complete address
         if (data.location) {
             user.profile.location.fullAddress = data.location;
-            // Also set city for backward compatibility (extract first part before comma)
-            user.profile.location.city = data.location.split(',')[0].trim();
+            const resolvedCity = resolveUserCity({ profile: { location: { fullAddress: data.location, city: data.city || '' } } });
+            user.profile.location.city = resolvedCity || data.city || data.location.split(',')[0].trim();
         } else if (data.city) {
             user.profile.location.city = data.city;
             user.profile.location.fullAddress = data.city; // Fallback
