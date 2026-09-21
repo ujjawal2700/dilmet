@@ -17,12 +17,23 @@ export interface DailyTask {
 
 export const getMyTasks = async (): Promise<DailyTask[]> => {
     const response = await apiClient.get('/tasks');
-    return response.data.data.tasks;
+    return response.data?.data?.tasks || [];
 };
 
-export const checkin = async (): Promise<DailyTask[]> => {
+export const checkin = async (): Promise<{ tasks: DailyTask[]; completedTask?: any }> => {
     const response = await apiClient.post('/tasks/checkin');
-    return response.data.data.tasks;
+    const data = response.data?.data;
+    if (data?.completedTask) {
+        window.dispatchEvent(new CustomEvent('app:task:completed', { detail: data.completedTask }));
+    }
+    if (data && Array.isArray(data.tasks)) {
+        return data;
+    }
+    if (Array.isArray(data)) {
+        return { tasks: data };
+    }
+    return { tasks: [] };
 };
 
 export default { getMyTasks, checkin };
+

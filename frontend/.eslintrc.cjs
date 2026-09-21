@@ -1,0 +1,27 @@
+module.exports = {
+  root: true,
+  env: { browser: true, es2020: true, node: true },
+  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  ignorePatterns: [
+    "dist",
+    ".eslintrc.cjs",
+    "node_modules",
+    "*.config.js",
+    "*.config.ts",
+  ],
+  parser: "@typescript-eslint/parser",
+  plugins: ["react-refresh", "react-hooks"],
+  rules: {
+    "react-refresh/only-export-components": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/ban-types": "off",
+    "no-unused-vars": "off",
+    "no-empty-pattern": "off",
+    "prefer-const": "off",
+    "no-case-declarations": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "off",
+  },
+};

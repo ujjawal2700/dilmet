@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 interface AdminNumberInputProps {
   value: number;
@@ -26,29 +26,29 @@ export const AdminNumberInput = ({
   max,
   step = 1,
   placeholder,
-  className = '',
+  className = "",
   disabled,
   suffix,
   id,
 }: AdminNumberInputProps) => {
   const [rawValue, setRawValue] = useState<string>(
-    value === 0 || Number.isNaN(value) ? '' : String(value),
+    value === 0 || Number.isNaN(value) ? "" : String(value),
   );
 
   // Keep local text in sync when the value changes externally (fetched data, reset, etc.)
   useEffect(() => {
-    const numeric = rawValue === '' || rawValue === '-' ? 0 : parseFloat(rawValue);
+    const numeric =
+      rawValue === "" || rawValue === "-" ? 0 : parseFloat(rawValue);
     if (numeric !== value) {
-      setRawValue(value === 0 || Number.isNaN(value) ? '' : String(value));
+      setRawValue(value === 0 || Number.isNaN(value) ? "" : String(value));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     setRawValue(next);
 
-    if (next === '' || next === '-') {
+    if (next === "" || next === "-") {
       onChange(0);
       return;
     }
@@ -69,9 +69,9 @@ export const AdminNumberInput = ({
         min={min}
         max={max}
         step={step}
-        placeholder={placeholder ?? '0'}
+        placeholder={placeholder ?? "0"}
         disabled={disabled}
-        className={`w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50 ${suffix ? 'pr-16' : ''} ${className}`}
+        className={`w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50 ${suffix ? "pr-16" : ""} ${className}`}
       />
       {suffix && (
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none">

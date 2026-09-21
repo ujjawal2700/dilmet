@@ -137,21 +137,28 @@ export const recordProgress = async (userId, taskType, opts = {}) => {
 
         const { targetUserId, io } = opts;
         const tasks = await Task.find({ type: taskType, isActive: true });
-        if (tasks.length === 0) return;
+        if (tasks.length === 0) return { completedTasks: [] };
 
         const taskDate = getISTDayStart();
+        const completedTasks = [];
 
         for (const task of tasks) {
-            await processOneTask(userId, task, taskDate, targetUserId, io);
+            const completed = await processOneTask(userId, task, taskDate, targetUserId, io);
+            if (completed) {
+                completedTasks.push(completed);
+            }
         }
+        return { completedTasks };
     } catch (err) {
         logger.error(`[TASKS] recordProgress failed (userId=${userId}, type=${taskType}): ${err.message}`);
+        return { completedTasks: [] };
     }
 };
 
 const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
     // Distinct-recipient tasks require a target
     if (task.type === 'message_distinct_users' && !targetUserId) return;
+    if (task.type === 'message_distinct_users' && !targetUserId) return null;
 
     // Find-or-create today's progress row for this task
     const progress = await UserTaskProgress.findOneAndUpdate(
@@ -170,6 +177,7 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
     );
 
     if (progress.isCompleted) return; // already earned today
+    if (progress.isCompleted) return null; // already earned today
 
     // Build the atomic increment, re-verifying eligibility inside the filter
     // so concurrent calls can never double-count the same event.
@@ -183,8 +191,10 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
 
     const updated = await UserTaskProgress.findOneAndUpdate(filter, update, { new: true });
     if (!updated) return; // lost the race, already completed, or target already counted today
+    if (!updated) return null; // lost the race, already completed, or target already counted today
 
     if (updated.progressCount < task.targetCount) return; // not there yet
+    if (updated.progressCount < task.targetCount) return null; // not there yet
 
     // Atomically claim completion - only one concurrent caller can win this
     const claimed = await UserTaskProgress.findOneAndUpdate(
@@ -193,6 +203,7 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
         { new: true }
     );
     if (!claimed) return; // someone else already claimed it
+    if (!claimed) return null; // someone else already claimed it
 
     if (task.rewardCoins > 0) {
         const { user: updatedUser } = await relationshipManager.updateUserBalanceWithTransaction(userId, {
@@ -206,6 +217,15 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
 
         logger.info(`🎯 Task completed: user=${userId} task=${task.taskKey} reward=${task.rewardCoins}`);
 
+        const completedInfo = {
+            taskKey: task.taskKey,
+            title: task.title,
+            description: task.description,
+            icon: task.icon,
+            rewardCoins: task.rewardCoins,
+            newBalance: updatedUser.coinBalance,
+        };
+
         if (io) {
             emitBalanceUpdate(io, userId.toString(), updatedUser.coinBalance);
             emitTaskCompleted(io, userId.toString(), {
@@ -215,8 +235,12 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
                 rewardCoins: task.rewardCoins,
                 newBalance: updatedUser.coinBalance,
             });
+            emitTaskCompleted(io, userId.toString(), completedInfo);
         }
+
+        return completedInfo;
     }
+    return null;
 };
 
 /**
@@ -224,8 +248,12 @@ const processOneTask = async (userId, task, taskDate, targetUserId, io) => {
  * only pays out the first time each IST day.
  */
 export const checkin = async (userId, io) => {
-    await recordProgress(userId, 'checkin', { io });
-    return getTasksForUser(userId);
+    const { completedTasks } = await recordProgress(userId, 'checkin', { io });
+    const tasks = await getTasksForUser(userId);
+    return {
+        tasks,
+        completedTask: completedTasks?.[0] || null,
+    };
 };
 
 export default {

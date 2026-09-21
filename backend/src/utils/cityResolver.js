@@ -209,9 +209,9 @@ export const resolveUserCity = (userOrProfile) => {
     const profile = userOrProfile.profile || userOrProfile;
     const location = profile.location || {};
 
-    const rawCity = (location.city || '').trim();
-    const rawFullAddress = (location.fullAddress || '').trim();
-    const rawState = (location.state || '').trim();
+    const rawCity = (location.city || profile.city || '').trim();
+    const rawFullAddress = (location.fullAddress || profile.fullAddress || profile.address || '').trim();
+    const rawState = (location.state || profile.state || '').trim();
 
     // Check if rawCity is an invalid building number / street token
     const isBadCityToken = (token) => {

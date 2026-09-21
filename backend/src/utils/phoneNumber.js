@@ -10,15 +10,18 @@
  * Always returns: 919876543210 (12 digits with 91 prefix)
  */
 
+import { BadRequestError } from './errors.js';
+
 /**
  * Normalize phone number to standard format (91 + 10 digits)
  * @param {string} phoneNumber - Raw phone number input
  * @returns {string} Normalized phone number with 91 prefix (12 digits total)
  * @throws {Error} if phone number is invalid
+ * @throws {BadRequestError} if phone number is invalid
  */
 export const normalizePhoneNumber = (phoneNumber) => {
     if (!phoneNumber) {
-        throw new Error('Phone number is required');
+        throw new BadRequestError('Phone number is required');
     }
 
     // Remove all non-digit characters (including +, spaces, dashes)
@@ -32,23 +35,23 @@ export const normalizePhoneNumber = (phoneNumber) => {
             return digits;
         } else if (digits.length === 10) {
             // Just country code without number: 91 (invalid)
-            throw new Error('Invalid phone number');
+            throw new BadRequestError('Invalid phone number');
         } else if (digits.length > 12) {
             // Too many digits, keep last 12
             return digits.slice(-12);
         } else {
             // Less than 12 digits with 91 prefix (invalid)
-            throw new Error('Invalid phone number - incomplete');
+            throw new BadRequestError('Invalid phone number - incomplete');
         }
     } else if (digits.length === 10) {
         // Just the 10-digit number: 9876543210
         return '91' + digits;
     } else if (digits.length === 12 && !digits.startsWith('91')) {
         // 12 digits but doesn't start with 91 (invalid for India)
-        throw new Error('Invalid phone number format');
+        throw new BadRequestError('Invalid phone number format');
     } else {
         // Any other length is invalid
-        throw new Error('Invalid phone number - wrong length');
+        throw new BadRequestError('Invalid phone number - wrong length');
     }
 };
 

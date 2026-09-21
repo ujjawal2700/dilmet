@@ -2,17 +2,25 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
 import { useTranslation } from "../../../core/hooks/useTranslation";
+import { useGlobalState } from "../../../core/context/GlobalStateContext";
+import socketService from "../../../core/services/socket.service";
 import taskService, { DailyTask } from "../../../core/services/task.service";
-import { msUntilNextISTMidnight, formatCountdown } from "../../../core/utils/dayBoundary";
+import {
+  msUntilNextISTMidnight,
+  formatCountdown,
+} from "../../../core/utils/dayBoundary";
 
 export const TasksPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { coinBalance, showTaskCompletedModal } = useGlobalState();
 
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(() => formatCountdown(msUntilNextISTMidnight()));
+  const [countdown, setCountdown] = useState(() =>
+    formatCountdown(msUntilNextISTMidnight()),
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -43,13 +51,35 @@ export const TasksPage = () => {
       }
     }, 1000);
     return () => clearInterval(interval);
+
+    // Refresh tasks list in real-time when any task completes
+    const onTaskCompleted = () => {
+      fetchTasks();
+    };
+    socketService.on("task:completed", onTaskCompleted);
+
+    return () => {
+      clearInterval(interval);
+      socketService.off("task:completed", onTaskCompleted);
+    };
   }, []);
 
   const handleTaskClick = useCallback(
     (task: DailyTask) => {
+      if (task.isCompleted) {
+        showTaskCompletedModal({
+          taskKey: task.taskKey,
+          title: task.title,
+          description: task.description,
+          icon: task.icon,
+          rewardCoins: task.rewardCoins,
+          newBalance: coinBalance,
+        });
+        return;
+      }
       if (task.deepLink) navigate(task.deepLink);
     },
-    [navigate],
+    [navigate, showTaskCompletedModal, coinBalance],
   );
 
   const totalEarnableCoins = tasks.reduce((sum, t) => sum + t.rewardCoins, 0);
@@ -64,8 +94,7 @@ export const TasksPage = () => {
             <button
               onClick={() => navigate(-1)}
               className="size-9 rounded-full bg-white shadow-sm flex items-center justify-center active:scale-90 transition-all"
-              aria-label="Back"
-            >
+              aria-label="Back">
               <MaterialSymbol name="arrow_back" size={20} />
             </button>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -88,7 +117,9 @@ export const TasksPage = () => {
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/80">
                 {t("Resets In") || "Resets In"}
               </p>
-              <p className="text-3xl font-black font-mono tracking-tight mt-0.5">{countdown}</p>
+              <p className="text-3xl font-black font-mono tracking-tight mt-0.5">
+                {countdown}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/80">
@@ -100,7 +131,11 @@ export const TasksPage = () => {
             </div>
           </div>
           <div className="relative z-10 mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
-            <MaterialSymbol name="diamond" size={18} className="text-yellow-300" />
+            <MaterialSymbol
+              name="diamond"
+              size={18}
+              className="text-yellow-300"
+            />
             <span className="text-sm font-bold">
               {t("Earn up to")} {totalEarnableCoins} {t("coins")} {t("today")}
             </span>
@@ -116,7 +151,9 @@ export const TasksPage = () => {
 
         {/* Error */}
         {error && !isLoading && (
-          <div className="mx-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</div>
+          <div className="mx-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">
+            {error}
+          </div>
         )}
 
         {/* Task List */}
@@ -130,26 +167,30 @@ export const TasksPage = () => {
                   task.isCompleted
                     ? "bg-emerald-50 border border-emerald-200"
                     : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
-                }`}
-              >
+                }`}>
                 <div
                   className={`size-12 rounded-2xl flex items-center justify-center shrink-0 ${
                     task.isCompleted ? "bg-emerald-500" : "bg-pink-50"
-                  }`}
-                >
+                  }`}>
                   <MaterialSymbol
                     name={task.isCompleted ? "check_circle" : task.icon}
                     size={24}
                     filled
-                    className={task.isCompleted ? "text-white" : "text-pink-600"}
+                    className={
+                      task.isCompleted ? "text-white" : "text-pink-600"
+                    }
                   />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-[15px] font-bold text-slate-900 truncate">{task.title}</h3>
+                    <h3 className="text-[15px] font-bold text-slate-900 truncate">
+                      {task.title}
+                    </h3>
                   </div>
-                  <p className="text-xs text-slate-500 truncate mt-0.5">{task.description}</p>
+                  <p className="text-xs text-slate-500 truncate mt-0.5">
+                    {task.description}
+                  </p>
 
                   {/* Progress bar */}
                   <div className="flex items-center gap-2 mt-2">
@@ -171,11 +212,21 @@ export const TasksPage = () => {
 
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50">
-                    <MaterialSymbol name="diamond" size={14} className="text-amber-500" />
-                    <span className="text-xs font-black text-amber-600">+{task.rewardCoins}</span>
+                    <MaterialSymbol
+                      name="diamond"
+                      size={14}
+                      className="text-amber-500"
+                    />
+                    <span className="text-xs font-black text-amber-600">
+                      +{task.rewardCoins}
+                    </span>
                   </div>
                   {!task.isCompleted && (
-                    <MaterialSymbol name="chevron_right" size={20} className="text-slate-300" />
+                    <MaterialSymbol
+                      name="chevron_right"
+                      size={20}
+                      className="text-slate-300"
+                    />
                   )}
                 </div>
               </button>
@@ -183,9 +234,14 @@ export const TasksPage = () => {
 
             {tasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <MaterialSymbol name="task_alt" size={48} className="text-slate-300 mb-3" />
+                <MaterialSymbol
+                  name="task_alt"
+                  size={48}
+                  className="text-slate-300 mb-3"
+                />
                 <p className="text-slate-400 text-sm font-medium">
-                  {t("No tasks available right now") || "No tasks available right now"}
+                  {t("No tasks available right now") ||
+                    "No tasks available right now"}
                 </p>
               </div>
             )}

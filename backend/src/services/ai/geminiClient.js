@@ -9,11 +9,11 @@ import logger from '../../utils/logger.js';
 
 const CANDIDATE_GEMINI_MODELS = [
     process.env.GEMINI_MODEL,
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-flash-8b',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-latest',
+    'gemini-3-flash-preview',
+    'gemini-flash-latest',
+    'gemini-3.6-flash',
+    'gemini-2.5-pro',
+    'gemini-pro-latest',
 ].filter(Boolean);
 
 const REQUEST_TIMEOUT_MS = 25000;

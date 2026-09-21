@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { DiscoverFemalesSection } from '../components/DiscoverFemalesSection';
-import { FilterPanel, FilterOptions } from '../components/FilterPanel';
-import { InsufficientBalanceModal } from '../components/InsufficientBalanceModal';
-import { MaterialSymbol } from '../../../shared/components/MaterialSymbol';
-import { useDiscoveryProfiles } from '../../../core/queries/useDiscoveryQuery';
-import { DailyRewardModal } from '../../../shared/components/DailyRewardModal';
-import { useGlobalState } from '../../../core/context/GlobalStateContext';
-import apiClient from '../../../core/api/client';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { DiscoverFemalesSection } from "../components/DiscoverFemalesSection";
+import { FilterPanel, FilterOptions } from "../components/FilterPanel";
+import { InsufficientBalanceModal } from "../components/InsufficientBalanceModal";
+import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
+import { useDiscoveryProfiles } from "../../../core/queries/useDiscoveryQuery";
+import { DailyRewardModal } from "../../../shared/components/DailyRewardModal";
+import { useGlobalState } from "../../../core/context/GlobalStateContext";
+import apiClient from "../../../core/api/client";
 
 const HI_MESSAGE_COST = 5;
 
@@ -24,7 +24,10 @@ export const MaleDashboard = () => {
 
   // Daily Reward Modal
   const [isDailyRewardModalOpen, setIsDailyRewardModalOpen] = useState(false);
-  const [dailyRewardData, setDailyRewardData] = useState({ amount: 0, newBalance: 0 });
+  const [dailyRewardData, setDailyRewardData] = useState({
+    amount: 0,
+    newBalance: 0,
+  });
 
   // PHASED BOOT: Check and claim daily reward 3 seconds AFTER dashboard mount
   useEffect(() => {
@@ -32,11 +35,14 @@ export const MaleDashboard = () => {
 
     const checkDailyReward = async () => {
       try {
-        const response = await apiClient.post('/rewards/daily/claim');
+        const response = await apiClient.post("/rewards/daily/claim");
         const result = response.data.data;
 
         if (result.claimed) {
-          setDailyRewardData({ amount: result.amount, newBalance: result.newBalance });
+          setDailyRewardData({
+            amount: result.amount,
+            newBalance: result.newBalance,
+          });
           setIsDailyRewardModalOpen(true);
           updateBalance(result.newBalance);
         }
@@ -54,14 +60,17 @@ export const MaleDashboard = () => {
   }, []);
 
   // Use optimized hook for female profiles
-  const { data: nearbyUsersRaw = [], isLoading: isNearbyLoading } = useDiscoveryProfiles('all');
+  const { data: nearbyUsersRaw = [], isLoading: isNearbyLoading } =
+    useDiscoveryProfiles("all");
 
   const handleExploreClick = () => {
-    navigate('/male/discover');
+    navigate("/male/discover");
   };
 
   const handleProfileClick = (profileId: string) => {
-    const found = nearbyUsersRaw.find((p: any) => (p.id || p._id) === profileId);
+    const found = nearbyUsersRaw.find(
+      (p: any) => (p.id || p._id) === profileId,
+    );
     navigate(`/male/profile/${profileId}`, { state: { profile: found } });
   };
 
@@ -73,7 +82,7 @@ export const MaleDashboard = () => {
       return;
     }
     navigate(`/male/chat/new_${profileId}`, {
-      state: { prefillMessage: '👋 Hi! Nice to meet you.' },
+      state: { prefillMessage: "👋 Hi! Nice to meet you." },
     });
   };
 
@@ -84,10 +93,8 @@ export const MaleDashboard = () => {
 
   return (
     <div className="font-display text-ink antialiased selection:bg-pink-500 selection:text-white min-h-screen relative lg:pl-60 overflow-x-hidden">
-      
       {/* Scrollable Content Layer */}
       <div className="relative z-10 flex flex-col min-h-screen pb-24 max-w-md md:max-w-2xl lg:max-w-4xl mx-auto w-full">
-        
         {/* Compact Clean Top Header: Brand + Reduced Notification Icon */}
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="flex items-center gap-2">
@@ -98,14 +105,13 @@ export const MaleDashboard = () => {
 
           {/* Reduced Notification Button */}
           <button
-            onClick={() => navigate('/male/notifications')}
+            onClick={() => navigate("/male/notifications")}
             className="relative size-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 shadow-sm text-slate-600 dark:text-slate-300 hover:text-pink-600 active:scale-90 transition-all"
-            aria-label="Notifications"
-          >
+            aria-label="Notifications">
             <MaterialSymbol name="notifications" size={20} />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 size-4 rounded-full bg-pink-500 text-[10px] font-bold text-white flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
-                {unreadCount > 9 ? '9+' : unreadCount}
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </button>
@@ -114,17 +120,22 @@ export const MaleDashboard = () => {
         {/* Daily Tasks Teaser */}
         <div className="px-4 mb-3">
           <button
-            onClick={() => navigate('/male/tasks')}
-            className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white shadow-md shadow-amber-500/25 active:scale-[0.98] transition-all group"
-          >
+            onClick={() => navigate("/male/tasks")}
+            className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white shadow-md shadow-amber-500/25 active:scale-[0.98] transition-all group">
             <div className="size-11 rounded-2xl bg-white/25 flex items-center justify-center shrink-0">
               <MaterialSymbol name="task_alt" size={22} filled />
             </div>
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-black">Daily Tasks</p>
-              <p className="text-[11px] font-semibold text-white/85">Complete tasks to earn free coins</p>
+              <p className="text-[11px] font-semibold text-white/85">
+                Complete tasks to earn free coins
+              </p>
             </div>
-            <MaterialSymbol name="chevron_right" size={22} className="group-hover:translate-x-0.5 transition-transform" />
+            <MaterialSymbol
+              name="chevron_right"
+              size={22}
+              className="group-hover:translate-x-0.5 transition-transform"
+            />
           </button>
         </div>
 
@@ -151,7 +162,7 @@ export const MaleDashboard = () => {
         <InsufficientBalanceModal
           isOpen={isBalanceModalOpen}
           onClose={() => setIsBalanceModalOpen(false)}
-          onBuyCoins={() => navigate('/male/buy-coins')}
+          onBuyCoins={() => navigate("/male/buy-coins")}
           requiredCoins={HI_MESSAGE_COST}
           currentBalance={coinBalance || 0}
           action="send a Hi"

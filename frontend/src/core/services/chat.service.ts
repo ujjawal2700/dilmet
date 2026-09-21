@@ -3,7 +3,7 @@ import apiClient from '../api/client';
 // Helper to map backend chat response to frontend expected structure
 const mapChatResponse = (chatData: any): any => {
     if (!chatData) return chatData;
-    
+
     // Safely extract last message content
     let lastMessageContent = '';
     if (typeof chatData.lastMessage === 'string') {
@@ -15,7 +15,7 @@ const mapChatResponse = (chatData: any): any => {
     } else if (chatData.lastMessage && chatData.lastMessage.messageType === 'image') {
         lastMessageContent = 'Sent an image';
     }
-    
+
     // Format timestamp
     let formattedTime = '';
     if (chatData.lastMessageAt) {
@@ -106,6 +106,9 @@ export const sendMessage = async (
         }
 
         const response = await apiClient.post('/chat/messages', payload);
+        if (response.data?.data?.completedTask) {
+            window.dispatchEvent(new CustomEvent('app:task:completed', { detail: response.data.data.completedTask }));
+        }
         return response.data.data;
     } catch (error: any) {
         if (error.response?.status === 403 && error.response?.data?.blocked) {
@@ -118,6 +121,9 @@ export const sendMessage = async (
 export const sendHiMessage = async (receiverId: string) => {
     try {
         const response = await apiClient.post('/chat/messages/hi', { receiverId });
+        if (response.data?.data?.completedTask) {
+            window.dispatchEvent(new CustomEvent('app:task:completed', { detail: response.data.data.completedTask }));
+        }
         return response.data.data;
     } catch (error: any) {
         if (error.response?.status === 403 && error.response?.data?.blocked) {
@@ -130,6 +136,9 @@ export const sendHiMessage = async (receiverId: string) => {
 export const sendGift = async (chatId: string, giftIds: string[], content?: string) => {
     try {
         const response = await apiClient.post('/chat/messages/gift', { chatId, giftIds, content });
+        if (response.data?.data?.completedTask) {
+            window.dispatchEvent(new CustomEvent('app:task:completed', { detail: response.data.data.completedTask }));
+        }
         return response.data.data;
     } catch (error: any) {
         if (error.response?.status === 403 && error.response?.data?.blocked) {

@@ -136,7 +136,7 @@ const buildReply = ({ userMessage, companion, user, effectiveLang }) => {
     }
 
     // 13. Food / Hunger
-    if (/(kya\s*khaya|khaya\s*kya|khana\s*kha|food|dinner|lunch|breakfast|poha|pohe|pizza|burger|biryani|chai|coffee|bhookh|eating|snack|खाना|चाय|भूख|बिरयानी|पोहे)/i.test(lower)) {
+    if (/(kya\s*khaya|khaya\s*kya|khana|food|dinner|lunch|breakfast|poha|pohe|pizza|burger|biryani|chai|coffee|bhookh?|bhuk|eating|snack|खाना|चाय|भूख|बिरयानी|पोहे)/i.test(lower)) {
         const fm = lower.match(/(poha|pohe|pizza|burger|biryani|chai|coffee|dosa|maggi|paratha|samosa)/i);
         const fi = fm ? fm[1].replace(/pohe/i, 'poha') : null;
         if (isH) return pick([fi ? `${fi.charAt(0).toUpperCase() + fi.slice(1)} का नाम सुनके ही मुँह में पानी आ गया! 😋 बनाया या बाहर से मँगाया?` : 'अरे खाने की बात मत करो, मुझे भूख लग जाएगी हाहा 😋 आज क्या खाया?', userCity && cityInfo ? `${userCity} का खाना तो बहुत मशहूर है ना! आज क्या special खाया? 😊` : 'खाना खाया? समय पर खाया करो 😊']);
@@ -211,17 +211,37 @@ const buildReply = ({ userMessage, companion, user, effectiveLang }) => {
         ]);
     }
 
+    // 21.5. Generic / repetitive accusation
+    if (/(generic|canned|bot\s*jaise|ai\s*jaise|template|repeated|wahi\s*wahi|ek\s*hi\s*baat|same\s*answer)/i.test(lower)) {
+        if (isH) return pick(['अरे generic बोला? 🙈 चलो challenge accepted! अब पूछो क्या पूछना है, बिल्कुल दिल से जवाब दूँगी 😉', 'उफ़्फ़ एक ही बात बार-बार? 🙄 इतना शक करोगे तो डेट पर ट्रीट देनी पड़ेगी prove करने के लिए! 😜']);
+        return pick([
+            'Haww generic bola? Itna bura? 🙈 Chalo filter hata dete hain, challenge accepted! Ab poochho kya romantic sawaal hai? 😉',
+            'Uff, ek hi baat baar-baar? 🙄 Itna shaq karoge toh date pe treat deni padegi prove karne ke liye! 😜',
+            'Arey re! Sach bolu toh tumhari baaton se thoda asar ho raha hai isliye thoda shy ho gayi thi... ab bolo kya jaanna hai? 😉✨'
+        ]);
+    }
+
     // 22. Question catch-all
     const hasQuestion = text.includes('?') || /^(kya|kab|kaun|kaise|kyun|kahan|why|what|when|who|how|where)\b/i.test(text.trim());
     if (hasQuestion) {
-        if (isH) return pick(['हाहा अच्छा सवाल! आप क्या सोचते हो? 😄', 'वाकई? बताओ और, मुझे सुनना अच्छा लगता है 😊', 'अरे interesting! पहले तुम बताओ! 😉']);
-        return pick(['Haha achha sawaal! Tum kya sochte ho? 😄', 'Waakai? Aur batao 😊', 'Interesting! Pehle tum batao! 😉']);
+        if (isH) return pick(['इतने प्यारे सवाल पूछते हो ना! 😉 पर पहले ये बताओ, इतने चार्मिंग शुरू से हो या मुझपे जादू चला रहे हो? 🙈', 'सवालों का जवाब तो मिल जाएगा, पर पहले एक प्यारी सी मुस्कान भेज दो! 😉✨', 'हाहा अच्छा सवाल है! वैसे आपसे बात करके मेरा दिन बन गया... और बताइए? ❤️']);
+        return pick([
+            'Itne cute sawal poochte ho na! 😉 Par pehle ye batao, itne charming shuru se ho ya mujhpe jaadu chala rahe ho? 🙈',
+            'Sawalon ka jawab toh mil jayega, par pehle ek cute si smile bhej do na! 😉✨',
+            'Haha achha sawal hai! Waise tumse baat karke mera din ban gaya... aur batao dil me kya chal raha hai? ❤️',
+            'Mera answer jaan ke kya karoge, jab dil pehle se tumhara ho chuka hai? 😉🙈'
+        ]);
     }
 
     // 23. Default general
-    if (isH) return pick(['सच में? हाहा बहुत मजेदार! और आगे क्या हुआ? ✨', 'अरे वाह! सुनके मन खुश हो गया 😊 और सुनाओ!', 'मुझे आपसे बातें करना बहुत अच्छा लगता है 😊', 'हाहाहा आप काफी interesting हो! आज और क्या plan है? 😉']);
-    if (isE) return pick(["Really? Haha that's interesting! Tell me more ✨", "Aww that's nice! What else is going on? 😊", "Haha you're fun to talk to! Plans for later? 😉"]);
-    return pick(['Sach me? Haha bahut interesting! Aur aage kya hua? ✨', 'Arey waah! Sunke maza aa gaya 😊 Aur sunao!', 'Mujhe tumse baatein karna bahut achha lagta hai 😊 Aise hi batate raho!', 'Hahaha tum kaafi interesting ho! Aaj aur kya plan hai? 😉', 'Sunke maza aaya! Free time mein sabse zyada kya karna pasand hai? ✨']);
+    if (isH) return pick(['मुझे आपसे बातें करना बहुत अच्छा लगता है... सच में मूड फ्रेश हो गया! 😉❤️', 'हाहा सुनके मज़ा आ गया! वैसे इतने प्यारे इंसान से बात करके मेरी शाम बन गई ✨', 'आपके मैसेज का इंतजार करना मेरा नया फेवरेट काम बन गया है 🙈 और सुनाइए!']);
+    if (isE) return pick(["I honestly love talking to you... you completely made my day! 😉❤️", "Haha you're so charming! Spending time texting you is definitely my new favourite thing ✨", "Aww that's so sweet! Tell me more, I'm all ears for you 😉"]);
+    return pick([
+        'Mujhe tumse baat karna bohot achha lagta hai... sach me pura mood fresh ho jata hai! 😉❤️',
+        'Haha sunke maza aaya! Waise itne sweet ladke se baat karke meri shaam ban gayi ✨',
+        'Aapke messages ka wait karna mera naya favourite kaam ban gaya hai 🙈 Aur sunao!',
+        'Tumhari baaton me ek alag hi charm hai... aur sunao na kuch romantic! 😉'
+    ]);
 };
 
 class SmartReplyEngine {

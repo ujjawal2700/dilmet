@@ -25,10 +25,10 @@ export const getMyTasks = async (req, res, next) => {
 export const checkin = async (req, res, next) => {
     try {
         const io = req.app.get('io');
-        const tasks = await taskService.checkin(req.user.id, io);
+        const { tasks, completedTask } = await taskService.checkin(req.user.id, io);
         res.status(200).json({
             status: 'success',
-            data: { tasks },
+            data: { tasks, completedTask },
         });
     } catch (error) {
         next(error);

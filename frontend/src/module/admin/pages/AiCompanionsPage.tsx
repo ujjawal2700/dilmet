@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { AdminTopNavbar } from "../components/AdminTopNavbar";
 import { AdminSidebar } from "../components/AdminSidebar";
 import { useAdminNavigation } from "../hooks/useAdminNavigation";
+import { useBodyScrollLock } from "../../../core/hooks/useBodyScrollLock";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
 import { AdminNumberInput } from "../components/AdminNumberInput";
 import adminService from "../../../core/services/admin.service";
@@ -97,6 +98,7 @@ export const AiCompanionsPage = () => {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  useBodyScrollLock(isModalOpen);
   const [editing, setEditing] = useState<AiCompanion | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [isSaving, setIsSaving] = useState(false);

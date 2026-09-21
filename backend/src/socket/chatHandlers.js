@@ -293,6 +293,13 @@ export const emitNotification = (io, userId, notification) => {
 export const emitTaskCompleted = (io, userId, task) => {
     const uid = (userId?._id || userId || '').toString();
     if (uid) io.to(uid).emit('task:completed', task);
+    if (uid && io) {
+        io.to(uid).emit('task:completed', task);
+        const socketId = activeUsers.get(uid);
+        if (socketId) {
+            io.to(socketId).emit('task:completed', task);
+        }
+    }
 };
 
 // Support tickets: notify anyone with the ticket open (support:<id> room),

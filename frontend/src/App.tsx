@@ -18,6 +18,7 @@ import { MaleLayout } from "./module/male/components/MaleLayout";
 import { FemaleLayout } from "./module/female/components/FemaleLayout";
 import { PageSkeletonLoader } from "./shared/components/PageSkeletonLoader";
 import { ScrollToTop } from "./core/components/ScrollToTop";
+import { useGlobalModalScrollLock } from "./core/hooks/useBodyScrollLock";
 
 // Auth pages - keep as regular imports for fast login experience
 import { LanguageSelectionPage } from "./module/auth/pages/LanguageSelectionPage";
@@ -339,6 +340,7 @@ function AppContent() {
 // the app scales properly from small phones up through tablet, laptop, and
 // desktop instead of being capped inside an artificial fixed-width frame.
 function AppShell() {
+  useGlobalModalScrollLock();
   return (
     <div className="min-h-screen bg-background-light overflow-x-hidden">
       <div className="w-full min-h-screen bg-white relative flex flex-col">
@@ -367,7 +369,10 @@ function AppShell() {
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     {/* Legal documents - publicly accessible (pre-signup and from within the app) */}
-                    <Route path="/legal/:slug" element={<LegalDocumentPage />} />
+                    <Route
+                      path="/legal/:slug"
+                      element={<LegalDocumentPage />}
+                    />
                     <Route
                       path="/otp-verification"
                       element={<OtpVerificationPage />}

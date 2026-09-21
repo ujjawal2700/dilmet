@@ -314,9 +314,19 @@ export const sendMessage = async (req, res, next) => {
         }
 
         // Daily Tasks progress (Fire-and-Forget) - "say hi to N girls" tasks
+        // Daily Tasks progress - "say hi to N girls" tasks
+        let completedTask = null;
         if (req.user.role === 'male') {
             taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io })
                 .catch(err => console.error('[TASKS] Failed to record message progress:', err));
+            try {
+                const taskResult = await taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io });
+                if (taskResult?.completedTasks?.length > 0) {
+                    completedTask = taskResult.completedTasks[0];
+                }
+            } catch (err) {
+                console.error('[TASKS] Failed to record message progress:', err);
+            }
         }
 
         // 📲 SEND PUSH NOTIFICATION (Fire-and-Forget)
@@ -347,6 +357,7 @@ export const sendMessage = async (req, res, next) => {
                 newBalance: req.user.role === 'male' && updatedSender ? updatedSender.coinBalance : undefined,
                 levelUp: levelUpInfo,
                 intimacy: intimacyInfo,
+                completedTask,
             }
         });
     } catch (error) {
@@ -529,6 +540,16 @@ export const sendHiMessage = async (req, res, next) => {
         // Daily Tasks progress (Fire-and-Forget) - "say hi to N girls" tasks
         taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io })
             .catch(err => console.error('[TASKS] Failed to record hi-message progress:', err));
+        // Daily Tasks progress - "say hi to N girls" tasks
+        let completedTask = null;
+        try {
+            const taskResult = await taskService.recordProgress(senderId, 'message_distinct_users', { targetUserId: receiverId, io });
+            if (taskResult?.completedTasks?.length > 0) {
+                completedTask = taskResult.completedTasks[0];
+            }
+        } catch (err) {
+            console.error('[TASKS] Failed to record hi-message progress:', err);
+        }
 
         // 📲 SEND PUSH NOTIFICATION (Fire-and-Forget)
         setImmediate(() => {
@@ -554,6 +575,7 @@ export const sendHiMessage = async (req, res, next) => {
                 coinsSpent: HI_MESSAGE_COST,
                 levelUp: levelUpInfo,
                 intimacy: getLevelInfo(updatedChat.messageCountByUser?.get(senderId.toString()) || 0),
+                completedTask,
             }
         });
     } catch (error) {
@@ -755,6 +777,16 @@ export const sendGift = async (req, res, next) => {
         // Daily Tasks progress (Fire-and-Forget) - "send a gift" task
         taskService.recordProgress(senderId, 'send_gift', { io })
             .catch(err => console.error('[TASKS] Failed to record gift progress:', err));
+        // Daily Tasks progress - "send a gift" task
+        let completedTask = null;
+        try {
+            const taskResult = await taskService.recordProgress(senderId, 'send_gift', { io });
+            if (taskResult?.completedTasks?.length > 0) {
+                completedTask = taskResult.completedTasks[0];
+            }
+        } catch (err) {
+            console.error('[TASKS] Failed to record gift progress:', err);
+        }
 
         // 📲 SEND PUSH NOTIFICATION FOR GIFT (Fire-and-Forget)
         setImmediate(() => {
@@ -779,6 +811,7 @@ export const sendGift = async (req, res, next) => {
                 coinsSpent: totalCost,
                 levelUp: levelUpInfo,
                 intimacy: getLevelInfo(updatedChat.messageCountByUser?.get(senderId.toString()) || 0),
+                completedTask,
             }
         });
     } catch (error) {
