@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /male/
+Disallow: /female/
+Disallow: /otp-verification
+
+Sitemap: https://dilmate.in/sitemap.xml

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { MaterialSymbol } from "../../../shared/components/MaterialSymbol";
 import { useTranslation } from "../../../core/hooks/useTranslation";
 import { normalizePhoneNumber } from "../../../core/utils/phoneNumber";
@@ -12,6 +12,7 @@ import {
 } from "../../../shared/components/auth/AuthLayoutComponents";
 
 import { API_URL } from "../../../core/api/apiUrl";
+import { LEGAL_VERSION } from "../../../core/content/legalDocuments";
 
 interface OnboardingFormData {
   fullName: string;
@@ -66,6 +67,9 @@ export const SignupPage = () => {
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [legalConsentError, setLegalConsentError] = useState<string | null>(null);
 
   const calculateAge = (dob: string): number => {
     const today = new Date();
@@ -123,8 +127,16 @@ export const SignupPage = () => {
       );
     }
 
+    if (!termsAccepted || !privacyAccepted) {
+      setLegalConsentError(
+        t("Please accept both the Terms of Service and Privacy Policy to create an account"),
+      );
+    } else {
+      setLegalConsentError(null);
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.keys(newErrors).length === 0 && termsAccepted && privacyAccepted;
   };
 
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +201,10 @@ export const SignupPage = () => {
           aadhaarCardUrl: formData.aadhaarDocument,
         }),
         referralCode: formData.referralCode,
+        termsAccepted,
+        privacyAccepted,
+        termsVersion: LEGAL_VERSION,
+        privacyVersion: LEGAL_VERSION,
       };
 
       const response = await axios.post(
@@ -711,6 +727,86 @@ export const SignupPage = () => {
                       {errors.aadhaarDocument}
                     </p>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Separate, affirmative acceptance for each legal document. */}
+            <div>
+              <SectionLabel icon="policy">{t("Your consent")}</SectionLabel>
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-xs leading-5 text-gray-600">
+                <p className="font-black text-gray-800">{t("Why we need your details")}</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-4">
+                  <li>{t("Phone number for OTP login and account security")}</li>
+                  <li>{t("Date of birth to confirm you are at least 18")}</li>
+                  <li>{t("Profile details and photos to provide matching and communication features")}</li>
+                  <li>{t("Aadhaar image for female-profile identity verification")}</li>
+                  <li>{t("Device and session data to keep you signed in and prevent misuse")}</li>
+                </ul>
+              </div>
+
+              <div className="mt-3 space-y-3">
+                <div className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white/70 p-3.5">
+                  <input
+                    id="termsAccepted"
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(event) => {
+                      setTermsAccepted(event.target.checked);
+                      setLegalConsentError(null);
+                    }}
+                    disabled={isSubmitting}
+                    className="mt-0.5 size-4 accent-pink-500"
+                  />
+                  <span className="text-sm font-semibold leading-5 text-gray-700">
+                    <label htmlFor="termsAccepted" className="cursor-pointer">
+                      {t("I have read and accept the")}
+                    </label>{" "}
+                    <Link
+                      to="/legal/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-black text-pink-600 underline underline-offset-2"
+                    >
+                      {t("Terms of Service")}
+                    </Link>
+                    .
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white/70 p-3.5">
+                  <input
+                    id="privacyAccepted"
+                    type="checkbox"
+                    checked={privacyAccepted}
+                    onChange={(event) => {
+                      setPrivacyAccepted(event.target.checked);
+                      setLegalConsentError(null);
+                    }}
+                    disabled={isSubmitting}
+                    className="mt-0.5 size-4 accent-pink-500"
+                  />
+                  <span className="text-sm font-semibold leading-5 text-gray-700">
+                    <label htmlFor="privacyAccepted" className="cursor-pointer">
+                      {t("I have read the")}
+                    </label>{" "}
+                    <Link
+                      to="/legal/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-black text-pink-600 underline underline-offset-2"
+                    >
+                      {t("Privacy Policy")}
+                    </Link>{" "}
+                    {t("and consent to the collection and use of my data for the purposes described there")}.
+                  </span>
+                </div>
+              </div>
+
+              {legalConsentError && (
+                <div className="mt-2 flex items-start gap-1.5 text-red-500" role="alert">
+                  <MaterialSymbol name="error" size={16} filled />
+                  <p className="text-xs font-bold leading-4">{legalConsentError}</p>
                 </div>
               )}
             </div>

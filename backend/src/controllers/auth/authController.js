@@ -41,7 +41,10 @@ export const verifyLoginOtp = async (req, res, next) => {
 // SIGNUP FLOW
 export const requestSignupOtp = async (req, res, next) => {
     try {
-        const result = await authService.requestSignupOtp(req.body);
+        const result = await authService.requestSignupOtp(req.body, {
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent') || '',
+        });
 
         res.status(200).json({
             status: 'success',
@@ -58,13 +61,14 @@ export const verifySignupOtp = async (req, res, next) => {
         const io = req.app.get('io');
         const newUser = await authService.verifySignupOtp(phoneNumber, otp, io);
         const token = authService.generateToken(newUser._id, newUser.role);
-
-        newUser.password = undefined;
+        const safeUser = newUser.toObject();
+        delete safeUser.password;
+        delete safeUser.legalConsent;
 
         res.status(201).json({
             status: 'success',
             token,
-            data: { user: newUser }
+            data: { user: safeUser }
         });
     } catch (error) {
         next(error);

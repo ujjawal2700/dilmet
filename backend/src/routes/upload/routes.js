@@ -13,5 +13,6 @@ router.use(protect);
 
 // POST /api/upload/chat-image - Upload chat image
 router.post('/chat-image', uploadController.uploadChatImage);
+router.post('/asset', uploadController.uploadUserAsset);
 
 export default router;

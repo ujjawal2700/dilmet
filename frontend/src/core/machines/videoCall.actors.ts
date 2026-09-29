@@ -8,6 +8,7 @@
 
 import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 import socketService from '../services/socket.service';
+import { audioManager } from '../utils/audioManager';
 
 // ==================== TYPES ====================
 
@@ -200,37 +201,37 @@ class AgoraClientManager {
         console.log('🧹 [AgoraManager] Full cleanup complete');
     }
 
-    toggleMute(): boolean {
+    async toggleMute(): Promise<boolean | null> {
         if (!this.localAudioTrack) {
             console.warn('⚠️ [AgoraManager] Cannot toggle mute: No audio track');
-            return false;
+            return null;
         }
         try {
             const isCurrentlyEnabled = this.localAudioTrack.enabled;
             const targetEnabledState = !isCurrentlyEnabled;
-            this.localAudioTrack.setEnabled(targetEnabledState);
+            await this.localAudioTrack.setEnabled(targetEnabledState);
             console.log(`🎤 [AgoraManager] Mute toggled. Audio Enabled: ${isCurrentlyEnabled} -> ${targetEnabledState}`);
             return targetEnabledState;
         } catch (error) {
             console.error('❌ [AgoraManager] Failed to toggle mute:', error);
-            return false;
+            return null;
         }
     }
 
-    toggleCamera(): boolean {
+    async toggleCamera(): Promise<boolean | null> {
         if (!this.localVideoTrack) {
             console.warn('⚠️ [AgoraManager] Cannot toggle camera: No video track');
-            return false;
+            return null;
         }
         try {
             const isCurrentlyEnabled = this.localVideoTrack.enabled;
             const targetEnabledState = !isCurrentlyEnabled;
-            this.localVideoTrack.setEnabled(targetEnabledState);
+            await this.localVideoTrack.setEnabled(targetEnabledState);
             console.log(`🎥 [AgoraManager] Camera toggled. Video Enabled: ${isCurrentlyEnabled} -> ${targetEnabledState}`);
             return targetEnabledState;
         } catch (error) {
             console.error('❌ [AgoraManager] Failed to toggle camera:', error);
-            return false;
+            return null;
         }
     }
 
@@ -415,28 +416,6 @@ export const socketEmitters = {
     },
 };
 
-// ==================== AUDIO MANAGER ====================
-
-class AudioManagerXState {
-    private ringtone: HTMLAudioElement | null = null;
-
-    playRingtone() {
-        try {
-            this.ringtone = new Audio('/sounds/ringtone.mp3');
-            this.ringtone.loop = true;
-            this.ringtone.play().catch(e => console.warn('Ringtone play failed:', e));
-        } catch (e) {
-            console.warn('Failed to create ringtone:', e);
-        }
-    }
-
-    stopRingtone() {
-        if (this.ringtone) {
-            this.ringtone.pause();
-            this.ringtone.currentTime = 0;
-            this.ringtone = null;
-        }
-    }
-}
-
-export const audioManagerXState = new AudioManagerXState();
+// Reuse the app's generated ringtone. The previous implementation referenced
+// /sounds/ringtone.mp3, but that asset does not exist in the deployed bundle.
+export const audioManagerXState = audioManager;

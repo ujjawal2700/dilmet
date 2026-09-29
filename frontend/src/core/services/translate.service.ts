@@ -5,7 +5,6 @@
 
 import { getStaticTranslation } from '../i18n/staticTranslations';
 
-// const GOOGLE_TRANSLATE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_AND_TRANSLATE_API;
 // const CACHE_KEY_PREFIX = 'translate_cache';
 
 interface TranslationCache {

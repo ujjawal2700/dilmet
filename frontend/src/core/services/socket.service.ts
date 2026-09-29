@@ -8,8 +8,12 @@
  */
 
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '../api/apiUrl';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const configuredSocketUrl = import.meta.env.VITE_SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
+const SOCKET_URL = typeof window !== 'undefined' && window.location.protocol === 'https:'
+    ? configuredSocketUrl.replace(/^http:\/\//i, 'https://')
+    : configuredSocketUrl;
 
 // Heartbeat interval in ms
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
@@ -253,6 +257,10 @@ class SocketService {
         // Call missed
         this.socket.on('call:missed', (data) => {
             this.emit('call:missed', data);
+        });
+
+        this.socket.on('call:clear-all', () => {
+            this.emit('call:clear-all', undefined);
         });
 
         // Call rejoin proceed

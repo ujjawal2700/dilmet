@@ -11,6 +11,7 @@ import {
 } from "../../../shared/components/auth/AuthLayoutComponents";
 
 import { API_URL } from "../../../core/api/apiUrl";
+import { clearAuth } from "../../../core/utils/auth";
 
 interface LocationState {
   mode: "login" | "signup";
@@ -126,12 +127,8 @@ export const OtpVerificationPage = () => {
       const response = await axios.post(endpoint, payload);
 
       if (response.data.token && response.data.data.user) {
-        // CRITICAL: Clear all old user data from localStorage before login
-        const savedLanguage = localStorage.getItem("user_language");
-        localStorage.clear();
-        if (savedLanguage) {
-          localStorage.setItem("user_language", savedLanguage); // Preserve language preference
-        }
+        // Remove only prior authentication state. Privacy and language choices must survive login.
+        clearAuth();
 
         login(response.data.token, response.data.data.user);
 

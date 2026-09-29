@@ -6,8 +6,12 @@
 
 import { io, Socket } from 'socket.io-client';
 import { getAuthToken } from '../utils/auth';
+import { API_URL } from '../api/apiUrl';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const configuredSocketUrl = import.meta.env.VITE_SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
+const SOCKET_URL = typeof window !== 'undefined' && window.location.protocol === 'https:'
+  ? configuredSocketUrl.replace(/^http:\/\//i, 'https://')
+  : configuredSocketUrl;
 
 let socket: Socket | null = null;
 
@@ -68,4 +72,3 @@ export const disconnectSocket = (): void => {
 };
 
 export default { initializeSocket, getSocket, disconnectSocket };
-

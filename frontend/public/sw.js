@@ -1,7 +1,32 @@
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+
 const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `dil_mate-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dil_mate-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `dil_mate-api-${CACHE_VERSION}`;
+const apiBaseUrl = new URL(self.location.href).searchParams.get('apiBaseUrl') || '';
+const firebaseReady = fetch(`${apiBaseUrl}/api/public-config`)
+    .then((response) => response.ok ? response.json() : null)
+    .then((payload) => {
+        const firebaseConfig = payload?.data?.firebase;
+        if (!firebaseConfig?.apiKey || !firebaseConfig?.vapidKey) return null;
+        const { vapidKey, ...clientConfig } = firebaseConfig;
+        firebase.initializeApp(clientConfig);
+        const messaging = firebase.messaging();
+        messaging.onBackgroundMessage((message) => self.registration.showNotification(
+            message.notification?.title || 'New Message',
+            {
+                body: message.notification?.body || 'You have a new notification',
+                icon: message.notification?.icon || '/logo.jpeg',
+                badge: '/logo.jpeg',
+                tag: message.data?.chatId || 'default',
+                data: message.data,
+            },
+        ));
+        return messaging;
+    })
+    .catch(() => null);
 
 // Critical assets to precache (app shell)
 const STATIC_ASSETS = [
@@ -21,7 +46,8 @@ const CACHEABLE_API_PATTERNS = [
 self.addEventListener('install', (event) => {
     console.log('🔧 Service Worker: Installing...');
     event.waitUntil(
-        caches.open(STATIC_CACHE)
+        Promise.all([firebaseReady, caches.open(STATIC_CACHE)])
+            .then(([, cache]) => cache)
             .then((cache) => cache.addAll(STATIC_ASSETS))
             .then(() => self.skipWaiting())
     );
@@ -31,7 +57,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     console.log('✅ Service Worker: Activating...');
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
+        Promise.all([firebaseReady, caches.keys()]).then(([, cacheNames]) => {
             return Promise.all(
                 cacheNames
                     .filter((name) => {
@@ -41,6 +67,17 @@ self.addEventListener('activate', (event) => {
                     .map((name) => caches.delete(name))
             );
         }).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data?.url || '/';
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            const existing = clientList.find((client) => 'focus' in client);
+            return existing ? existing.focus() : clients.openWindow(targetUrl);
+        }),
     );
 });
 

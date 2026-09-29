@@ -34,9 +34,22 @@ describe('Exhaustive API Route & Endpoint Security Coverage', () => {
     });
 
     describe('2. Authentication Routes (/api/auth)', () => {
-        test('POST /api/auth/signup-request requires valid phone number', async () => {
+        test('POST /api/auth/signup-request requires affirmative legal consent', async () => {
             const res = await request(app).post('/api/auth/signup-request').send({});
-            expect([400, 422]).toContain(res.status);
+            expect(res.status).toBe(400);
+            expect(res.body.message).toMatch(/accept the Terms of Service and Privacy Policy/i);
+        });
+
+        test('POST /api/auth/signup-request rejects stale policy versions', async () => {
+            const res = await request(app).post('/api/auth/signup-request').send({
+                phoneNumber: '919876543210',
+                termsAccepted: true,
+                privacyAccepted: true,
+                termsVersion: 'outdated',
+                privacyVersion: 'outdated',
+            });
+            expect(res.status).toBe(400);
+            expect(res.body.message).toMatch(/legal terms have changed/i);
         });
 
         test('POST /api/auth/signup-verify rejects invalid payload', async () => {

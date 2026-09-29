@@ -9,6 +9,17 @@
 
 import mongoose from 'mongoose';
 
+const legalConsentSchema = new mongoose.Schema({
+  termsAccepted: { type: Boolean, required: true },
+  privacyAccepted: { type: Boolean, required: true },
+  termsVersion: { type: String, required: true },
+  privacyVersion: { type: String, required: true },
+  acceptedAt: { type: Date, required: true },
+  method: { type: String, enum: ['signup_checkbox'], required: true },
+  ipAddress: { type: String, default: '' },
+  userAgent: { type: String, maxlength: 500, default: '' },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
   {
     // Authentication Fields (Sujal)
@@ -19,6 +30,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\d{12}$/, 'Please provide a valid 12-digit phone number with 91 prefix'],
       index: true,
+    },
+    // Server-verified evidence of the policy versions accepted at signup.
+    // Hidden from normal API responses; it remains available for compliance audits.
+    legalConsent: {
+      type: legalConsentSchema,
+      select: false,
     },
     role: {
       type: String,

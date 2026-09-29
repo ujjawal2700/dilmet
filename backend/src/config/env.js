@@ -75,6 +75,13 @@ export const getEnvConfig = () => {
     cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
     cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+    firebaseApiKey: process.env.FIREBASE_API_KEY,
+    firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+    firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    firebaseAppId: process.env.FIREBASE_APP_ID,
+    firebaseVapidKey: process.env.FIREBASE_VAPID_KEY,
     // SMS Hub Config
     smsHubApiKey: process.env.SMS_HUB_API_KEY,
     smsHubSenderId: process.env.SMS_HUB_SENDER_ID,
@@ -89,4 +96,3 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 export default getEnvConfig();
-

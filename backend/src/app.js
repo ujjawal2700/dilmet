@@ -15,6 +15,7 @@ import logger from './utils/logger.js';
 import { getEnvConfig } from './config/env.js';
 
 const { nodeEnv } = getEnvConfig();
+const envConfig = getEnvConfig();
 
 const app = express();
 
@@ -68,6 +69,32 @@ app.get('/health', (req, res) => {
 import { authRoutes, adminRoutes, userRoutes, walletRoutes, paymentRoutes, chatRoutes, rewardRoutes, uploadRoutes, fcmRoutes, taskRoutes, supportRoutes } from './routes/index.js';
 
 app.use('/api/auth', authRoutes);
+app.get('/api/public-config', (req, res) => {
+  const {
+    firebaseApiKey,
+    firebaseAuthDomain,
+    firebaseProjectId,
+    firebaseStorageBucket,
+    firebaseMessagingSenderId,
+    firebaseAppId,
+    firebaseVapidKey,
+  } = envConfig;
+  res.set('Cache-Control', 'public, max-age=300');
+  res.status(200).json({
+    status: 'success',
+    data: {
+      firebase: {
+        apiKey: firebaseApiKey,
+        authDomain: firebaseAuthDomain,
+        projectId: firebaseProjectId,
+        storageBucket: firebaseStorageBucket,
+        messagingSenderId: firebaseMessagingSenderId,
+        appId: firebaseAppId,
+        vapidKey: firebaseVapidKey,
+      },
+    },
+  });
+});
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/wallet', walletRoutes);

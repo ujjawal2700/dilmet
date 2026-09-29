@@ -628,7 +628,7 @@ export const UserProfilePage = () => {
         requiredCoins={requiredCoinsModal}
         action={modalAction}
         currentBalance={coinBalance}
-        onBuyCoins={() => navigate('/male/coins')}
+        onBuyCoins={() => navigate('/male/buy-coins')}
       />
 
       {/* Fullscreen Photo Lightbox */}

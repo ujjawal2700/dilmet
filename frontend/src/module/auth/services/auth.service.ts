@@ -18,7 +18,6 @@ import { API_URL } from '../../../core/api/apiUrl';
  */
 export const requestSignupOtp = async (payload: any) => {
     try {
-        console.log('Requesting Signup OTP with payload:', payload);
         const response = await axios.post(`${API_URL}/auth/signup-request`, payload);
         return response.data;
     } catch (error: any) {

@@ -6,6 +6,7 @@ import { useTranslation } from '../../../core/hooks/useTranslation';
 import { useGlobalState } from '../../../core/context/GlobalStateContext';
 import userService from '../../../core/services/user.service';
 import { legalDocuments } from '../../../core/content/legalDocuments';
+import { openCookiePreferences } from '../../../core/utils/cookieConsent';
 
 export const SettingsPage = () => {
   const { t, changeLanguage, currentLanguage } = useTranslation();
@@ -157,6 +158,19 @@ export const SettingsPage = () => {
                 />
               </button>
             ))}
+            <button
+              type="button"
+              onClick={openCookiePreferences}
+              className="w-full h-16 bg-slate-50/50 rounded-2xl flex items-center justify-between px-6 group hover:bg-slate-100 transition-all duration-500"
+            >
+              <div className="flex items-center gap-4">
+                <MaterialSymbol name="tune" size={20} className="text-ink/60 group-hover:text-pink-500 transition-colors" />
+                <span className="text-[11px] font-black uppercase tracking-[0.15em] text-ink/80 group-hover:text-ink transition-colors">
+                  Cookie Preferences
+                </span>
+              </div>
+              <MaterialSymbol name="chevron_right" size={20} className="text-ink/40 group-hover:translate-x-1 group-hover:text-pink-500 transition-transform" />
+            </button>
           </div>
         </section>
 

@@ -1,0 +1,7 @@
+export const CURRENT_TERMS_VERSION = '2026-09-29';
+export const CURRENT_PRIVACY_VERSION = '2026-09-29';
+
+export default {
+    CURRENT_TERMS_VERSION,
+    CURRENT_PRIVACY_VERSION,
+};

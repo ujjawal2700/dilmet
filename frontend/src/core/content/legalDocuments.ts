@@ -25,7 +25,8 @@ export interface LegalDocument {
     sections: LegalSection[];
 }
 
-const LAST_UPDATED = 'September 16, 2026';
+export const LEGAL_VERSION = '2026-09-29';
+const LAST_UPDATED = 'September 29, 2026';
 
 export const legalDocuments: Record<string, LegalDocument> = {
     'terms-of-service': {
@@ -34,98 +35,97 @@ export const legalDocuments: Record<string, LegalDocument> = {
         icon: 'gavel',
         lastUpdated: LAST_UPDATED,
         intro:
-            'These Terms of Service ("Terms") govern your access to and use of Dil Mate (the "App", "we", "us"). By creating an account, you agree to these Terms. If you do not agree, please do not use the App.',
+            'These Terms of Service ("Terms") govern your access to Dil Mate (the "App"). At signup, you must actively accept these Terms. If you do not agree, do not create or use an account.',
         sections: [
             {
-                heading: '1. Eligibility',
+                heading: '1. Agreement and Eligibility',
                 bullets: [
-                    'You must be at least 18 years old to create an account or use Dil Mate.',
-                    'You must provide a valid phone number and complete our OTP verification to register.',
-                    'Female users must additionally submit a government-issued Aadhaar card for identity verification before their profile is approved and made visible to other users.',
-                    'You may not create more than one account, and you may not create an account on behalf of someone else without their permission.',
+                    'You must be at least 18 years old, legally able to enter a contract, and not prohibited by law from using the App.',
+                    'You must provide a valid phone number, complete OTP verification, give accurate information, and use only your own identity and photos.',
+                    'Female profiles must submit an Aadhaar image for the App\'s identity-review process before approval. Approval is not a government endorsement or a criminal-background check.',
+                    'The Privacy Policy, Cookie Policy, Community Guidelines and Platform Rules are incorporated into these Terms.',
                 ],
             },
             {
-                heading: '2. Your Account',
+                heading: '2. Account and Session Security',
                 paragraphs: [
-                    'You are responsible for all activity that occurs under your account. Keep your device and phone number secure - anyone who can receive your OTP can access your account.',
-                    'We may suspend or permanently block an account at our discretion, including for violations of these Terms, our Community Guidelines, or applicable law. If your account is blocked by an administrator, you will be notified of the reason where reasonably possible.',
+                    'You are responsible for activity on your account and for keeping your device, phone number and OTP secure. Tell support promptly if you suspect unauthorized access. You may not sell, transfer, share or create duplicate accounts.',
+                    'We store an authentication token on your device to maintain your login session. Logging out removes the active authentication state on that device.',
                 ],
             },
             {
                 heading: '3. Coins, Payments, and In-App Purchases',
                 paragraphs: [
-                    'Dil Mate uses an in-app virtual currency ("Coins") purchased with real money through our payment partner, Razorpay. Coin prices and package sizes are set by us and may change at any time.',
+                    'Dil Mate uses virtual "Coins" purchased through Razorpay. The current price, quantity and applicable charges are shown before payment. Payment credentials are handled by the payment provider, subject to its terms.',
                 ],
                 bullets: [
-                    'Coins are consumed for actions such as sending a message, sending a "Hi" greeting, sending an image, sending a gift, and making a video or voice call. The coin cost of each action is configurable by us and may change without prior notice.',
-                    'Coins have no cash value outside the App and cannot be transferred, gifted, or exchanged between accounts, except through in-App features (such as gifting) explicitly designed for that purpose.',
-                    'Coin purchases are generally non-refundable once completed, except where required by applicable consumer protection law, or where a payment was processed in error (e.g. charged but coins not credited due to a technical fault).',
-                    'If a payment is deducted but coins are not credited to your account due to a verified technical error, contact support and we will investigate and correct the balance.',
+                    'Coins may be charged for messages, greetings, images, gifts, audio calls, video calls and other clearly priced features. Rates may change prospectively and are displayed in the App.',
+                    'Coins are a limited, revocable App entitlement, not legal tender. They cannot be transferred or redeemed except through an expressly offered earning or withdrawal feature.',
+                    'Completed purchases are non-refundable except where required by law or where we confirm a duplicate charge or technical failure. Statutory consumer rights are not excluded.',
                 ],
             },
             {
                 heading: '4. Earning Coins and Withdrawals',
                 paragraphs: [
-                    'Female users may earn Coins by receiving messages, gifts, and calls from other users, and by completing daily tasks where offered. Earned Coins may be withdrawn as real money, subject to the minimum withdrawal amount, payout slabs, and processing timelines set out in the App at the time of the request.',
-                    'We reserve the right to review withdrawal requests for fraud or abuse (including fake engagement, bot activity, or coordinated coin-farming) before releasing payment, and to decline or reverse a withdrawal where such activity is confirmed.',
+                    'Eligible users may earn Coins through qualifying interactions or tasks and request a payout when the displayed minimum and other requirements are met. You must provide accurate UPI or bank-account payout details and are responsible for applicable taxes.',
+                    'We may delay, decline or reverse rewards or payouts while investigating suspected fraud, bots, fake engagement, self-referrals, chargebacks or coordinated coin farming. We will not deny a valid payout arbitrarily.',
                 ],
             },
             {
-                heading: '5. Referral Program & Daily Tasks',
+                heading: '5. User Content and Profile Visibility',
                 paragraphs: [
-                    'The referral program is available to male users only. Where offered, it and the daily tasks feature award bonus Coins for specific actions (such as a referred friend completing their first recharge, or completing a daily task like messaging a set number of users). Reward amounts, targets, and eligibility rules are configurable by us and may change at any time. Daily task progress resets every day at 12:00 AM IST. Attempting to abuse these programs (e.g. self-referral, fake accounts, or automated task completion) is a violation of these Terms and may result in forfeiture of rewards and account suspension.',
+                    'You retain ownership of photos, messages and other content you submit. You grant Dil Mate a worldwide, non-exclusive, royalty-free license to host, copy, process, transmit and display that content only as needed to operate, secure, moderate and improve the App. This license ends when the content is deleted, subject to backups, legal retention and content already delivered to another user.',
+                    'Your profile name, age, photos, bio, interests, location or online status may be visible to other users as part of the service. Never upload content you do not have the right to use.',
                 ],
             },
             {
                 heading: '6. Acceptable Use',
                 paragraphs: [
-                    'You agree to use Dil Mate only for its intended purpose - meeting and communicating with other real people in good faith. See our Community Guidelines for detailed conduct rules, which are part of these Terms.',
+                    'Use the App only to make genuine, lawful connections. You may not harass, threaten, exploit or impersonate anyone; post illegal, hateful or sexually exploitative material; solicit money or paid services; scrape data; reverse engineer the App; evade moderation or coin charges; use bots; or compromise another account. The Community Guidelines contain additional binding rules.',
                 ],
             },
             {
-                heading: '7. Content You Submit',
+                heading: '7. Messages, Calls and Safety',
                 paragraphs: [
-                    'You retain ownership of the photos, messages, and other content you submit ("User Content"). By submitting User Content, you grant us a limited, non-exclusive license to host, store, display, and transmit it as necessary to operate the App (for example, showing your profile photo to other users, or delivering your messages to their recipient).',
-                    'You are solely responsible for your User Content and confirm you have the right to share it. Do not upload content that infringes someone else\'s rights, impersonates another person, or violates our Community Guidelines.',
+                    'Audio and video features require microphone or camera permission and use Agora to transmit real-time media. Dil Mate does not intentionally record call audio or video, but stores operational records such as participants, status, timing, duration and coin charges. A participant may still capture a call using their device; do not share anything you want kept private.',
+                    'Dil Mate does not conduct criminal background checks and cannot guarantee a user\'s identity, intentions, statements or conduct. Use caution, keep financial and identity information private, meet in public, and use block/report tools when needed.',
                 ],
             },
             {
-                heading: '8. Automated Content Checks',
+                heading: '8. Moderation, Automated Checks and AI',
                 paragraphs: [
-                    'To help keep conversations on-platform and safe, messages are automatically screened before sending. Messages containing phone numbers or sequences of 5 or more digits (a maximum of 4 consecutive digits is allowed), or containing abusive or offensive language, will be blocked and not delivered. This screening is automated and may occasionally be over- or under-inclusive; contact support if you believe a message was blocked in error.',
+                    'Messages may be automatically screened for phone numbers, long digit sequences, abusive language, fraud and rule violations. Automated checks can make mistakes; contact support to request review.',
+                    'Clearly identified AI-companion or AI-assisted features generate automated output that may be inaccurate or inappropriate. Do not rely on them for medical, legal, financial or emergency advice. Prompts may be sent to an AI service provider to generate a response.',
                 ],
             },
             {
-                heading: '9. Termination',
+                heading: '9. Third-Party Services',
                 paragraphs: [
-                    'You may stop using the App at any time and request deletion of your account from your Settings. We may suspend or terminate your access immediately if you violate these Terms, our Community Guidelines, or applicable law, or if we reasonably believe your account poses a risk to other users or to the platform.',
-                    'Coins remaining in a terminated account are forfeited, except where a pending withdrawal was already validly requested prior to termination.',
+                    'Features may depend on providers such as Razorpay, Agora, Cloudinary, Firebase, Google Maps, MongoDB hosting, SMS gateways and AI providers. Their own terms and privacy practices may apply. We are not responsible for a third-party service outside our reasonable control, but this does not limit rights that cannot legally be waived.',
                 ],
             },
             {
-                heading: '10. Disclaimers & Limitation of Liability',
+                heading: '10. Suspension, Account Deletion and Termination',
                 paragraphs: [
-                    'Dil Mate is a platform that helps people connect - we do not conduct criminal background checks on users beyond the identity verification described in these Terms, and we cannot guarantee the identity, intentions, or conduct of any user. You are responsible for exercising your own judgment and caution, especially before sharing personal information or meeting anyone in person.',
-                    'The App is provided "as is" without warranties of any kind. To the maximum extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the App, including damages arising from your interactions with other users.',
+                    'You may request account deletion in Settings. We may restrict or terminate an account for a material breach, unlawful conduct, fraud, safety risk or platform abuse, and will provide a reason or review route where reasonably possible. Remaining purchased Coins and valid pending payouts will be handled under applicable law; fraudulent rewards may be forfeited.',
                 ],
             },
             {
-                heading: '11. Changes to These Terms',
+                heading: '11. Disclaimers and Liability',
                 paragraphs: [
-                    'We may update these Terms from time to time. Material changes will be reflected by updating the "Last updated" date below. Continued use of the App after changes take effect constitutes acceptance of the revised Terms.',
+                    'The App is provided on an "as available" basis. We do not promise uninterrupted service, a match, income, or the conduct of another user. To the maximum extent permitted by law, Dil Mate is not liable for indirect or consequential loss. Nothing in these Terms excludes liability or consumer and data-protection rights that cannot lawfully be excluded.',
                 ],
             },
             {
-                heading: '12. Governing Law',
+                heading: '12. Changes and Electronic Records',
                 paragraphs: [
-                    'These Terms are governed by the laws of India. Any disputes arising under these Terms will be subject to the exclusive jurisdiction of the courts located in India.',
+                    'We record the policy version and time accepted at signup. If a material change requires renewed consent, we will provide notice and request it before the affected processing or feature continues. Other changes take effect on the stated update date.',
                 ],
             },
             {
-                heading: '13. Contact Us',
+                heading: '13. Governing Law, Complaints and Contact',
                 paragraphs: [
-                    'Questions about these Terms can be sent to our support team via the contact details listed in the App\'s About section.',
+                    'These Terms are governed by the laws of India. Courts with lawful jurisdiction in India may hear disputes; this clause does not remove any forum or remedy available under mandatory law. First contact support@dilmate.com with your account phone number and a description of the issue so we can investigate.',
                 ],
             },
         ],
@@ -137,90 +137,137 @@ export const legalDocuments: Record<string, LegalDocument> = {
         icon: 'shield_lock',
         lastUpdated: LAST_UPDATED,
         intro:
-            'This Privacy Policy explains what personal data Dil Mate collects, why we collect it, how it is used and protected, and the choices you have. By using the App, you agree to the collection and use of information as described here.',
+            'This notice explains, in plain language, which personal data the operator of Dil Mate ("Dil Mate", "we") collects, each purpose for collecting it, who receives it, how long it is kept, and how you can exercise your choices and rights.',
         sections: [
             {
-                heading: '1. Information We Collect',
-                paragraphs: ['We collect the following categories of information:'],
+                heading: '1. Data We Collect and Why',
                 bullets: [
-                    'Account information: your phone number (used for OTP login and as your primary identifier), and your date of birth (used to confirm you are 18+).',
-                    'Profile information: your name, age, gender, bio, interests, and the photos you upload.',
-                    'Identity verification (female users only): a photo of your Aadhaar card, uploaded during signup. This is used solely to verify identity and combat fake profiles, and is reviewed as part of our approval process for female accounts.',
-                    'Location: your city/general location if you choose to share it, and approximate geolocation coordinates used to show you nearby matches, where permission is granted.',
-                    'Communications: messages, "Hi" greetings, gifts, and call metadata (such as call duration) exchanged with other users through the App.',
-                    'Payment information: transaction records for Coin purchases and withdrawals. Card and payment details themselves are collected and processed directly by our payment processor, Razorpay - we do not store your full card or bank details on our servers.',
-                    'Device and usage data: device type, app version, push-notification tokens (via Firebase Cloud Messaging), IP address, and general usage/interaction data (such as which features you use).',
+                    'Account and age data: phone number, OTP records, name, gender, date of birth/age, referral code, and the versions and time of your legal consent. We use these to register and authenticate you, confirm you are 18+, administer referrals, and preserve evidence of your request and consent.',
+                    'Profile and matching data: photos, bio, interests, occupation, city, approximate or precise coordinates when you permit location access, preferences, online status and profile activity. We use these to build your profile, recommend nearby or compatible profiles and operate social features.',
+                    'Identity document: female applicants submit an Aadhaar image. We use it to review authenticity, deter fake profiles and decide account approval. It is not shown to other users.',
+                    'Communications and safety data: messages, greetings, images, gifts, blocks, reports, support tickets and moderation results. We use these to deliver communications, enforce rules, investigate complaints, prevent fraud and protect users.',
+                    'Call data: call participants, channel or session identifiers, status, timestamps, duration, technical events and coin charges. Agora processes live audio/video to connect the call; Dil Mate does not intentionally record call media.',
+                    'Payments and payouts: order, payment, transaction, coin-balance and refund records. For withdrawals we collect the payout method and UPI ID or bank account holder name, account number, IFSC and bank name. We use these to complete transactions, keep accounts, prevent fraud and meet legal obligations. Razorpay handles payment credentials such as card details.',
+                    'Device, session and diagnostics data: authentication tokens, IP address, browser/device information, app version, language, notification settings and Firebase push token, network and error events, and feature interactions. We use these for session continuity, security, notifications, troubleshooting and service improvement.',
                 ],
             },
             {
-                heading: '2. How We Use Your Information',
-                bullets: [
-                    'To create and operate your account, including OTP-based login and session security.',
-                    'To verify the identity of female users, as a safety measure for the community, prior to profile approval.',
-                    'To show your profile to compatible users and show you potential matches, including by approximate distance where location is shared.',
-                    'To operate the coin economy: processing purchases, deducting coin costs for messages/gifts/calls, crediting earnings, and processing withdrawal requests.',
-                    'To screen messages for phone numbers and abusive language, in order to keep the community safe and conversations on-platform (see our Terms of Service, Section 8).',
-                    'To send you push notifications about messages, matches, rewards, and account activity - you can control this from your device or app notification settings.',
-                    'To detect and prevent fraud, abuse of the referral or task-reward systems, and violations of our Terms or Community Guidelines.',
-                    'To respond to support requests and enforce reports made against other users.',
-                ],
-            },
-            {
-                heading: '3. Who We Share Data With',
+                heading: '2. How We Obtain and Use Consent',
                 paragraphs: [
-                    'We do not sell your personal data. We share information only as needed to operate the App:',
+                    'At signup, separate unticked checkboxes ask you to accept the Terms and acknowledge and consent to the purposes in this Privacy Policy. The server records the accepted versions, timestamp, IP address and device/browser information. Required account processing is necessary to provide the service you request; optional browser analytics is controlled separately in Cookie Preferences.',
+                    'You can withdraw optional consent through Cookie Preferences and can withdraw account-processing consent by requesting account deletion or emailing support@dilmate.com. Withdrawal does not make earlier lawful processing invalid and may mean we can no longer provide the account. Consent never prevents you from making a complaint or exercising a legal right.',
+                ],
+            },
+            {
+                heading: '3. Who Receives Data',
+                paragraphs: [
+                    'We do not sell personal data. We disclose only the information needed for the stated purpose to:',
                 ],
                 bullets: [
-                    'Other users: your profile (name, age, photos, bio) is visible to other users of the App as intended by the service. Your phone number is never shown to other users.',
-                    'Razorpay (payment processor): to process Coin purchases and withdrawals.',
-                    'Cloud infrastructure providers: your photos and Aadhaar document are stored securely with our cloud media provider (Cloudinary); app data is stored on MongoDB Atlas; push notifications are delivered via Firebase Cloud Messaging.',
-                    'Law enforcement or regulators: where required by valid legal process, or to protect the rights, safety, or property of Dil Mate, our users, or the public.',
+                    'Other users, who see information intended for your profile and the content you send them. They do not receive your phone number, Aadhaar image or payout details from us.',
+                    'Service providers including MongoDB/cloud hosting, Cloudinary media hosting, Firebase notifications, Agora calls, Razorpay payments, an SMS/OTP gateway, Google Maps/geocoding, and configured AI model providers. They process data under their own safeguards and instructions needed to provide each feature.',
+                    'Professional advisers, auditors, acquirers or successor operators where reasonably necessary and subject to confidentiality safeguards.',
+                    'Courts, law enforcement, regulators or emergency recipients when required by law or reasonably necessary to protect a person, investigate fraud or establish legal claims.',
                 ],
             },
             {
-                heading: '4. Aadhaar & Sensitive Data Handling',
+                heading: '4. Automated Processing and AI',
                 paragraphs: [
-                    'Aadhaar card images submitted for female-account verification are used exclusively for identity verification purposes and are not displayed to other users or made public at any point. Access is restricted to the verification/approval process. If you would like your verification document deleted after your account has been approved or if you close your account, contact support to request deletion, subject to any legal retention requirements.',
+                    'Rules may automatically block suspected phone numbers, abusive language or policy violations, calculate rewards and coin charges, rank profiles, or flag suspicious activity. Where a decision significantly affects your account, you may ask support for human review.',
+                    'If you use an AI companion or AI-assisted feature, your prompt and relevant conversation context may be sent to the configured AI provider to generate a response. AI output is automated and may be inaccurate. AI accounts should be identified as such.',
                 ],
             },
             {
-                heading: '5. Data Retention',
+                heading: '5. Storage, Retention and Deletion',
                 paragraphs: [
-                    'We retain your account and profile data for as long as your account is active. If you delete your account, we will delete or anonymize your personal data within a reasonable period, except where we are required to retain certain records (such as transaction records) for legal, tax, or fraud-prevention purposes.',
+                    'Pending signup data and OTPs expire after about 10 minutes. Your account, profile, communications and media are generally kept while the account is active. The local login session can remain for up to 30 days unless you log out or it expires. Operational backups may take additional time to cycle out.',
+                    'When you delete your account, active profile, chat and related service records are deleted or de-identified through our deletion process. A limited deletion/audit record, transaction or payout record, complaint, fraud signal or legal-hold material may be retained for the period reasonably required by tax, accounting, safety, dispute or legal obligations. We then delete or anonymize it. Contact support to request deletion of an identity document after verification, subject to a justified retention need.',
                 ],
             },
             {
-                heading: '6. Your Choices & Rights',
+                heading: '6. Your Choices and Rights',
                 bullets: [
-                    'You can review and edit most of your profile information at any time from your profile page.',
-                    'You can delete your account from Settings; this initiates deletion of your personal data as described above.',
-                    'You can block other users, which prevents them from contacting you and hides your profile from them.',
-                    'You can control push notification permissions through your device settings.',
-                    'You may request a copy of the personal data we hold about you, or request its correction or deletion, by contacting support.',
+                    'Access a summary or copy of your personal data and information about its processing.',
+                    'Correct or complete inaccurate profile or account data.',
+                    'Request erasure, delete the account in Settings, withdraw consent, or change optional storage choices.',
+                    'Turn off location, camera, microphone and notification permissions in device/browser settings; the related feature may stop working.',
+                    'Block or report another user and ask for review of a moderation or account decision.',
+                    'Use the grievance process and, where applicable, nominate another person to exercise rights in the event of death or incapacity.',
+                ],
+                paragraphs: [
+                    'Email support@dilmate.com with the phone number tied to your account and the request. We may verify your identity before acting. We will acknowledge and respond within the period required by applicable law. You may escalate an unresolved data-protection grievance to the Data Protection Board of India when that remedy is available.',
                 ],
             },
             {
                 heading: '7. Data Security',
                 paragraphs: [
-                    'We use industry-standard measures to protect your data, including encrypted connections (HTTPS), access-controlled cloud storage, and secure authentication. No system is 100% secure, and we cannot guarantee absolute security, but we work to protect your information and to respond quickly if an issue is identified.',
+                    'We use controls such as encrypted network connections, OTP authentication, restricted administrative access, provider access controls and monitoring. No service is perfectly secure. If a personal-data breach requires notice, we will notify affected users and the relevant authority in the manner required by law. Never send an OTP, Aadhaar number or bank credentials in chat.',
                 ],
             },
             {
-                heading: '8. Children\'s Privacy',
+                heading: '8. International Processing',
                 paragraphs: [
-                    'Dil Mate is strictly for users aged 18 and older. We do not knowingly collect data from anyone under 18. If we become aware that an underage user has created an account, we will terminate the account and delete the associated data.',
+                    'Some providers may process or support data from locations outside your state or India. We use providers and safeguards appropriate to the service and will comply with applicable transfer restrictions. Contact support for more information about a relevant provider.',
                 ],
             },
             {
-                heading: '9. Changes to This Policy',
+                heading: '9. Adults Only',
                 paragraphs: [
-                    'We may update this Privacy Policy from time to time. Material changes will be reflected by updating the "Last updated" date below. We encourage you to review this page periodically.',
+                    'Dil Mate is only for people aged 18 or older. If we learn that an underage person created an account, we will restrict it and delete the associated data, subject to safety and legal retention needs. Report a suspected underage account to support.',
                 ],
             },
             {
-                heading: '10. Contact Us',
+                heading: '10. Cookies and Similar Storage',
                 paragraphs: [
-                    'For privacy questions, data requests, or concerns, contact our support team via the contact details listed in the App\'s About section.',
+                    'The App uses browser storage for authentication tokens, language, preferences, security and offline reliability. Optional analytics is not activated unless you allow it and it is configured. See the Cookie Policy and use Cookie Preferences to change the optional choice.',
+                ],
+            },
+            {
+                heading: '11. Changes and Contact',
+                paragraphs: [
+                    'We will update the date and version when this notice changes and will request renewed consent when legally required. For privacy requests, withdrawal or grievances, contact the Dil Mate privacy/grievance contact at support@dilmate.com. Include the account phone number and enough detail to investigate, but never email your OTP or full payment credentials.',
+                ],
+            },
+        ],
+    },
+
+    'cookie-policy': {
+        slug: 'cookie-policy',
+        title: 'Cookie & Storage Policy',
+        icon: 'cookie',
+        lastUpdated: LAST_UPDATED,
+        intro:
+            'Dil Mate uses cookies and similar browser technologies such as local storage, session storage, IndexedDB and service-worker storage. This page explains what they do and how to control optional use.',
+        sections: [
+            {
+                heading: '1. Essential Storage',
+                paragraphs: [
+                    'Essential storage is required to provide the service you request and cannot be disabled inside the App. It maintains your authentication token and session, cached account state, selected language, security state, cookie preference, notification configuration and reliable/offline request queues. The App may not sign in or function correctly if you block or erase it.',
+                ],
+            },
+            {
+                heading: '2. Optional Analytics',
+                paragraphs: [
+                    'Optional analytics would help measure feature use and diagnose performance. No optional analytics service is currently active in this build. Selecting “Accept all” records permission for configured analytics under this policy; if the purpose or providers materially change, we will update the consent version and ask again. We do not use this choice to authorize advertising or cross-site tracking.',
+                ],
+            },
+            {
+                heading: '3. Feature Providers',
+                paragraphs: [
+                    'When you use a feature, integrated providers such as Razorpay, Google Maps, Firebase or Agora may use their own short-lived storage or identifiers for payment security, maps, notifications or calls. Those technologies are triggered by the feature and governed by the relevant provider notice as well as our Privacy Policy.',
+                ],
+            },
+            {
+                heading: '4. Retention and Your Controls',
+                paragraphs: [
+                    'The App login token may remain for up to 30 days. Session items generally last until the tab or session ends; preferences remain until changed, the policy version changes, or browser data is cleared. Provider retention varies by feature.',
+                    'Choose “Essential only” in the banner to reject optional analytics, “Accept all” to permit it, or reopen Cookie Preferences from Settings at any time. You can also clear site data in your browser, although doing so signs you out and resets preferences. Withdrawing an optional choice is as easy as granting it.',
+                ],
+            },
+            {
+                heading: '5. Contact',
+                paragraphs: [
+                    'Questions about cookies or browser storage can be sent to support@dilmate.com.',
                 ],
             },
         ],

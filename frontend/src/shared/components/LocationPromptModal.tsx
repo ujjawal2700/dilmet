@@ -92,42 +92,12 @@ export const LocationPromptModal = ({
         const lng = position.coords.longitude;
         setCoordinates({ lat, lng });
 
-        try {
-          const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_AND_TRANSLATE_API}`,
-          );
-          const data = await response.json();
-
-          if (data.results && data.results.length > 0) {
-            const addressComponents = data.results[0].address_components;
-            let foundCity = "";
-            let foundState = "";
-            let foundCountry = "";
-
-            for (const component of addressComponents) {
-              if (component.types.includes("locality")) {
-                foundCity = component.long_name;
-              } else if (
-                component.types.includes("administrative_area_level_1")
-              ) {
-                foundState = component.short_name;
-              } else if (component.types.includes("country")) {
-                foundCountry = component.long_name;
-              }
-            }
-
-            // Use EXACT formatted address to preserve detailed location
-            const locationString = data.results[0].formatted_address;
-            setLocation(locationString);
-            setCity(foundCity || locationString);
-            setStateName(foundState);
-            setCountryName(foundCountry);
-          }
-        } catch (err) {
-          console.error("Reverse geocoding failed:", err);
-          setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-          setCity(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        }
+        // Retain coordinates for matching but do not send precise location to
+        // a third-party geocoder. The user can supply a readable city label.
+        setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        setCity('Current location');
+        setStateName('');
+        setCountryName('');
         setIsFetchingLocation(false);
       },
       (err) => {

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MaterialSymbol } from "../shared/components/MaterialSymbol";
 
 export const LandingPage = () => {
@@ -223,19 +223,19 @@ export const LandingPage = () => {
               <h4 className="font-bold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     About
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     Careers
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     Press
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -243,19 +243,19 @@ export const LandingPage = () => {
               <h4 className="font-bold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     Help Center
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     Safety
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <span className="text-gray-500">
                     Community
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -263,19 +263,19 @@ export const LandingPage = () => {
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <Link to="/legal/privacy-policy" className="hover:text-pink-400">
                     Privacy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <Link to="/legal/terms-of-service" className="hover:text-pink-400">
                     Terms
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-pink-400">
+                  <Link to="/legal/cookie-policy" className="hover:text-pink-400">
                     Cookies
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

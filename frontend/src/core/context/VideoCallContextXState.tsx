@@ -25,8 +25,8 @@ interface VideoCallContextType {
     acceptCall: () => Promise<void>;
     rejectCall: () => void;
     endCall: () => void;
-    toggleMute: () => boolean;
-    toggleCamera: () => boolean;
+    toggleMute: () => Promise<boolean>;
+    toggleCamera: () => Promise<boolean>;
     rejoinCall: () => void;
     closeModal: () => void;
 
@@ -58,6 +58,11 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const cleanupRef = useRef<(() => void) | null>(null);
     const agoraJoinInitiatedRef = useRef(false); // Track if we've started joining Agora
+    const stateValueRef = useRef(state.value);
+
+    useEffect(() => {
+        stateValueRef.current = state.value;
+    }, [state.value]);
 
     // ==================== SOCKET BRIDGE ====================
 
@@ -83,7 +88,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
         const handleVisibilityChange = () => {
             // If page becomes hidden while in ended state, cleanup immediately
-            if (document.hidden && state.value === 'ended') {
+            if (document.hidden && stateValueRef.current === 'ended') {
                 console.log('📞 [XState] Page hidden while ended - cleanup');
                 agoraManager.fullCleanup();
             }
@@ -99,7 +104,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
             agoraManager.fullCleanup();
             audioManagerXState.stopRingtone();
         };
-    }, [state.value]);
+    }, []);
 
     // ==================== AGORA JOIN HANDLER ====================
     // Separate effect for Agora joining to handle race conditions
@@ -147,17 +152,14 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
                 if (!timerRef.current) {
                     timerRef.current = setInterval(() => {
                         send({ type: 'TIMER_TICK' });
-
-                        // Check if time expired
-                        if (state.context.remainingTime <= 1) {
-                            send({ type: 'TIMER_EXPIRED' });
-                        }
                     }, 1000);
                 }
                 break;
 
             case 'idle':
             case 'ended':
+                audioManagerXState.stopRingtone();
+
                 // Stop timer
                 if (timerRef.current) {
                     clearInterval(timerRef.current);
@@ -265,16 +267,6 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         callerAvatar: string,
         callType: 'video' | 'voice' = 'video'
     ): Promise<void> => {
-        // Request permissions first - voice calls never need the camera
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (permError) {
-            console.error('Permission denied:', permError);
-            throw new Error(callType === 'voice' ? 'Microphone access required for voice calls' : 'Camera and microphone access required for video calls');
-        }
-
         // Send event to machine
         send({
             type: 'REQUEST_CALL',
@@ -309,21 +301,15 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
         const callType = state.context.callType;
 
-        // Request permissions first - voice calls never need the camera
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (permError) {
-            console.error('Permission denied:', permError);
-            throw new Error(callType === 'voice' ? 'Microphone access required for voice calls' : 'Camera and microphone access required for video calls');
-        }
-
-        send({ type: 'ACCEPT_CALL' });
-
-        // Initialize media
+        // Let Agora request the device once and keep the resulting tracks. Repeated
+        // getUserMedia/open/close cycles are unreliable on iOS and some Android devices.
         try {
             const { localVideoTrack, localAudioTrack } = await agoraManager.initializeMedia(callType);
+            if (stateValueRef.current !== 'ringing') {
+                await agoraManager.cleanupTracks();
+                throw new Error('This call is no longer available');
+            }
+            send({ type: 'ACCEPT_CALL' });
             send({
                 type: 'MEDIA_INITIALIZED',
                 localVideoTrack,
@@ -347,21 +333,25 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
     const endCall = useCallback((): void => {
         if (state.context.callId) {
-            socketEmitters.endCall(state.context.callId);
+            if (state.value === 'ringing' && !state.context.isIncoming) {
+                socketEmitters.cancelCall(state.context.callId);
+            } else {
+                socketEmitters.endCall(state.context.callId);
+            }
         }
         send({ type: 'END_CALL' });
-    }, [state.context.callId, send]);
+    }, [state.context.callId, state.context.isIncoming, state.value, send]);
 
-    const toggleMute = useCallback((): boolean => {
-        const newState = agoraManager.toggleMute();
-        send({ type: 'TOGGLE_MUTE' });
-        return newState;
+    const toggleMute = useCallback(async (): Promise<boolean> => {
+        const newState = await agoraManager.toggleMute();
+        if (newState !== null) send({ type: 'TOGGLE_MUTE' });
+        return newState ?? false;
     }, [send]);
 
-    const toggleCamera = useCallback((): boolean => {
-        const newState = agoraManager.toggleCamera();
-        send({ type: 'TOGGLE_CAMERA' });
-        return newState;
+    const toggleCamera = useCallback(async (): Promise<boolean> => {
+        const newState = await agoraManager.toggleCamera();
+        if (newState !== null) send({ type: 'TOGGLE_CAMERA' });
+        return newState ?? false;
     }, [send]);
 
     const rejoinCall = useCallback((): void => {

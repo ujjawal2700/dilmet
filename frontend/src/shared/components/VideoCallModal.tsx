@@ -111,11 +111,8 @@ export const VideoCallModal = () => {
         setPermissionError(null);
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: !isVoiceCall,
-                audio: true,
-            });
-            stream.getTracks().forEach(track => track.stop());
+            // acceptCall creates and retains the Agora tracks. Opening the devices
+            // here first caused rapid release/reacquire failures on mobile browsers.
             await acceptCall();
         } catch (error: any) {
             console.error('Permission error:', error);

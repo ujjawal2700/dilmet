@@ -85,22 +85,14 @@ export const isAuthenticated = (): boolean => {
 
 /**
  * Clear all auth data and cached user data
- * CRITICAL: Preserves only language preference
+ * Removes authentication state without erasing unrelated privacy/preferences data.
  */
 export const clearAuth = (): void => {
-  // Save language preference
-  const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
-
-  // Clear MatchMint related data
+  // Clear only credentials and the cached authenticated user.
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(AUTH_TIMESTAMP_KEY);
-
-  // Restore language preference if needed (though we didn't remove it specifically above)
-  if (savedLanguage) {
-    localStorage.setItem(LANGUAGE_KEY, savedLanguage);
-  }
 };
 
 /**
@@ -180,4 +172,3 @@ export const mapUserToProfile = (user: any): UserProfile => {
     levelInfo: user.levelInfo || null,
   };
 };
-

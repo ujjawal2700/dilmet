@@ -32,7 +32,7 @@ export const FCMInitializer = () => {
     // Run FCM setup in background (non-blocking)
     const initFCM = async () => {
       try {
-        const token = await fcmService.getFCMToken(user.id);
+        const token = await fcmService.getFCMToken();
         if (token) {
           // Fire and forget - backend handles async
           fcmService.saveFCMTokenToBackend(token, apiClient).catch(() => {});

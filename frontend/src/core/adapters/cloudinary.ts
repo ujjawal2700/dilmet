@@ -11,6 +11,7 @@
  */
 
 import { Cloudinary } from '@cloudinary/url-gen';
+import apiClient from '../api/client';
 
 
 // Initialize Cloudinary instance
@@ -104,86 +105,16 @@ export const uploadToCloudinary = async (
     }
   }
 
-  // Prepare upload options
-  const uploadOptions: any = {
-    folder: config.folder,
-    resource_type: config.resourceType,
-    upload_preset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-    transformation: [],
-  };
-
-  // Add transformations if provided
-  if (config.transformation) {
-    if (config.transformation.width || config.transformation.height) {
-      uploadOptions.transformation.push({
-        width: config.transformation.width,
-        height: config.transformation.height,
-        crop: config.transformation.crop || 'limit',
-      });
-    }
-    if (config.transformation.quality) {
-      uploadOptions.transformation.push({
-        quality: config.transformation.quality,
-      });
-    }
-  }
-
   try {
-    // Prepare FormData for unsigned upload
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', uploadOptions.upload_preset);
-
-    if (uploadOptions.folder) {
-      formData.append('folder', uploadOptions.folder);
-    }
-
-    if (uploadOptions.transformation && uploadOptions.transformation.length > 0) {
-      // Build transformation string
-      const transforms: string[] = [];
-      if (uploadOptions.transformation[0].width || uploadOptions.transformation[0].height) {
-        transforms.push(
-          `w_${uploadOptions.transformation[0].width || 'auto'},h_${uploadOptions.transformation[0].height || 'auto'},c_${uploadOptions.transformation[0].crop || 'limit'}`
-        );
-      }
-      if (uploadOptions.transformation[1]?.quality) {
-        transforms.push(`q_${uploadOptions.transformation[1].quality}`);
-      }
-      if (transforms.length > 0) {
-        formData.append('transformation', transforms.join(','));
-      }
-    }
-
-    // Upload to Cloudinary using unsigned upload (no API secret needed)
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const resourceType = uploadOptions.resource_type || 'image';
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    // Return structured result
-    return {
-      url: result.secure_url || result.url,
-      secureUrl: result.secure_url,
-      publicId: result.public_id,
-      format: result.format,
-      width: result.width,
-      height: result.height,
-      bytes: result.bytes,
-      createdAt: new Date().toISOString(),
-    };
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Unable to read file'));
+      reader.onerror = () => reject(new Error('Unable to read file'));
+      reader.readAsDataURL(file);
+    });
+    const category = config.folder.split('/').pop();
+    const response = await apiClient.post('/upload/asset', { image: dataUrl, category });
+    return response.data.data as UploadResult;
   } catch (error: any) {
     throw new Error(`Cloudinary upload failed: ${error.message}`);
   }
@@ -274,4 +205,3 @@ export default {
   deleteFromCloudinary,
   getOptimizedUrl,
 };
-

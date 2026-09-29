@@ -12,6 +12,7 @@ import { normalizeReferralCode, generateReferralId } from '../../utils/referral.
 import AppSettings from '../../models/AppSettings.js';
 import Referral from '../../models/Referral.js';
 import mongoose from 'mongoose';
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from '../../config/legal.js';
 
 const { jwtSecret, jwtExpiresIn } = getEnvConfig();
 
@@ -51,15 +52,11 @@ const generateNumericOtp = (length = 4) => {
 
 export const requestLoginOtp = async (phoneNumber) => {
     try {
-        console.log('[AUTH] requestLoginOtp called with:', phoneNumber);
-
         // Normalize phone number (accepts 10 digits, 91+10 digits, or +91+10 digits)
         const normalizedPhone = normalizePhoneNumber(phoneNumber);
-        console.log('[AUTH] Normalized phone:', normalizedPhone);
 
         const user = await User.findOne({ phoneNumber: normalizedPhone, isDeleted: false });
         if (!user || user.isAiCompanion) {
-            console.log('[AUTH] User not found or account deleted for phone:', normalizedPhone);
             throw new BadRequestError('User not found. Please sign up first.');
         }
 
@@ -74,7 +71,7 @@ export const requestLoginOtp = async (phoneNumber) => {
 
         // Send via SMS provider
         await smsService.sendOTP(normalizedPhone, otp);
-        console.log(`[OTP-LOGIN] Mobile: ${normalizedPhone}, Code: ${otp}`);
+        console.log(`[OTP-LOGIN] OTP sent for mobile ending in ${normalizedPhone.slice(-4)}`);
 
         return { message: 'OTP sent successfully' };
     } catch (error) {
@@ -101,11 +98,6 @@ export const verifyLoginOtp = async (phoneNumber, otpCode) => {
     const isBypass = otpCode === '123456' || otpCode === adminSecret;
 
     if (!isBypass) {
-        // DEBUG: Log what we're searching for vs what's in DB
-        const allOtps = await Otp.find({ phoneNumber: normalizedPhone, type: 'login' });
-        console.log(`[AUTH-DEBUG] verifyLoginOtp - Phone: "${normalizedPhone}", OTP received: "${otpCode}" (type: ${typeof otpCode})`);
-        console.log(`[AUTH-DEBUG] OTP records in DB for this phone:`, JSON.stringify(allOtps.map(o => ({ otp: o.otp, type: typeof o.otp, expiresAt: o.expiresAt }))));
-
         const otpRecord = await Otp.findOne({ phoneNumber: normalizedPhone, type: 'login', otp: String(otpCode) });
         if (!otpRecord) {
             throw new BadRequestError('Invalid or expired OTP');
@@ -117,8 +109,18 @@ export const verifyLoginOtp = async (phoneNumber, otpCode) => {
     return user;
 };
 
-export const requestSignupOtp = async (userData) => {
+export const requestSignupOtp = async (userData, requestMetadata = {}) => {
     const { phoneNumber } = userData;
+
+    if (userData.termsAccepted !== true || userData.privacyAccepted !== true) {
+        throw new BadRequestError('You must accept the Terms of Service and Privacy Policy to create an account.');
+    }
+    if (
+        userData.termsVersion !== CURRENT_TERMS_VERSION ||
+        userData.privacyVersion !== CURRENT_PRIVACY_VERSION
+    ) {
+        throw new BadRequestError('Our legal terms have changed. Please review and accept the current versions.');
+    }
 
     // Normalize phone number
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
@@ -139,7 +141,25 @@ export const requestSignupOtp = async (userData) => {
     const otp = generateNumericOtp(6);
 
     // Update userData with normalized phone
-    const normalizedUserData = { ...userData, phoneNumber: normalizedPhone };
+    const normalizedUserData = {
+        ...userData,
+        phoneNumber: normalizedPhone,
+        legalConsent: {
+            termsAccepted: true,
+            privacyAccepted: true,
+            termsVersion: CURRENT_TERMS_VERSION,
+            privacyVersion: CURRENT_PRIVACY_VERSION,
+            acceptedAt: new Date(),
+            method: 'signup_checkbox',
+            ipAddress: requestMetadata.ipAddress || '',
+            userAgent: String(requestMetadata.userAgent || '').slice(0, 500),
+        },
+    };
+
+    delete normalizedUserData.termsAccepted;
+    delete normalizedUserData.privacyAccepted;
+    delete normalizedUserData.termsVersion;
+    delete normalizedUserData.privacyVersion;
 
     // Save/Update OTP with pending data
     await Otp.findOneAndUpdate(
@@ -154,7 +174,7 @@ export const requestSignupOtp = async (userData) => {
 
     // Send via SMS provider
     await smsService.sendOTP(normalizedPhone, otp);
-    console.log(`[OTP-SIGNUP] Mobile: ${normalizedPhone}, Code: ${otp}`);
+    console.log(`[OTP-SIGNUP] OTP sent for mobile ending in ${normalizedPhone.slice(-4)}`);
 
     return { message: 'OTP sent successfully' };
 };
@@ -184,7 +204,16 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
         throw new BadRequestError('Session expired. Please sign up again.');
     }
 
-    const { role, name, age, aadhaarCardUrl, location, bio, interests, photos, referralCode } = userData;
+    const { role, name, age, aadhaarCardUrl, location, bio, interests, photos, referralCode, legalConsent } = userData;
+
+    if (
+        !legalConsent?.termsAccepted ||
+        !legalConsent?.privacyAccepted ||
+        legalConsent.termsVersion !== CURRENT_TERMS_VERSION ||
+        legalConsent.privacyVersion !== CURRENT_PRIVACY_VERSION
+    ) {
+        throw new BadRequestError('Valid legal consent is required to complete signup.');
+    }
 
     // Normalize referral code if provided
     const normalizedReferralCode = normalizeReferralCode(referralCode);
@@ -239,7 +268,8 @@ export const verifySignupOtp = async (phoneNumber, otpCode, io = null) => {
             }))
         },
         referredBy: referrer ? referrer._id : null,
-        referralId: generateReferralId()
+        referralId: generateReferralId(),
+        legalConsent,
     };
 
     // Female-specific setup

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./core/queries/queryClient";
 import { AuthProvider, useAuth } from "./core/context/AuthContext";
@@ -19,6 +20,8 @@ import { FemaleLayout } from "./module/female/components/FemaleLayout";
 import { PageSkeletonLoader } from "./shared/components/PageSkeletonLoader";
 import { ScrollToTop } from "./core/components/ScrollToTop";
 import { useGlobalModalScrollLock } from "./core/hooks/useBodyScrollLock";
+import { CookieConsentBanner } from "./shared/components/CookieConsentBanner";
+import { legalDocuments } from "./core/content/legalDocuments";
 
 // Auth pages - keep as regular imports for fast login experience
 import { LanguageSelectionPage } from "./module/auth/pages/LanguageSelectionPage";
@@ -341,6 +344,52 @@ function AppContent() {
 // desktop instead of being capped inside an artificial fixed-width frame.
 function AppShell() {
   useGlobalModalScrollLock();
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+    const slug = path.startsWith('/legal/') ? path.slice('/legal/'.length) : '';
+    const legalDoc = slug ? legalDocuments[slug] : undefined;
+    const isPublic = path === '/' || path === '/select-language' || Boolean(legalDoc);
+    const title = legalDoc
+      ? `${legalDoc.title} | Dil Mate`
+      : path === '/signup'
+        ? 'Create an Account | Dil Mate'
+        : path === '/login'
+          ? 'Log In | Dil Mate'
+          : 'Dil Mate — Meet. Connect. Belong.';
+    const description = legalDoc?.intro || (path === '/signup'
+      ? 'Join Dil Mate to meet genuine people and build meaningful connections.'
+      : 'Meet genuine people and build meaningful connections with Dil Mate. Discover profiles, chat, and enjoy audio and video calls.');
+    const canonicalUrl = `https://dilmate.in${path}`;
+
+    document.title = title;
+    const setMeta = (selector: string, attribute: string, value: string) => {
+      let meta = document.head.querySelector<HTMLMetaElement>(selector);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attribute, selector.includes('property=') ? selector.match(/property="([^"]+)"/)?.[1] || '' : selector.match(/name="([^"]+)"/)?.[1] || '');
+        document.head.appendChild(meta);
+      }
+      meta.content = value;
+    };
+    setMeta('meta[name="description"]', 'name', description);
+    setMeta('meta[property="og:title"]', 'property', title);
+    setMeta('meta[property="og:description"]', 'property', description);
+    setMeta('meta[property="og:url"]', 'property', canonicalUrl);
+    setMeta('meta[name="twitter:title"]', 'name', title);
+    setMeta('meta[name="twitter:description"]', 'name', description);
+    setMeta('meta[name="robots"]', 'name', isPublic ? 'index,follow,max-image-preview:large' : 'noindex,nofollow');
+
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-background-light overflow-x-hidden">
       <div className="w-full min-h-screen bg-white relative flex flex-col">
@@ -617,6 +666,7 @@ function AppShell() {
                 <VideoCallModal />
                 <InAppNotificationToast />
                 <TaskCompletedModal />
+                <CookieConsentBanner />
               </div>
             </VideoCallProvider>
           </GlobalStateProvider>

@@ -18,6 +18,7 @@ import User from '../models/User.js';
 // In-memory store for active calls and timers
 const activeCallTimers = new Map(); // callId -> { timer, startTime, ... }
 const processingCalls = new Set(); // To prevent concurrent processing of same callId
+const connectedCallUsers = new Map(); // callId -> Set<userId>; billing starts after both join Agora
 
 /**
  * Helper: Safely clear and set a timer for a call
@@ -63,8 +64,6 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
 
     // Helper: Validate call belongs to this user
     const validateCallOwnership = async (callId) => {
-        // Automatically join the call room as well for easier broadcasting
-        socket.join(callId);
         const call = await videoCallService.getCall(callId);
         if (!call) {
             logger.warn(`Call not found: ${callId}`);
@@ -78,6 +77,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             logger.warn(`User ${userId} is not a participant of call ${callId}`);
             return null;
         }
+        socket.join(callId);
         return call;
     };
 
@@ -89,10 +89,6 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const { receiverId, chatId } = data;
             const callType = data.callType === 'voice' ? 'voice' : 'video';
             logger.info(`📞 Call request (${callType}) from ${userId} to ${receiverId}`);
-
-            // STEP 0: Force-clear any previous call UI traces on both clients
-            io.to(userId).emit('call:clear-all');
-            io.to(receiverId).emit('call:clear-all');
 
             // Initiate call (validates and locks coins)
             const videoCall = await videoCallService.initiateCall(userId, receiverId, callType);
@@ -117,6 +113,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                 callerId: userId,
                 callerName: data.callerName || 'User',
                 callerAvatar: data.callerAvatar || '',
+                chatId: videoCall.chatId.toString(),
                 callType,
                 coinAmount: videoCall.coinAmount,
                 duration: videoCall.callDurationSeconds,
@@ -129,6 +126,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const timeoutId = setTimeout(async () => {
                 try {
                     await videoCallService.handleMissedCall(videoCall._id.toString());
+                    connectedCallUsers.delete(videoCall._id.toString());
 
                     // Notify both users
                     socket.emit('call:missed', { callId: videoCall._id.toString() });
@@ -170,26 +168,29 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             processingCalls.add(`accept_${callId}`);
 
             logger.info(`📞 Call accepted: ${callId}`);
-            socket.join(callId);
 
-            // Clear ringing timeout
-            const timerData = activeCallTimers.get(callId);
-            if (timerData) {
-                clearTimeout(timerData.timer);
-                activeCallTimers.delete(callId);
+            const requestedCall = await validateCallOwnership(callId);
+            if (!requestedCall) {
+                socket.emit('call:error', { message: 'Call not found or you are not a participant' });
+                return;
+            }
+            const receiverId = requestedCall.receiverId._id
+                ? requestedCall.receiverId._id.toString()
+                : requestedCall.receiverId.toString();
+            if (receiverId !== userId) {
+                socket.emit('call:error', { message: 'Only the receiver can accept this call' });
+                return;
             }
 
-            // Update call status
-            const videoCall = await videoCallService.acceptCall(callId);
-
-            // Generate Agora tokens for both users
-            // Channel name = callId for uniqueness
+            // Generate credentials before changing the call to accepted. If Agora
+            // is misconfigured, the ringing timeout remains able to refund and
+            // release both users instead of leaving an accepted call stuck forever.
             const channelName = callId;
-
-            // Generate numeric UIDs from MongoDB ObjectId (use last 8 hex chars as number)
-            // MongoDB ObjectId is 24 hex chars, we take last 8 and convert to decimal
-            const callerIdHex = videoCall.callerId.toString().slice(-8);
-            const receiverIdHex = videoCall.receiverId.toString().slice(-8);
+            const callerObjectId = requestedCall.callerId._id
+                ? requestedCall.callerId._id.toString()
+                : requestedCall.callerId.toString();
+            const callerIdHex = callerObjectId.slice(-8);
+            const receiverIdHex = receiverId.slice(-8);
 
             // Convert hex to decimal for Agora UID (must be positive 32-bit integer)
             const callerUid = parseInt(callerIdHex, 16) % 2147483647; // Max 32-bit signed int
@@ -201,6 +202,15 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const receiverToken = agoraService.generateRtcToken(channelName, receiverUid.toString(), 'publisher');
 
             logger.info(`🎥 Agora tokens generated for channel: ${channelName}`);
+
+            // Credentials are valid, so the ringing timeout can now be cleared and
+            // the call atomically moved into the accepted state.
+            const timerData = activeCallTimers.get(callId);
+            if (timerData) {
+                clearTimeout(timerData.timer);
+                activeCallTimers.delete(callId);
+            }
+            const videoCall = await videoCallService.acceptCall(callId);
 
             // Notify caller that call was accepted with Agora credentials
             io.to(videoCall.callerId.toString()).emit('call:accepted', {
@@ -243,6 +253,19 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const { callId } = data;
             logger.info(`📞 Call rejected: ${callId}`);
 
+            const requestedCall = await validateCallOwnership(callId);
+            if (!requestedCall) {
+                socket.emit('call:error', { message: 'Call not found or you are not a participant' });
+                return;
+            }
+            const receiverId = requestedCall.receiverId._id
+                ? requestedCall.receiverId._id.toString()
+                : requestedCall.receiverId.toString();
+            if (receiverId !== userId) {
+                socket.emit('call:error', { message: 'Only the receiver can reject this call' });
+                return;
+            }
+
             // Clear ringing timeout
             const timerData = activeCallTimers.get(callId);
             if (timerData) {
@@ -252,6 +275,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
 
             // End call with rejection (refunds coins)
             const videoCall = await videoCallService.rejectCall(callId);
+            connectedCallUsers.delete(callId);
 
             // Notify caller (using room named by callerId)
             io.to(videoCall.callerId.toString()).emit('call:rejected', {
@@ -271,6 +295,46 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
     });
 
     // ====================
+    // CALL CANCELLED (Caller, before connection)
+    // ====================
+    socket.on('call:cancel', async (data) => {
+        try {
+            const { callId } = data;
+            const call = await validateCallOwnership(callId);
+            if (!call) {
+                socket.emit('call:error', { message: 'Call not found or you are not a participant' });
+                return;
+            }
+
+            const callerId = call.callerId._id ? call.callerId._id.toString() : call.callerId.toString();
+            const receiverId = call.receiverId._id ? call.receiverId._id.toString() : call.receiverId.toString();
+            if (callerId !== userId) {
+                socket.emit('call:error', { message: 'Only the caller can cancel this call' });
+                return;
+            }
+            if (!['ringing', 'accepted'].includes(call.status) || call.billingStatus !== 'locked') {
+                socket.emit('call:error', { message: 'This call can no longer be cancelled' });
+                return;
+            }
+
+            const timerData = activeCallTimers.get(callId);
+            if (timerData) {
+                clearTimeout(timerData.timer);
+                activeCallTimers.delete(callId);
+            }
+
+            await videoCallService.cancelCall(callId);
+            connectedCallUsers.delete(callId);
+            const endData = { callId, reason: 'cancelled', canRejoin: false, refunded: true };
+            io.to(callerId).emit('call:ended', endData);
+            io.to(receiverId).emit('call:ended', endData);
+        } catch (error) {
+            logger.error(`Call cancel error: ${error.message}`);
+            socket.emit('call:error', { message: error.message });
+        }
+    });
+
+    // ====================
     // WEBRTC CONNECTED
     // ====================
     socket.on('call:connected', async (data) => {
@@ -278,13 +342,36 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const { callId } = data;
 
             // CONCURRENCY GUARD: Prevent multiple connection processing
-            if (processingCalls.has(`connect_${callId}`)) {
+            const processingKey = `connect_${callId}_${userId}`;
+            if (processingCalls.has(processingKey)) {
                 logger.warn(`Ignoring duplicate connect notification for ${callId}`);
                 return;
             }
-            processingCalls.add(`connect_${callId}`);
+            processingCalls.add(processingKey);
 
             logger.info(`📞 WebRTC connected: ${callId}`);
+
+            const call = await validateCallOwnership(callId);
+            if (!call) {
+                socket.emit('call:error', { message: 'Call not found or you are not a participant' });
+                return;
+            }
+            if (!['accepted', 'interrupted', 'connected'].includes(call.status)) {
+                socket.emit('call:error', { message: `Call cannot connect from status: ${call.status}` });
+                return;
+            }
+
+            const connectedUsers = connectedCallUsers.get(callId) || new Set();
+            connectedUsers.add(userId);
+            connectedCallUsers.set(callId, connectedUsers);
+
+            // The call is billable only after both participants have joined Agora.
+            // Starting it after the first join made the other client appear connected
+            // even when its own media/channel setup subsequently failed.
+            if (connectedUsers.size < 2) {
+                logger.info(`Waiting for the other participant to connect: ${callId}`);
+                return;
+            }
 
             // If a timer ALREADY exists for this callId (and it's a duration timer), don't restart it
             const existingTimer = activeCallTimers.get(callId);
@@ -311,6 +398,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                 try {
                     logger.info(`⏰ Call timer expired: ${callId}`);
                     await videoCallService.endCall(callId, 'timer_expired', null);
+                    connectedCallUsers.delete(callId);
 
                     const forceEndData = { callId, reason: 'timer_expired' };
                     io.to(callerId).emit('call:force-end', forceEndData);
@@ -342,7 +430,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             logger.error(`Call connected error: ${error.message}`);
             socket.emit('call:error', { message: error.message });
         } finally {
-            processingCalls.delete(`connect_${data.callId}`);
+            processingCalls.delete(`connect_${data.callId}_${userId}`);
         }
     });
 
@@ -368,10 +456,10 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                 return;
             }
 
-            // identify roles
-            const otherUserId = call.callerId.toString() === userId
-                ? call.receiverId.toString()
-                : call.callerId.toString();
+            // identify roles (getCall populates participants, so read their _id)
+            const callerId = call.callerId._id ? call.callerId._id.toString() : call.callerId.toString();
+            const receiverId = call.receiverId._id ? call.receiverId._id.toString() : call.receiverId.toString();
+            const otherUserId = callerId === userId ? receiverId : callerId;
 
             // 1. Calculate remaining time
             const timerData = activeCallTimers.get(callId);
@@ -438,6 +526,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                         logger.info(`❌ Interruption (Soft End) timeout expired: ${callId}`);
                         const reason = 'interruption_timeout'; // Define reason here
                         const videoCall = await videoCallService.endCall(callId, reason, userId);
+                        connectedCallUsers.delete(callId);
 
                         // Notify both users
                         const endData = {
@@ -481,8 +570,9 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                     activeCallTimers.delete(`${callId}_interruption`);
                 }
 
-                const endReason = call.callerId.toString() === userId ? 'caller_ended' : 'receiver_ended';
+                const endReason = callerId === userId ? 'caller_ended' : 'receiver_ended';
                 const videoCall = await videoCallService.endCall(callId, endReason, userId);
+                connectedCallUsers.delete(callId);
 
                 const endData = {
                     callId,
@@ -619,6 +709,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             try {
                 logger.info(`⏰ Rejoined call timer expired: ${callId}`);
                 await videoCallService.endCall(callId, 'timer_expired', null);
+                connectedCallUsers.delete(callId);
 
                 const forceEndData = { callId, reason: 'timer_expired' };
                 io.to(callerId).emit('call:force-end', forceEndData);
@@ -735,6 +826,12 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
             const { callId } = data;
             logger.warn(`📞 WebRTC connection failed: ${callId}`);
 
+            const call = await validateCallOwnership(callId);
+            if (!call) {
+                socket.emit('call:error', { message: 'Call not found or you are not a participant' });
+                return;
+            }
+
             // Clear timers
             const timerData = activeCallTimers.get(callId);
             if (timerData) {
@@ -744,6 +841,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
 
             // End call with failure (refunds if not connected yet)
             const videoCall = await videoCallService.endCall(callId, 'connection_failed', null);
+            connectedCallUsers.delete(callId);
 
             const failData = {
                 callId,
@@ -782,6 +880,28 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                 const otherUserId = activeCall.callerId.toString() === userId
                     ? activeCall.receiverId.toString()
                     : activeCall.callerId.toString();
+
+                // A call that never became billable cannot be rejoined. End it as
+                // a connection failure so locked coins are refunded and neither
+                // user remains stuck with isOnCall=true.
+                if (['pending', 'ringing', 'accepted'].includes(activeCall.status)) {
+                    const pendingTimer = activeCallTimers.get(callId);
+                    if (pendingTimer) {
+                        clearTimeout(pendingTimer.timer);
+                        activeCallTimers.delete(callId);
+                    }
+                    const videoCall = await videoCallService.endCall(callId, 'connection_failed', userId);
+                    connectedCallUsers.delete(callId);
+                    const endData = {
+                        callId,
+                        reason: 'connection_failed',
+                        canRejoin: false,
+                        refunded: videoCall.billingStatus === 'refunded',
+                    };
+                    io.to(videoCall.callerId.toString()).emit('call:ended', endData);
+                    io.to(videoCall.receiverId.toString()).emit('call:ended', endData);
+                    return;
+                }
 
                 // 2. Clear MAIN duration timer (PAUSE THE CALL)
                 const timerData = activeCallTimers.get(callId);
@@ -834,6 +954,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                                 : 'receiver_disconnected';
 
                             const videoCall = await videoCallService.endCall(callId, endReason, userId);
+                            connectedCallUsers.delete(callId);
 
                             const endData = {
                                 callId,
@@ -865,6 +986,7 @@ export const setupVideoCallHandlers = (socket, io, userId) => {
                         : 'receiver_disconnected';
 
                     const videoCall = await videoCallService.endCall(callId, endReason, userId);
+                    connectedCallUsers.delete(callId);
 
                     const endData = {
                         callId,

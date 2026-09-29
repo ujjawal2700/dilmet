@@ -376,6 +376,11 @@ export const videoCallMachine = setup({
                     }),
                     guard: 'isValidCallId',
                 },
+                CALL_ENDED: {
+                    target: 'ended',
+                    actions: actions.setCallEnded,
+                    guard: 'isValidCallId',
+                },
                 END_CALL: {
                     target: 'idle',
                 },
@@ -444,6 +449,10 @@ export const videoCallMachine = setup({
         // Live video call in progress
         connected: {
             on: {
+                CALL_STARTED: {
+                    actions: actions.setCallStarted,
+                    guard: 'isValidCallId',
+                },
                 TOGGLE_MUTE: {
                     actions: actions.toggleMute,
                 },
