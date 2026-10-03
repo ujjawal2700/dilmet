@@ -15,31 +15,39 @@ let initialized = false;
 
 // Initialize Firebase Admin ONCE on first import
 try {
-    const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+    let serviceAccount = null;
+    const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
-    if (!serviceAccountPath) {
-        throw new Error('FIREBASE_SERVICE_ACCOUNT_PATH not set');
+    if (serviceAccountRaw && serviceAccountRaw.trim()) {
+        const trimmed = serviceAccountRaw.trim();
+        if (trimmed.startsWith('{')) {
+            serviceAccount = JSON.parse(trimmed);
+        } else {
+            const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
+            serviceAccount = JSON.parse(decoded);
+        }
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+        const fullPath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+        if (fs.existsSync(fullPath)) {
+            serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        }
     }
 
-    const fullPath = path.resolve(serviceAccountPath);
-
-    if (!fs.existsSync(fullPath)) {
-        throw new Error('Firebase service account file not found');
+    if (!serviceAccount) {
+        throw new Error('Firebase service account credentials not configured (set FIREBASE_SERVICE_ACCOUNT single-line JSON or FIREBASE_SERVICE_ACCOUNT_PATH)');
     }
-
-    const serviceAccount = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
 
     // Check if already initialized (prevents duplicate init)
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
-            projectId: serviceAccount.project_id
+            projectId: serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID
         });
     }
 
     messaging = admin.messaging();
     initialized = true;
-    console.log('[FCM] ✅ Firebase initialized');
+    console.log('[FCM] ✅ Firebase initialized successfully');
 
 } catch (error) {
     console.error('[FCM] ❌ Init error:', error.message);
