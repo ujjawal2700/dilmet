@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { getServiceWorkerUrl } from './core/services/fcm.service'
 
 if (
   typeof window !== 'undefined' &&
@@ -21,7 +22,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      // Same URL as FCM registration - a different URL would replace the push worker
+      navigator.serviceWorker.register(getServiceWorkerUrl())
         .then(registration => {
           console.log('SW registered: ', registration);
         })
@@ -33,6 +35,8 @@ if ('serviceWorker' in navigator) {
     // In development mode, unregister any active service worker to prevent caching stale dev assets
     navigator.serviceWorker.getRegistrations().then(registrations => {
       for (const registration of registrations) {
+        // Keep the FCM push worker: unregistering it invalidates the device's FCM token
+        if (registration.active?.scriptURL.includes('apiBaseUrl=')) continue;
         if (registration.active && registration.active.scriptURL.includes('sw.js')) {
           registration.unregister().then(success => {
             if (success) {

@@ -18,6 +18,37 @@ type FirebaseRuntimeConfig = {
     vapidKey: string;
 };
 
+const FCM_TOKEN_KEY = 'dil_mate_fcm_token';
+const FCM_TOKEN_USER_KEY = 'dil_mate_fcm_token_user';
+
+/**
+ * Service worker URL shared by main.tsx and FCM. Both must register the exact
+ * same URL, otherwise each registration replaces the other's worker.
+ */
+export const getServiceWorkerUrl = (): string =>
+    `/sw.js?apiBaseUrl=${encodeURIComponent(API_URL.replace(/\/api$/, ''))}`;
+
+/** FCM token last saved for this device (localStorage) */
+export const getStoredFCMToken = (): { token: string | null; userId: string | null } => {
+    try {
+        return {
+            token: localStorage.getItem(FCM_TOKEN_KEY),
+            userId: localStorage.getItem(FCM_TOKEN_USER_KEY),
+        };
+    } catch {
+        return { token: null, userId: null };
+    }
+};
+
+export const setStoredFCMToken = (token: string, userId: string): void => {
+    try {
+        localStorage.setItem(FCM_TOKEN_KEY, token);
+        localStorage.setItem(FCM_TOKEN_USER_KEY, userId);
+    } catch {
+        // Storage unavailable (private mode) - backend copy is the source of truth
+    }
+};
+
 let runtimeConfigPromise: Promise<FirebaseRuntimeConfig | null> | null = null;
 const getRuntimeConfig = () => {
     if (!runtimeConfigPromise) {
@@ -27,7 +58,12 @@ const getRuntimeConfig = () => {
                 const config = (await response.json())?.data?.firebase as FirebaseRuntimeConfig | undefined;
                 return config?.apiKey && config?.vapidKey ? config : null;
             })
-            .catch(() => null);
+            .catch(() => null)
+            .then((config) => {
+                // Don't cache a failure forever - allow a retry later
+                if (!config) runtimeConfigPromise = null;
+                return config;
+            });
     }
     return runtimeConfigPromise;
 };
@@ -104,12 +140,14 @@ export const requestNotificationPermission = async () => {
  * @returns {Promise<string|null>} FCM token or null if failed
  */
 export const getFCMToken = async (): Promise<string | null> => {
-    const client = await getMessagingClient();
-    const config = await getRuntimeConfig();
-    if (!client || !config) return null;
+    if (!('serviceWorker' in navigator)) {
+        console.warn('[FCM] ⚠️ Service workers not supported');
+        return null;
+    }
 
     try {
-        // Request permission first
+        // Request permission first, before any network await, so a user gesture
+        // that triggered this call is still active (required by Safari/iOS).
         console.log('[FCM] 1️⃣ Requesting notification permission...');
         const permission = await requestNotificationPermission();
 
@@ -118,10 +156,14 @@ export const getFCMToken = async (): Promise<string | null> => {
             return null;
         }
 
-        const apiBaseUrl = API_URL.replace(/\/api$/, '');
-        const serviceWorkerRegistration = await navigator.serviceWorker.register(
-            `/sw.js?apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`,
-        );
+        const client = await getMessagingClient();
+        const config = await getRuntimeConfig();
+        if (!client || !config) {
+            console.warn('[FCM] ⚠️ Firebase config unavailable from /api/public-config');
+            return null;
+        }
+
+        const serviceWorkerRegistration = await navigator.serviceWorker.register(getServiceWorkerUrl());
         return await getToken(client, {
             vapidKey: config.vapidKey,
             serviceWorkerRegistration,
@@ -146,7 +188,7 @@ export const getFCMToken = async (): Promise<string | null> => {
  */
 export const saveFCMTokenToBackend = async (token: string, apiCall: { post: (url: string, data: object) => Promise<{ data: { status: string } }> }): Promise<boolean> => {
     try {
-        const response = await apiCall.post('/fcm/register', { fcmToken: token });
+        const response = await apiCall.post('/fcm/register', { fcmToken: token, platform: 'web' });
         return response.data.status === 'success';
     } catch (error) {
         console.error('[FCM] ❌ Error saving token to backend:', error);
@@ -201,6 +243,9 @@ export const showNotification = (title: string, options: NotificationOptions = {
 };
 
 export default {
+    getServiceWorkerUrl,
+    getStoredFCMToken,
+    setStoredFCMToken,
     requestNotificationPermission,
     getFCMToken,
     saveFCMTokenToBackend,
