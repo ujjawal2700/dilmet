@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { getServiceWorkerUrl } from './core/services/fcm.service'
+import { installNativeBackDetection } from './shared/lib/nativeBack'
+import { installNoLongPressMenus } from './shared/lib/noLongPressMenus'
+
+installNativeBackDetection();
+installNoLongPressMenus();
 
 if (
   typeof window !== 'undefined' &&
