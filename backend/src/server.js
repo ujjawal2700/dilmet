@@ -23,6 +23,7 @@ import { setupSocketIO } from './socket/index.js';
 import walletScheduler from './jobs/walletScheduler.js';
 import notificationScheduler from './jobs/notificationScheduler.js';
 import aiReplyScheduler from './jobs/aiReplyScheduler.js';
+import { corsOptions } from './middleware/security.js';
 import './models/index.js'; // Load all model hooks
 
 const { port, nodeEnv } = getEnvConfig();
@@ -32,11 +33,7 @@ const server = http.createServer(app);
 
 // Initialize Socket.IO
 const io = new Server(server, {
-  cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 // Setup Socket.IO handlers

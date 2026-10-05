@@ -42,8 +42,12 @@ export const ChatWindowPage = () => {
   }, []);
 
   useEffect(() => {
+    if (!chatId) return;
+
+    // Join socket room immediately so no real-time events are missed during fetch
+    socketService.joinChat(chatId);
+
     const fetchData = async () => {
-      if (!chatId) return;
       setIsLoading(true);
       try {
         const [chatData, messagesData, profileData] = await Promise.all([
@@ -54,13 +58,16 @@ export const ChatWindowPage = () => {
         setChatInfo(chatData);
         setMessages(messagesData.messages);
 
+        // Request real-time user status
+        const targetUserId = chatData?.userId || (chatData as any)?.otherUser?._id;
+        if (targetUserId) {
+          socketService.requestUserStatus(targetUserId);
+        }
+
         // Sync balance to global state if needed
         if (profileData.coins !== undefined) {
           updateBalance(profileData.coins);
         }
-
-        // Join socket
-        socketService.joinChat(chatId);
       } catch (err) {
         console.error("Failed to fetch chat data:", err);
       } finally {
@@ -71,7 +78,7 @@ export const ChatWindowPage = () => {
     fetchData();
 
     return () => {
-      if (chatId) socketService.leaveChat(chatId);
+      socketService.leaveChat(chatId);
     };
   }, [chatId, updateBalance]);
 
@@ -83,9 +90,22 @@ export const ChatWindowPage = () => {
   useEffect(() => {
     if (!chatId) return;
 
+    const addMessageDeduped = (prev: Message[], incoming: any): Message[] => {
+      const id = incoming._id;
+      if (id && prev.some((m: any) => String(m._id) === String(id))) return prev;
+      return [...prev, incoming];
+    };
+
     const handleNewMessage = (data: { chatId: string; message: any }) => {
-      if (data.chatId === chatId) {
-        setMessages((prev) => [...prev, data.message]);
+      if (String(data.chatId) === String(chatId)) {
+        setMessages((prev) => addMessageDeduped(prev as any, data.message) as any);
+        scrollToBottom();
+      }
+    };
+
+    const handleNotification = (data: { chatId: string; message: any }) => {
+      if (String(data.chatId) === String(chatId)) {
+        setMessages((prev) => addMessageDeduped(prev as any, data.message) as any);
         scrollToBottom();
       }
     };
@@ -100,12 +120,53 @@ export const ChatWindowPage = () => {
       }
     };
 
+    const handleUserOnline = (data: { userId: string }) => {
+      setChatInfo((prev) => {
+        if (!prev) return prev;
+        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
+        if (data.userId === otherId) {
+          return { ...prev, isOnline: true };
+        }
+        return prev;
+      });
+    };
+
+    const handleUserOffline = (data: { userId: string; lastSeen?: string }) => {
+      setChatInfo((prev) => {
+        if (!prev) return prev;
+        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
+        if (data.userId === otherId) {
+          return { ...prev, isOnline: false };
+        }
+        return prev;
+      });
+    };
+
+    const handleUserStatusResponse = (data: { userId: string; isOnline: boolean }) => {
+      setChatInfo((prev) => {
+        if (!prev) return prev;
+        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
+        if (data.userId === otherId) {
+          return { ...prev, isOnline: data.isOnline };
+        }
+        return prev;
+      });
+    };
+
     socketService.on("message:new", handleNewMessage);
+    socketService.on("message:notification", handleNotification);
     socketService.on("chat:typing", handleTyping);
+    socketService.on("user:online", handleUserOnline);
+    socketService.on("user:offline", handleUserOffline);
+    socketService.on("user:status:response", handleUserStatusResponse);
 
     return () => {
       socketService.off("message:new", handleNewMessage);
+      socketService.off("message:notification", handleNotification);
       socketService.off("chat:typing", handleTyping);
+      socketService.off("user:online", handleUserOnline);
+      socketService.off("user:offline", handleUserOffline);
+      socketService.off("user:status:response", handleUserStatusResponse);
     };
   }, [chatId, user?.id, scrollToBottom]);
 
@@ -334,12 +395,13 @@ export const ChatWindowPage = () => {
                   message={
                     {
                       ...msg,
+                      type: msg.messageType || msg.type || (msg.attachments?.length ? 'image' : 'text'),
                       isSent: isMine,
                       senderAvatar: isMine
                         ? user?.avatarUrl
                         : chatInfo.userAvatar,
-                      timestamp: new Date(msg.createdAt),
-                      readStatus: msg.readStatus || "sent",
+                      timestamp: new Date(msg.createdAt || Date.now()),
+                      readStatus: msg.readStatus || msg.status || "sent",
                     } as any
                   }
                 />

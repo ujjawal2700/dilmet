@@ -12,6 +12,7 @@ import { NotFoundError, BadRequestError } from '../../utils/errors.js';
 import { getLevelInfo } from '../../utils/intimacyLevel.js';
 import autoMessageService from '../../services/user/autoMessageService.js';
 import { calculateDistance, formatDistance } from '../../utils/distanceCalculator.js';
+import { isUserOnline } from '../../socket/chatHandlers.js';
 
 /**
  * Get user's chat list
@@ -98,7 +99,7 @@ export const getMyChatList = async (req, res, next) => {
                     _id: otherUserId,
                     name: name,
                     avatar: otherProfile.photos?.[0]?.url || null,
-                    isOnline: !!otherUserDoc.isOnline,
+                    isOnline: isUserOnline(otherUserId) || !!otherUserDoc.isOnline,
                     lastSeen: otherUserDoc.lastSeen,
                     isVerified: !!otherUserDoc.isVerified,
                     isAiCompanion: !!otherUserDoc.isAiCompanion,
@@ -385,7 +386,7 @@ export const getChatById = async (req, res, next) => {
                 _id: otherParticipant.userId._id,
                 name: otherParticipant.userId.profile?.name || `User ${otherParticipant.userId.phoneNumber}`,
                 avatar: other?.profile?.photos?.[0]?.url || null,
-                isOnline: otherParticipant.userId.isOnline,
+                isOnline: isUserOnline(otherParticipant.userId._id.toString()) || !!otherParticipant.userId.isOnline,
                 lastSeen: otherParticipant.userId.lastSeen,
                 isVerified: otherParticipant.userId.isVerified,
                 isAiCompanion: !!otherParticipant.userId.isAiCompanion,
@@ -482,10 +483,15 @@ export const getChatMessages = async (req, res, next) => {
             )
         ]).catch(e => console.error('[MSG-READ] Failed to update read status:', e));
 
+        const normalizedMessages = messages.reverse().map(m => ({
+            ...m,
+            type: m.messageType || m.type || (m.attachments?.length ? 'image' : 'text')
+        }));
+
         res.status(200).json({
             status: 'success',
             data: {
-                messages: messages.reverse(), // Return in chronological order
+                messages: normalizedMessages,
                 hasMore: messages.length === parseInt(limit)
             }
         });

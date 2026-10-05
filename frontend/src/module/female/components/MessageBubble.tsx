@@ -41,11 +41,18 @@ export const MessageBubble = ({ message, onImageClick }: MessageBubbleProps) => 
     );
   };
 
-  const isImageMessage = message.type === 'image' || message.type === 'photo' || 
-                         (message.content && message.content.match(/\.(jpeg|jpg|gif|png)$/) != null) ||
-                         (message.content && message.content.startsWith('http') && (message.content.includes('/images/') || message.content.includes('cloudinary')));
+  const isImageMessage =
+    (message as any).messageType === 'image' ||
+    (message as any).messageType === 'photo' ||
+    message.type === 'image' ||
+    message.type === 'photo' ||
+    ((message as any).attachments?.length > 0) ||
+    (message.content && message.content.match(/\.(jpeg|jpg|gif|png)$/) != null) ||
+    (message.content && message.content.startsWith('http') && (message.content.includes('/images/') || message.content.includes('cloudinary')));
 
-  const imageUrl = isImageMessage ? (message.attachments?.[0]?.url || message.content) : null;
+  const imageUrl = isImageMessage
+    ? ((message as any).attachments?.[0]?.url || message.content || null)
+    : null;
 
   return (
     <div className={`flex items-end gap-2.5 ${isSent ? 'flex-row-reverse' : 'flex-row'} mb-4 px-4 transition-all duration-300`}>

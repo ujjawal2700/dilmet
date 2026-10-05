@@ -55,7 +55,8 @@ export const setupChatHandlers = (io) => {
     setInterval(() => cleanupStaleConnections(io), CLEANUP_INTERVAL);
 
     io.on('connection', (socket) => {
-        const userId = socket.userId;
+        const userId = socket.userId?.toString();
+        if (!userId) return;
 
         // DEDUPE: Disconnect any existing socket for this user
         const existingSocketId = activeUsers.get(userId);
@@ -165,27 +166,26 @@ export const setupChatHandlers = (io) => {
         // USER STATUS REQUEST - Get real-time online status of a user
         socket.on('user:status:request', async (data) => {
             try {
-                const { targetUserId } = data;
+                const targetUserId = (data?.targetUserId || '').toString();
                 if (!targetUserId) return;
 
                 // Check if user is currently connected (real-time)
                 const isOnline = activeUsers.has(targetUserId);
                 const lastBeat = lastHeartbeat.get(targetUserId);
-                const isActive = lastBeat && (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT;
+                const isActive = isOnline && (!lastBeat || (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT);
 
-                // If not in active connections, check database
-                if (!isOnline || !isActive) {
-                    const user = await User.findById(targetUserId).select('isOnline lastSeen').lean();
-                    socket.emit('user:status:response', {
-                        userId: targetUserId,
-                        isOnline: user?.isOnline || false,
-                        lastSeen: user?.lastSeen || new Date()
-                    });
-                } else {
+                if (isActive) {
                     socket.emit('user:status:response', {
                         userId: targetUserId,
                         isOnline: true,
                         lastSeen: new Date()
+                    });
+                } else {
+                    const user = await User.findById(targetUserId).select('isOnline lastSeen').lean();
+                    socket.emit('user:status:response', {
+                        userId: targetUserId,
+                        isOnline: !!user?.isOnline,
+                        lastSeen: user?.lastSeen || new Date()
                     });
                 }
             } catch (e) {
@@ -273,16 +273,31 @@ export const emitBalanceUpdate = (io, userId, newBalance) => {
 };
 
 export const emitNewMessage = (io, chatId, message) => {
-    io.to(`chat:${chatId}`).emit('message:new', { chatId, message });
+    const normalizedMessage = {
+        ...message,
+        type: message.messageType || message.type || (message.attachments?.length ? 'image' : 'text')
+    };
+    const cId = (chatId || '').toString();
+    if (cId) {
+        io.to(`chat:${cId}`).emit('message:new', { chatId: cId, message: normalizedMessage });
+    }
     const receiverId = (message.receiverId?._id || message.receiverId || '').toString();
     if (receiverId) {
-        io.to(receiverId).emit('message:notification', { chatId, message });
+        io.to(receiverId).emit('message:notification', { chatId: cId, message: normalizedMessage });
+        io.to(receiverId).emit('message:new', { chatId: cId, message: normalizedMessage });
+    }
+    const senderId = (message.senderId?._id || message.senderId || '').toString();
+    if (senderId) {
+        io.to(senderId).emit('message:new', { chatId: cId, message: normalizedMessage });
     }
 };
 
 export const isUserOnline = (userId) => {
-    const lastBeat = lastHeartbeat.get(userId);
-    return lastBeat && (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT;
+    if (!userId) return false;
+    const uid = (userId?._id || userId).toString();
+    const hasSocket = activeUsers.has(uid);
+    const lastBeat = lastHeartbeat.get(uid);
+    return hasSocket && (!lastBeat || (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT);
 };
 
 export const emitNotification = (io, userId, notification) => {

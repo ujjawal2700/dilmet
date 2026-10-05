@@ -15,7 +15,7 @@ export const SocketQuerySync = () => {
     useEffect(() => {
         // Handle user going online
         const handleUserOnline = (data: { userId: string }) => {
-            const { userId } = data;
+            const userId = String(data?.userId || '');
             if (!userId) return;
 
             console.log(`[SocketQuerySync] User online: ${userId}`);
@@ -24,9 +24,11 @@ export const SocketQuerySync = () => {
             queryClient.setQueriesData({ queryKey: CHAT_KEYS.lists() }, (oldData: any) => {
                 if (!oldData || !Array.isArray(oldData)) return oldData;
                 return oldData.map((chat: any) => {
-                    if (chat.otherUser?._id === userId || chat.otherUser?.id === userId) {
+                    const otherId = String(chat.otherUser?._id || chat.otherUser?.id || chat.userId || '');
+                    if (otherId === userId) {
                         return {
                             ...chat,
+                            isOnline: true,
                             otherUser: { ...chat.otherUser, isOnline: true }
                         };
                     }
@@ -36,12 +38,12 @@ export const SocketQuerySync = () => {
 
             // 2. Update Discovery List Cache
             queryClient.setQueriesData({ queryKey: DISCOVERY_KEYS.all }, (oldData: any) => {
-                // Discovery data might be an array or { profiles: [] } depending on how it's stored
                 if (!oldData) return oldData;
 
                 const updateProfiles = (profiles: any[]) => {
                     return profiles.map((p: any) => {
-                        if (p.id === userId || p._id === userId) {
+                        const pid = String(p.id || p._id || '');
+                        if (pid === userId) {
                             return { ...p, isOnline: true };
                         }
                         return p;
@@ -58,9 +60,11 @@ export const SocketQuerySync = () => {
             // 3. Update specific Chat Detail if it exists
             queryClient.setQueriesData({ queryKey: ['chats', 'detail'] }, (oldData: any) => {
                 if (!oldData || !oldData.otherUser) return oldData;
-                if (oldData.otherUser._id === userId || oldData.otherUser.id === userId) {
+                const otherId = String(oldData.otherUser._id || oldData.otherUser.id || '');
+                if (otherId === userId) {
                     return {
                         ...oldData,
+                        isOnline: true,
                         otherUser: { ...oldData.otherUser, isOnline: true }
                     };
                 }
@@ -70,20 +74,22 @@ export const SocketQuerySync = () => {
 
         // Handle user going offline
         const handleUserOffline = (data: { userId: string; lastSeen?: string }) => {
-            const { userId, lastSeen } = data;
+            const userId = String(data?.userId || '');
             if (!userId) return;
 
             console.log(`[SocketQuerySync] User offline: ${userId}`);
 
-            const lastSeenDate = lastSeen || new Date().toISOString();
+            const lastSeenDate = data.lastSeen || new Date().toISOString();
 
             // 1. Update Chat List Cache
             queryClient.setQueriesData({ queryKey: CHAT_KEYS.lists() }, (oldData: any) => {
                 if (!oldData || !Array.isArray(oldData)) return oldData;
                 return oldData.map((chat: any) => {
-                    if (chat.otherUser?._id === userId || chat.otherUser?.id === userId) {
+                    const otherId = String(chat.otherUser?._id || chat.otherUser?.id || chat.userId || '');
+                    if (otherId === userId) {
                         return {
                             ...chat,
+                            isOnline: false,
                             otherUser: { ...chat.otherUser, isOnline: false, lastSeen: lastSeenDate }
                         };
                     }
@@ -97,7 +103,8 @@ export const SocketQuerySync = () => {
 
                 const updateProfiles = (profiles: any[]) => {
                     return profiles.map((p: any) => {
-                        if (p.id === userId || p._id === userId) {
+                        const pid = String(p.id || p._id || '');
+                        if (pid === userId) {
                             return { ...p, isOnline: false, lastSeen: lastSeenDate };
                         }
                         return p;
@@ -114,9 +121,11 @@ export const SocketQuerySync = () => {
             // 3. Update specific Chat Detail if it exists
             queryClient.setQueriesData({ queryKey: ['chats', 'detail'] }, (oldData: any) => {
                 if (!oldData || !oldData.otherUser) return oldData;
-                if (oldData.otherUser._id === userId || oldData.otherUser.id === userId) {
+                const otherId = String(oldData.otherUser._id || oldData.otherUser.id || '');
+                if (otherId === userId) {
                     return {
                         ...oldData,
+                        isOnline: false,
                         otherUser: { ...oldData.otherUser, isOnline: false, lastSeen: lastSeenDate }
                     };
                 }
@@ -124,20 +133,53 @@ export const SocketQuerySync = () => {
             });
         };
 
-        // Handle new message (implicitly means sender is online)
+        // Handle real-time status response query
+        const handleUserStatusResponse = (data: { userId: string; isOnline: boolean; lastSeen?: string }) => {
+            if (!data?.userId) return;
+            if (data.isOnline) {
+                handleUserOnline({ userId: data.userId });
+            } else {
+                handleUserOffline({ userId: data.userId, lastSeen: data.lastSeen });
+            }
+        };
+
+        // Handle new message (implicitly means sender is online & update chat previews)
         const handleNewMessage = (data: { chatId: string; message: any }) => {
+            if (!data?.message) return;
             const senderId = typeof data.message.senderId === 'object'
                 ? data.message.senderId._id || data.message.senderId.id
                 : data.message.senderId;
 
             if (senderId) {
-                handleUserOnline({ userId: senderId });
+                handleUserOnline({ userId: String(senderId) });
+            }
+
+            const chatId = String(data.chatId || data.message.chatId || '');
+            if (chatId) {
+                // Update chat item in list cache
+                queryClient.setQueriesData({ queryKey: CHAT_KEYS.lists() }, (oldData: any) => {
+                    if (!oldData || !Array.isArray(oldData)) return oldData;
+                    return oldData.map((chat: any) => {
+                        if (String(chat._id || chat.id) === chatId) {
+                            return {
+                                ...chat,
+                                lastMessage: data.message,
+                                lastMessageAt: data.message.createdAt || new Date().toISOString(),
+                                hasUnread: true,
+                                unreadCount: (chat.unreadCount || 0) + 1,
+                            };
+                        }
+                        return chat;
+                    });
+                });
+                queryClient.invalidateQueries({ queryKey: CHAT_KEYS.lists() });
             }
         };
 
         // Subscribe to socket events
         socketService.on('user:online', handleUserOnline);
         socketService.on('user:offline', handleUserOffline);
+        socketService.on('user:status:response', handleUserStatusResponse);
         socketService.on('message:new', handleNewMessage);
         socketService.on('message:notification', handleNewMessage);
 
@@ -145,6 +187,7 @@ export const SocketQuerySync = () => {
             // Unsubscribe on unmount
             socketService.off('user:online', handleUserOnline);
             socketService.off('user:offline', handleUserOffline);
+            socketService.off('user:status:response', handleUserStatusResponse);
             socketService.off('message:new', handleNewMessage);
             socketService.off('message:notification', handleNewMessage);
         };

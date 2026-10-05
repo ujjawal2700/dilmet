@@ -8,6 +8,7 @@ import Transaction from '../../models/Transaction.js';
 import Withdrawal from '../../models/Withdrawal.js';
 import Message from '../../models/Message.js';
 import Chat from '../../models/Chat.js';
+import { isUserOnline } from '../../socket/chatHandlers.js';
 
 /**
  * [LEGACY/COMPAT] Get aggregated dashboard data for female users
@@ -205,7 +206,7 @@ const transformChat = (chat, userId, language = 'en') => {
             userAvatar: otherProfile.photos?.[0]?.url || null,
             lastMessage: lastMessageContent,
             timestamp: chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            isOnline: !!otherUser.isOnline,
+            isOnline: isUserOnline(otherUserId) || !!otherUser.isOnline,
             hasUnread: (me.unreadCount || 0) > 0,
         };
     } catch (err) {
@@ -219,5 +220,5 @@ const formatUser = (user) => ({
     name: user.profile?.name || 'Anonymous',
     avatar: user.profile?.photos?.[0]?.url || null,
     isPremium: false,
-    isOnline: !!user.isOnline,
+    isOnline: isUserOnline((user._id || user.id).toString()) || !!user.isOnline,
 });

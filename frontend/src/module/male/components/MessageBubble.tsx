@@ -95,7 +95,13 @@ export const MessageBubble = ({
     );
   };
 
-  if (message.type === "image" || message.type === "photo") {
+  if (
+    message.type === "image" ||
+    message.type === "photo" ||
+    (message as any).messageType === "image" ||
+    (message as any).messageType === "photo" ||
+    ((message as any).attachments?.length > 0 && (message as any).attachments[0]?.url)
+  ) {
     // Get image URL from attachments or fallback to content
     const imageUrl = (message as any).attachments?.[0]?.url || message.content;
 

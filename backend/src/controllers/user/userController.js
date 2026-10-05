@@ -6,6 +6,7 @@ import * as userService from '../../services/user/userService.js';
 import { NotFoundError } from '../../utils/errors.js';
 import AppSettings from '../../models/AppSettings.js';
 import { calculateUserLevel } from '../../utils/levelHelper.js';
+import { isUserOnline } from '../../socket/chatHandlers.js';
 
 export const resubmitVerification = async (req, res, next) => {
     try {
@@ -389,7 +390,7 @@ export const getUserById = async (req, res, next) => {
                     isAiCompanion: !!user.isAiCompanion,
                     ...(currentUser?.role === 'admin' ? { location: exactLocation } : { distance: distanceFormatted }),
                     interests: user.profile?.interests || [],
-                    isOnline: user.isOnline,
+                    isOnline: isUserOnline(user._id.toString()) || !!user.isOnline,
                     lastSeen: user.lastSeen,
                     phoneNumber: currentUser?.role === 'admin' ? user.phoneNumber : undefined,
                     role: user.role,

@@ -35,6 +35,12 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
             return;
         }
 
+        const handleConnect = () => setConnected(true);
+        const handleDisconnect = () => setConnected(false);
+
+        socketService.on('connect', handleConnect);
+        socketService.on('disconnect', handleDisconnect);
+
         let timeoutId: ReturnType<typeof setTimeout>;
         let isConnecting = false;
 
@@ -44,11 +50,13 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
         timeoutId = setTimeout(() => {
             isConnecting = true;
             socketService.connect();
-            setConnected(true);
+            setConnected(socketService.isConnected());
         }, 500);
 
         return () => {
             clearTimeout(timeoutId);
+            socketService.off('connect', handleConnect);
+            socketService.off('disconnect', handleDisconnect);
             // Only disconnect if we actually started connecting AND auth is now false
             // Don't disconnect on re-renders when still authenticated
             if (!isAuthenticated && isConnecting) {

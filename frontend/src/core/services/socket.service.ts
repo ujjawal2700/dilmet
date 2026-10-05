@@ -10,10 +10,22 @@
 import { io, Socket } from 'socket.io-client';
 import { API_URL } from '../api/apiUrl';
 
-const configuredSocketUrl = import.meta.env.VITE_SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
-const SOCKET_URL = typeof window !== 'undefined' && window.location.protocol === 'https:'
-    ? configuredSocketUrl.replace(/^http:\/\//i, 'https://')
-    : configuredSocketUrl;
+const getSocketUrl = (): string => {
+    let url = (import.meta.env.VITE_SOCKET_URL || API_URL.replace(/\/api\/?$/, '')).trim();
+    if (
+        typeof window !== 'undefined' &&
+        window.location.hostname &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1' &&
+        (url.includes('localhost') || url.includes('127.0.0.1'))
+    ) {
+        url = url.replace(/localhost|127\.0\.0\.1/g, window.location.hostname);
+    }
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+        url = url.replace(/^http:\/\//i, 'https://');
+    }
+    return url;
+};
 
 // Heartbeat interval in ms
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
@@ -46,9 +58,9 @@ class SocketService {
             this.socket = null;
         }
 
-        this.socket = io(SOCKET_URL, {
+        this.socket = io(getSocketUrl(), {
             auth: { token },
-            transports: ['websocket'],
+            transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionDelay: 2000,
             reconnectionDelayMax: 10000,
@@ -65,18 +77,21 @@ class SocketService {
                 console.log('🔄 Rejoining chat room:', this.currentChatId);
                 this.joinChat(this.currentChatId);
             }
+            this.emit('connect', { id: this.socket?.id });
         });
 
         this.socket.on('disconnect', (reason) => {
             console.log('Socket disconnected:', reason);
             // Stop heartbeat on disconnect
             this.stopHeartbeat();
+            this.emit('disconnect', reason);
         });
 
         this.socket.on('reconnect', () => {
             console.log('Socket reconnected');
             // Restart heartbeat on reconnect
             this.startHeartbeat();
+            this.emit('connect', { id: this.socket?.id });
         });
 
         this.socket.on('connect_error', (error) => {

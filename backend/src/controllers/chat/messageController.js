@@ -99,9 +99,10 @@ const getChatUser = async (userId) => {
 };
 
 const buildMessagePayload = (message, sender, receiver) => {
-    const payload = message.toObject();
+    const payload = message.toObject ? message.toObject() : { ...message };
     payload.senderId = { _id: sender._id, profile: sender.profile };
     payload.receiverId = { _id: receiver._id, profile: receiver.profile };
+    payload.type = payload.messageType || payload.type || (payload.attachments?.length ? 'image' : 'text');
     return payload;
 };
 

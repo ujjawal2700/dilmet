@@ -164,6 +164,10 @@ export const ChatWindowPage = () => {
       return;
     }
 
+    if (!chatId.startsWith("new_")) {
+      socketService.joinChat(chatId);
+    }
+
     const init = async () => {
       try {
         setIsLoading(true);
@@ -374,11 +378,13 @@ export const ChatWindowPage = () => {
     };
 
     socketService.on("message:new", handleNewMessage);
+    socketService.on("message:notification", handleNewMessage);
     socketService.on("chat:message", handleNewMessage);
     socketService.on("intimacy:levelup", handleLevelUp);
 
     return () => {
       socketService.off("message:new", handleNewMessage);
+      socketService.off("message:notification", handleNewMessage);
       socketService.off("chat:message", handleNewMessage);
       socketService.off("intimacy:levelup", handleLevelUp);
     };
@@ -1205,7 +1211,7 @@ export const ChatWindowPage = () => {
                   type:
                     message.messageType === "video_call"
                       ? "text"
-                      : (message.messageType as any),
+                      : ((message.messageType || (message as any).type || ((message.attachments?.length) ? "image" : "text")) as any),
                   isSent,
                   readStatus: message.status as any,
                   gifts: message.gifts as any,
