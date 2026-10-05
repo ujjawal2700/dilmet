@@ -99,7 +99,6 @@ const userSchema = new mongoose.Schema(
     blockedUsers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      index: true,
     }],
     // Users who have blocked this user (this user cannot communicate with them)
     blockedBy: [{
