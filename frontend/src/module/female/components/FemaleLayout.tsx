@@ -30,8 +30,7 @@ export const FemaleLayout: React.FC = () => {
     isSupportTicket;
 
   return (
-    <div
-      className={`min-h-screen relative w-full bg-background-light ${!hideBottomNav ? "mobile-content-with-nav lg:pb-0" : ""}`}>
+    <div className={`min-h-screen relative w-full bg-background-light ${!hideBottomNav ? 'mobile-content-with-nav lg:pb-0' : ''}`}>
       <Suspense fallback={<PageSkeletonLoader />}>
         <Outlet />
       </Suspense>

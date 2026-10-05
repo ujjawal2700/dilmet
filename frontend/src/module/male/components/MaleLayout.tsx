@@ -22,16 +22,10 @@ export const MaleLayout: React.FC = () => {
   const isSupportTicket = location.pathname.startsWith("/male/support/");
 
   const hideBottomNav =
-    isChatWindow ||
-    isProfileView ||
-    isBuyCoins ||
-    isEditProfile ||
-    isReferral ||
-    isSupportTicket;
+    isChatWindow || isProfileView || isBuyCoins || isEditProfile || isReferral || isSupportTicket;
 
   return (
-    <div
-      className={`min-h-screen relative w-full bg-background-light ${!hideBottomNav ? "mobile-content-with-nav lg:pb-0" : ""}`}>
+    <div className={`min-h-screen relative w-full bg-background-light ${!hideBottomNav ? 'mobile-content-with-nav lg:pb-0' : ''}`}>
       <Suspense fallback={<PageSkeletonLoader />}>
         <Outlet />
       </Suspense>

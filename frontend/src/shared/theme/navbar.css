@@ -1,8 +1,8 @@
 :root {
   /* Theme tokens - customize to your app's brand */
-  --color-primary: #ec4899; /* Primary highlight color (Dil Mate / Hetnaz brand) */
+  --color-primary: #ec4899;          /* Primary highlight color (Dil Mate / Hetnaz brand) */
   --color-line: rgba(226, 232, 240, 0.8);
-  --color-muted: #64748b;
+  --color-muted: #64748B;
 
   /* System Bottom calculation:
      Automatically accounts for Android 3-Button navigation bar height,
@@ -28,7 +28,8 @@
    Leaves touch events free to pass through outside the capsule */
 .mobile-bottom-nav {
   pointer-events: none;
-  padding: 0 max(0.75rem, env(safe-area-inset-right, 0px))
+  padding:
+    0 max(0.75rem, env(safe-area-inset-right, 0px))
     calc(var(--mobile-system-bottom) + 0.5rem)
     max(0.75rem, env(safe-area-inset-left, 0px));
 }
@@ -43,11 +44,7 @@
   padding: 0.375rem 0.5rem;
   border: 1px solid color-mix(in srgb, #ffffff 82%, var(--color-line));
   border-radius: 1.75rem;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.92),
-    rgba(254, 242, 246, 0.78)
-  );
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(254, 242, 246, 0.78));
   box-shadow:
     0 18px 44px -16px rgba(26, 31, 54, 0.28),
     0 6px 18px -8px color-mix(in srgb, var(--color-primary) 30%, transparent),
@@ -63,16 +60,8 @@
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(
-      circle at 18% -30%,
-      rgba(255, 255, 255, 0.96),
-      transparent 52%
-    ),
-    radial-gradient(
-      circle at 82% 135%,
-      color-mix(in srgb, var(--color-primary) 18%, transparent),
-      transparent 52%
-    );
+    radial-gradient(circle at 18% -30%, rgba(255, 255, 255, 0.96), transparent 52%),
+    radial-gradient(circle at 82% 135%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 52%);
   pointer-events: none;
 }
 
@@ -103,11 +92,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 238, 244, 0.88) 100%
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 238, 244, 0.88) 100%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.95);
@@ -123,16 +108,8 @@
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(
-      80% 55% at 28% 0%,
-      rgba(255, 255, 255, 0.75),
-      transparent 62%
-    ),
-    radial-gradient(
-      60% 45% at 80% 100%,
-      rgba(255, 255, 255, 0.35),
-      transparent 65%
-    );
+    radial-gradient(80% 55% at 28% 0%, rgba(255, 255, 255, 0.75), transparent 62%),
+    radial-gradient(60% 45% at 80% 100%, rgba(255, 255, 255, 0.35), transparent 65%);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.85),
     inset 0 1.5px 1.5px rgba(255, 255, 255, 1),
@@ -174,11 +151,7 @@
 /* Dark mode overrides */
 .dark .mobile-bottom-nav-shell {
   border-color: rgba(255, 255, 255, 0.12);
-  background: linear-gradient(
-    145deg,
-    rgba(15, 23, 42, 0.88),
-    rgba(30, 41, 59, 0.75)
-  );
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.75));
   box-shadow:
     0 18px 44px -16px rgba(0, 0, 0, 0.6),
     0 6px 18px -8px color-mix(in srgb, var(--color-primary) 40%, transparent),
@@ -186,11 +159,7 @@
 }
 
 .dark .liquid-glass-backdrop {
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.92) 0%,
-    rgba(88, 28, 135, 0.35) 100%
-  );
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.92) 0%, rgba(88, 28, 135, 0.35) 100%);
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow:
     0 10px 25px -8px rgba(0, 0, 0, 0.5),
