@@ -33,6 +33,7 @@ import { ChatSkeletonLoader } from "../components/ChatSkeletonLoader";
 import { FailedMessageModal } from "../components/FailedMessageModal";
 import type { Message } from "../types/male.types";
 import { validateMessageContent } from "../../../core/utils/contentModeration";
+import { mergeChatMessages } from "../../../core/utils/chatMessages";
 
 // Message cost constant
 const MESSAGE_COST = 50;
@@ -201,7 +202,9 @@ export const ChatWindowPage = () => {
         setIsBlockedByOther(!!chat.isBlockedByOther);
 
         const { messages: msgData, hasMore: moreAvailable } = messagesData;
-        setMessages(msgData);
+        // Do not let this HTTP snapshot erase a message that arrived over the
+        // socket while the request was in flight.
+        setMessages((current) => mergeChatMessages(msgData, current));
         setHasMore(moreAvailable);
         saveToChatCache(activeChatId, msgData);
 
@@ -309,6 +312,20 @@ export const ChatWindowPage = () => {
   useEffect(() => {
     if (!chatId) return;
 
+    const syncMissedMessages = async () => {
+      if (chatId.startsWith("new_")) return;
+      try {
+        const data = await chatService.getChatMessages(chatId, {
+          limit: MESSAGES_PER_PAGE,
+        });
+        setMessages((current) =>
+          mergeChatMessages(data.messages || [], current),
+        );
+      } catch {
+        // The normal socket reconnect loop will retry. Keep the current UI.
+      }
+    };
+
     const handleNewMessage = (data: {
       chatId: string;
       message: ApiMessage;
@@ -378,24 +395,21 @@ export const ChatWindowPage = () => {
     };
 
     socketService.on("message:new", handleNewMessage);
-    socketService.on("message:notification", handleNewMessage);
-    socketService.on("chat:message", handleNewMessage);
+    socketService.on("connect", syncMissedMessages);
     socketService.on("intimacy:levelup", handleLevelUp);
 
     return () => {
       socketService.off("message:new", handleNewMessage);
-      socketService.off("message:notification", handleNewMessage);
-      socketService.off("chat:message", handleNewMessage);
+      socketService.off("connect", syncMissedMessages);
       socketService.off("intimacy:levelup", handleLevelUp);
     };
   }, [chatId, currentUserId, scrollToBottom, queryClient]);
 
   // Socket listeners for user status, typing, blocking (requires chatInfo)
-  useEffect(() => {
-    if (!chatInfo) return;
+  const otherUserId = chatInfo?.otherUser?._id;
 
-    // Request real-time status when entering chat
-    socketService.requestUserStatus(chatInfo.otherUser._id);
+  useEffect(() => {
+    if (!otherUserId) return;
 
     const handleTyping = (data: {
       chatId: string;
@@ -408,7 +422,7 @@ export const ChatWindowPage = () => {
     };
 
     const handleUserOnline = (data: { userId: string }) => {
-      if (data.userId === chatInfo.otherUser._id) {
+      if (String(data.userId) === String(otherUserId)) {
         setChatInfo((prev) =>
           prev
             ? {
@@ -421,7 +435,7 @@ export const ChatWindowPage = () => {
     };
 
     const handleUserOffline = (data: { userId: string; lastSeen: string }) => {
-      if (data.userId === chatInfo.otherUser._id) {
+      if (String(data.userId) === String(otherUserId)) {
         setChatInfo((prev) =>
           prev
             ? {
@@ -442,7 +456,7 @@ export const ChatWindowPage = () => {
       isOnline: boolean;
       lastSeen: string;
     }) => {
-      if (data.userId === chatInfo.otherUser._id) {
+      if (String(data.userId) === String(otherUserId)) {
         setChatInfo((prev) =>
           prev
             ? {
@@ -462,7 +476,7 @@ export const ChatWindowPage = () => {
       blockedBy: string;
       blockedByName: string;
     }) => {
-      if (data.blockedBy === chatInfo.otherUser._id) {
+      if (String(data.blockedBy) === String(otherUserId)) {
         setIsBlockedByOther(true);
         setError(t("youHaveBeenBlockedBy", { name: data.blockedByName }));
       }
@@ -474,6 +488,10 @@ export const ChatWindowPage = () => {
     socketService.on("user:status:response", handleUserStatusResponse);
     socketService.on("user:blocked_by", handleBlockedBy);
 
+    // Register the response listener before requesting status so a fast local
+    // server response cannot be missed.
+    socketService.requestUserStatus(otherUserId);
+
     return () => {
       socketService.off("chat:typing", handleTyping);
       socketService.off("user:online", handleUserOnline);
@@ -481,7 +499,7 @@ export const ChatWindowPage = () => {
       socketService.off("user:status:response", handleUserStatusResponse);
       socketService.off("user:blocked_by", handleBlockedBy);
     };
-  }, [chatId, chatInfo, currentUserId, t]);
+  }, [chatId, otherUserId, currentUserId, t]);
 
   // Auto-scroll on new messages & Sync to Cache
   useEffect(() => {
@@ -1088,7 +1106,7 @@ export const ChatWindowPage = () => {
               </h1>
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-4 tracking-tight">
                 Dil Mate User •{" "}
-                {chatInfo.otherUser.isOnline ? "Active Now" : "Recently Active"}
+                {chatInfo.otherUser.isOnline ? "Active Now" : "Offline"}
               </p>
 
               {/* Stats row like Instagram */}

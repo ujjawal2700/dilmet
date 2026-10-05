@@ -108,7 +108,7 @@ export const ChatWindowHeader = ({
                 )}
               </div>
               <p className="text-[11px] font-semibold text-white/85">
-                {SHOW_AI_LABELS && isAiCompanion ? 'AI companion' : isOnline ? 'Active now' : 'Active some time ago'}
+                {SHOW_AI_LABELS && isAiCompanion ? 'AI companion' : isOnline ? 'Active now' : 'Offline'}
               </p>
             </div>
           </button>

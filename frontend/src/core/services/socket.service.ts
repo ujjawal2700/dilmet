@@ -2,9 +2,8 @@
  * Socket Service - Socket.IO Client for Real-time Chat
  * @purpose: Manage Socket.IO connection and real-time events
  * 
- * Includes heartbeat mechanism:
- * - Sends 'heartbeat' event every 30s to confirm connection
- * - Server marks user offline if no heartbeat for 60s
+ * Socket.IO's transport heartbeat owns connection liveness. Desired rooms and
+ * the active presence request are replayed after every reconnect.
  */
 
 import { io, Socket } from 'socket.io-client';
@@ -27,14 +26,12 @@ const getSocketUrl = (): string => {
     return url;
 };
 
-// Heartbeat interval in ms
-const HEARTBEAT_INTERVAL = 30000; // 30 seconds
-
 class SocketService {
     private socket: Socket | null = null;
     private listeners: Map<string, Set<Function>> = new Map();
-    private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-    private currentChatId: string | null = null;
+    private joinedChatIds: Set<string> = new Set();
+    private joinedSupportTicketIds: Set<string> = new Set();
+    private trackedStatusUserId: string | null = null;
 
     /**
      * Connect to Socket.IO server (SINGLETON - one connection per session)
@@ -47,7 +44,7 @@ class SocketService {
         }
 
         // CRITICAL: If already connected, do nothing
-        if (this.socket?.connected) {
+        if (this.socket?.connected || this.socket?.active) {
             return;
         }
 
@@ -69,29 +66,24 @@ class SocketService {
 
             this.socket.on('connect', () => {
                 console.log('✅ Socket connected:', this.socket?.id);
-                // Start heartbeat on connect
-                this.startHeartbeat();
 
-                // Rejoin current chat if we were in one
-                if (this.currentChatId) {
-                    console.log('🔄 Rejoining chat room:', this.currentChatId);
-                    this.joinChat(this.currentChatId);
+                this.joinedChatIds.forEach((chatId) => {
+                    this.socket?.emit('chat:join', { chatId });
+                });
+                this.joinedSupportTicketIds.forEach((ticketId) => {
+                    this.socket?.emit('support:join', { ticketId });
+                });
+                if (this.trackedStatusUserId) {
+                    this.socket?.emit('user:status:request', {
+                        targetUserId: this.trackedStatusUserId,
+                    });
                 }
                 this.emit('connect', { id: this.socket?.id });
             });
 
             this.socket.on('disconnect', (reason) => {
                 console.log('Socket disconnected:', reason);
-                // Stop heartbeat on disconnect
-                this.stopHeartbeat();
                 this.emit('disconnect', reason);
-            });
-
-            this.socket.on('reconnect', () => {
-                console.log('Socket reconnected');
-                // Restart heartbeat on reconnect
-                this.startHeartbeat();
-                this.emit('connect', { id: this.socket?.id });
             });
 
             this.socket.on('connect_error', (error) => {
@@ -103,45 +95,16 @@ class SocketService {
         }
 
     /**
-     * Start heartbeat - sends ping every 30s
-     */
-    private startHeartbeat() {
-            // Clear any existing interval first
-            this.stopHeartbeat();
-
-            // Send initial heartbeat immediately
-            this.socket?.emit('heartbeat');
-
-            // Then send every 30 seconds
-            this.heartbeatInterval = setInterval(() => {
-                if (this.socket?.connected) {
-                    this.socket.emit('heartbeat');
-                }
-            }, HEARTBEAT_INTERVAL);
-
-            console.log('💓 Heartbeat started');
-        }
-
-    /**
-     * Stop heartbeat
-     */
-    private stopHeartbeat() {
-            if(this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval);
-            this.heartbeatInterval = null;
-            console.log('💔 Heartbeat stopped');
-        }
-    }
-
-    /**
      * Disconnect from Socket.IO server
      */
     disconnect() {
-        this.stopHeartbeat();
         if (this.socket) {
             this.socket.disconnect();
             this.socket = null;
             this.listeners.clear();
+            this.joinedChatIds.clear();
+            this.joinedSupportTicketIds.clear();
+            this.trackedStatusUserId = null;
         }
     }
 
@@ -312,7 +275,7 @@ class SocketService {
      * Join a chat room
      */
     joinChat(chatId: string) {
-        this.currentChatId = chatId;
+        this.joinedChatIds.add(chatId);
         this.socket?.emit('chat:join', { chatId });
     }
 
@@ -320,9 +283,7 @@ class SocketService {
      * Leave a chat room
      */
     leaveChat(chatId: string) {
-        if (this.currentChatId === chatId) {
-            this.currentChatId = null;
-        }
+        this.joinedChatIds.delete(chatId);
         this.socket?.emit('chat:leave', { chatId });
     }
 
@@ -337,6 +298,7 @@ class SocketService {
      * Join a support ticket room (for live message delivery while viewing it)
      */
     joinSupportTicket(ticketId: string) {
+        this.joinedSupportTicketIds.add(ticketId);
         this.socket?.emit('support:join', { ticketId });
     }
 
@@ -344,6 +306,7 @@ class SocketService {
      * Leave a support ticket room
      */
     leaveSupportTicket(ticketId: string) {
+        this.joinedSupportTicketIds.delete(ticketId);
         this.socket?.emit('support:leave', { ticketId });
     }
 
@@ -365,7 +328,10 @@ class SocketService {
      * Request real-time online status of a user
      */
     requestUserStatus(targetUserId: string) {
-        this.socket?.emit('user:status:request', { targetUserId });
+        this.trackedStatusUserId = targetUserId;
+        if (this.socket?.connected) {
+            this.socket.emit('user:status:request', { targetUserId });
+        }
     }
 
     /**

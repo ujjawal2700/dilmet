@@ -17,6 +17,7 @@ import { ImageModal } from "../../../shared/components/ImageModal";
 import type { Message, Chat } from "../types/female.types";
 import { ChatSkeletonLoader } from "../../male/components/ChatSkeletonLoader";
 import { validateMessageContent } from "../../../core/utils/contentModeration";
+import { mergeChatMessages } from "../../../core/utils/chatMessages";
 
 export const ChatWindowPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
@@ -56,7 +57,9 @@ export const ChatWindowPage = () => {
           userService.getMyProfile(),
         ]);
         setChatInfo(chatData);
-        setMessages(messagesData.messages);
+        setMessages((current) =>
+          mergeChatMessages(messagesData.messages || [], current),
+        );
 
         // Request real-time user status
         const targetUserId =
@@ -91,23 +94,43 @@ export const ChatWindowPage = () => {
   useEffect(() => {
     if (!chatId) return;
 
+    const syncMissedMessages = async () => {
+      try {
+        const data = await chatService.getChatMessages(chatId);
+        setMessages((current) =>
+          mergeChatMessages(data.messages || [], current),
+        );
+      } catch {
+        // Preserve the visible conversation and let reconnect retry normally.
+      }
+    };
+
     const addMessageDeduped = (prev: Message[], incoming: any): Message[] => {
       const id = incoming._id;
       if (id && prev.some((m: any) => String(m._id) === String(id)))
         return prev;
+
+      const incomingSender =
+        typeof incoming.senderId === "object"
+          ? incoming.senderId?._id || incoming.senderId?.id
+          : incoming.senderId;
+      if (String(incomingSender) === String(user?.id)) {
+        const optimistic = prev.find(
+          (message: any) =>
+            String(message._id || "").startsWith("temp_") &&
+            message.content === incoming.content &&
+            message.messageType === incoming.messageType,
+        );
+        if (optimistic) {
+          return prev.map((message: any) =>
+            message._id === (optimistic as any)._id ? incoming : message,
+          );
+        }
+      }
       return [...prev, incoming];
     };
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
-      if (String(data.chatId) === String(chatId)) {
-        setMessages(
-          (prev) => addMessageDeduped(prev as any, data.message) as any,
-        );
-        scrollToBottom();
-      }
-    };
-
-    const handleNotification = (data: { chatId: string; message: any }) => {
       if (String(data.chatId) === String(chatId)) {
         setMessages(
           (prev) => addMessageDeduped(prev as any, data.message) as any,
@@ -163,7 +186,7 @@ export const ChatWindowPage = () => {
     };
 
     socketService.on("message:new", handleNewMessage);
-    socketService.on("message:notification", handleNotification);
+    socketService.on("connect", syncMissedMessages);
     socketService.on("chat:typing", handleTyping);
     socketService.on("user:online", handleUserOnline);
     socketService.on("user:offline", handleUserOffline);
@@ -171,7 +194,7 @@ export const ChatWindowPage = () => {
 
     return () => {
       socketService.off("message:new", handleNewMessage);
-      socketService.off("message:notification", handleNotification);
+      socketService.off("connect", syncMissedMessages);
       socketService.off("chat:typing", handleTyping);
       socketService.off("user:online", handleUserOnline);
       socketService.off("user:offline", handleUserOffline);
@@ -197,13 +220,40 @@ export const ChatWindowPage = () => {
       return;
     }
 
+    const optimisticId = `temp_${Date.now()}`;
+    const optimisticMessage = {
+      _id: optimisticId,
+      chatId,
+      senderId: user?.id || "",
+      content: content.trim(),
+      messageType: "text",
+      status: "sending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as any;
+
+    setMessages((prev) => [...prev, optimisticMessage]);
     setIsSending(true);
     try {
-      const response = await chatService.sendMessage(chatId, content);
-      setMessages((prev: Message[]) => [...prev, response.message]);
+      const response = await chatService.sendMessage(chatId, content.trim());
+      setMessages((prev: Message[]) => {
+        if (prev.some((message: any) => message._id === response.message._id)) {
+          return prev.filter((message: any) => message._id !== optimisticId);
+        }
+        return prev.map((message: any) =>
+          message._id === optimisticId ? response.message : message,
+        );
+      });
       if (response.newBalance !== undefined) updateBalance(response.newBalance);
     } catch (err) {
       console.error("Failed to send message:", err);
+      setMessages((prev: Message[]) =>
+        prev.map((message: any) =>
+          message._id === optimisticId
+            ? { ...message, status: "failed" }
+            : message,
+        ),
+      );
     } finally {
       setIsSending(false);
     }
@@ -332,7 +382,7 @@ export const ChatWindowPage = () => {
               />
             </h1>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-500/80 mb-8 px-4">
-              {chatInfo.isOnline ? "Active Now" : "Recently Active"}
+              {chatInfo.isOnline ? "Active Now" : "Offline"}
             </p>
 
             {/* Centerpiece Stats - Light Mode Cards */}

@@ -530,7 +530,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       socketService.on("message", handleNewMessage);
       socketService.on("chat:message", handleNewMessage);
       socketService.on("message:new", handleNewMessage);
-      socketService.on("message:notification", handleNewMessage);
       socketService.on("notification:new", handleGenericNotification);
       socketService.on("notification", handleGenericNotification);
       socketService.on("task:completed", handleTaskCompleted);
@@ -555,7 +554,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       socketService.off("message", handleNewMessage);
       socketService.off("chat:message", handleNewMessage);
       socketService.off("message:new", handleNewMessage);
-      socketService.off("message:notification", handleNewMessage);
       socketService.off("notification:new", handleGenericNotification);
       socketService.off("notification", handleGenericNotification);
       socketService.off("task:completed", handleTaskCompleted);

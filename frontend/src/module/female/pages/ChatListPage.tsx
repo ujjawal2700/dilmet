@@ -58,11 +58,9 @@ export const ChatListPage = () => {
       refreshChats();
     };
     socketService.on("message:new", handleNewMessage);
-    socketService.on("message:notification", handleNewMessage);
 
     return () => {
       socketService.off("message:new", handleNewMessage);
-      socketService.off("message:notification", handleNewMessage);
     };
   }, []);
 

@@ -2,10 +2,10 @@
  * Socket.IO Chat Handlers - Real-time Messaging (PERFORMANCE OPTIMIZED)
  * 
  * KEY FIXES:
- * 1. Single socket per user - disconnects old sockets on new connection
- * 2. No DB calls during connection (deferred to background)
- * 3. Minimal logging 
- * 4. Optimized cleanup
+ * A user may have more than one connection (multiple tabs/devices). Presence is
+ * online while at least one authenticated socket is connected. Socket.IO's own
+ * ping/pong is the source of truth; browser timers are deliberately not used
+ * because mobile browsers throttle them in the background.
  */
 
 import jwt from 'jsonwebtoken';
@@ -24,11 +24,22 @@ const ADMIN_ROOM = 'admins';
 
 const { jwtSecret } = getEnvConfig();
 
-// Single socket per user (NOT multi-tab friendly, but prevents storms)
-const activeUsers = new Map(); // userId -> socketId
-const lastHeartbeat = new Map();
-const HEARTBEAT_TIMEOUT = 60000;
-const CLEANUP_INTERVAL = 60000;
+const activeUsers = new Map(); // userId -> Set<socketId>
+
+const addActiveSocket = (userId, socketId) => {
+    const sockets = activeUsers.get(userId) || new Set();
+    sockets.add(socketId);
+    activeUsers.set(userId, sockets);
+    return sockets.size;
+};
+
+const removeActiveSocket = (userId, socketId) => {
+    const sockets = activeUsers.get(userId);
+    if (!sockets) return 0;
+    sockets.delete(socketId);
+    if (sockets.size === 0) activeUsers.delete(userId);
+    return sockets.size;
+};
 
 /**
  * Authenticate Socket.IO connection (FAST - no DB call)
@@ -51,25 +62,11 @@ export const authenticateSocket = async (socket, next) => {
  * Setup Socket.IO chat handlers (SINGLETON-ENFORCED)
  */
 export const setupChatHandlers = (io) => {
-    // Cleanup interval (runs once globally)
-    setInterval(() => cleanupStaleConnections(io), CLEANUP_INTERVAL);
-
     io.on('connection', (socket) => {
         const userId = socket.userId?.toString();
         if (!userId) return;
 
-        // DEDUPE: Disconnect any existing socket for this user
-        const existingSocketId = activeUsers.get(userId);
-        if (existingSocketId && existingSocketId !== socket.id) {
-            const existingSocket = io.sockets.sockets.get(existingSocketId);
-            if (existingSocket) {
-                existingSocket.disconnect(true);
-            }
-        }
-
-        // Register this socket
-        activeUsers.set(userId, socket.id);
-        lastHeartbeat.set(userId, Date.now());
+        const connectionCount = addActiveSocket(userId, socket.id);
         socket.join(userId);
         if (socket.userRole === 'admin') {
             socket.join(ADMIN_ROOM);
@@ -91,12 +88,15 @@ export const setupChatHandlers = (io) => {
             }
         });
 
-        // Broadcast online (lightweight) - ensure userId is string
-        socket.broadcast.emit('user:online', { userId: userId.toString() });
+        // Only broadcast the online transition, not every additional tab.
+        if (connectionCount === 1) {
+            socket.broadcast.emit('user:online', { userId });
+        }
 
-        // HEARTBEAT
+        // Backward compatibility for older clients. Socket.IO already performs
+        // transport-level heartbeat and emits disconnect when it expires.
         socket.on('heartbeat', () => {
-            lastHeartbeat.set(userId, Date.now());
+            socket.emit('heartbeat:ack');
         });
 
         // JOIN CHAT
@@ -170,11 +170,7 @@ export const setupChatHandlers = (io) => {
                 if (!targetUserId) return;
 
                 // Check if user is currently connected (real-time)
-                const isOnline = activeUsers.has(targetUserId);
-                const lastBeat = lastHeartbeat.get(targetUserId);
-                const isActive = isOnline && (!lastBeat || (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT);
-
-                if (isActive) {
+                if (isUserOnline(targetUserId)) {
                     socket.emit('user:status:response', {
                         userId: targetUserId,
                         isOnline: true,
@@ -184,7 +180,9 @@ export const setupChatHandlers = (io) => {
                     const user = await User.findById(targetUserId).select('isOnline lastSeen').lean();
                     socket.emit('user:status:response', {
                         userId: targetUserId,
-                        isOnline: !!user?.isOnline,
+                        // The in-memory socket registry is authoritative within
+                        // this process. A stale DB flag must not report online.
+                        isOnline: false,
                         lastSeen: user?.lastSeen || new Date()
                     });
                 }
@@ -195,10 +193,8 @@ export const setupChatHandlers = (io) => {
 
         // DISCONNECT
         socket.on('disconnect', () => {
-            // Only mark offline if this is the current active socket
-            if (activeUsers.get(userId) === socket.id) {
-                activeUsers.delete(userId);
-                lastHeartbeat.delete(userId);
+            // A user is offline only after their final tab/device disconnects.
+            if (removeActiveSocket(userId, socket.id) === 0) {
 
                 // Update DB immediately - critical for online status accuracy
                 User.findByIdAndUpdate(userId, {
@@ -225,47 +221,6 @@ export const setupChatHandlers = (io) => {
     logger.info('✅ Socket.IO handlers initialized (Optimized)');
 };
 
-/**
- * Cleanup stale connections
- */
-const cleanupStaleConnections = async (io) => {
-    const now = Date.now();
-    const staleUsers = [];
-
-    for (const [userId, lastBeat] of lastHeartbeat.entries()) {
-        if (now - lastBeat > HEARTBEAT_TIMEOUT) staleUsers.push(userId);
-    }
-
-    for (const userId of staleUsers) {
-        const socketId = activeUsers.get(userId);
-        if (socketId) {
-            const socket = io.sockets.sockets.get(socketId);
-            if (socket) socket.disconnect(true);
-        }
-        activeUsers.delete(userId);
-        lastHeartbeat.delete(userId);
-
-        // Update DB immediately - critical for online status accuracy
-        User.findByIdAndUpdate(userId, {
-            isOnline: false,
-            socketId: null,
-            lastSeen: new Date()
-        }).catch((err) => {
-            logger.error(`Failed to update offline status during cleanup for ${userId}:`, err.message);
-        });
-
-        // Invalidate discover cache for online filter
-        Array.from(memoryCache.keys()).forEach(key => {
-            if (key.includes('discover:females:') && key.includes(':online:')) {
-                memoryCache.delete(key);
-            }
-        });
-
-        // Ensure userId is string for frontend comparison
-        io.emit('user:offline', { userId: userId.toString(), lastSeen: new Date() });
-    }
-};
-
 // Export helpers
 export const emitBalanceUpdate = (io, userId, newBalance) => {
     const uid = (userId?._id || userId || '').toString();
@@ -278,26 +233,23 @@ export const emitNewMessage = (io, chatId, message) => {
         type: message.messageType || message.type || (message.attachments?.length ? 'image' : 'text')
     };
     const cId = (chatId || '').toString();
-    if (cId) {
-        io.to(`chat:${cId}`).emit('message:new', { chatId: cId, message: normalizedMessage });
-    }
     const receiverId = (message.receiverId?._id || message.receiverId || '').toString();
-    if (receiverId) {
-        io.to(receiverId).emit('message:notification', { chatId: cId, message: normalizedMessage });
-        io.to(receiverId).emit('message:new', { chatId: cId, message: normalizedMessage });
-    }
     const senderId = (message.senderId?._id || message.senderId || '').toString();
-    if (senderId) {
-        io.to(senderId).emit('message:new', { chatId: cId, message: normalizedMessage });
-    }
+
+    // A socket can be in both its user room and the open chat room. Chaining
+    // rooms makes Socket.IO perform a union, so each socket receives exactly
+    // one message:new event instead of two or three duplicates.
+    let recipients = io;
+    if (cId) recipients = recipients.to(`chat:${cId}`);
+    if (receiverId) recipients = recipients.to(receiverId);
+    if (senderId) recipients = recipients.to(senderId);
+    recipients.emit('message:new', { chatId: cId, message: normalizedMessage });
 };
 
 export const isUserOnline = (userId) => {
     if (!userId) return false;
     const uid = (userId?._id || userId).toString();
-    const hasSocket = activeUsers.has(uid);
-    const lastBeat = lastHeartbeat.get(uid);
-    return hasSocket && (!lastBeat || (Date.now() - lastBeat) < HEARTBEAT_TIMEOUT);
+    return (activeUsers.get(uid)?.size || 0) > 0;
 };
 
 export const emitNotification = (io, userId, notification) => {
@@ -308,13 +260,6 @@ export const emitNotification = (io, userId, notification) => {
 export const emitTaskCompleted = (io, userId, task) => {
     const uid = (userId?._id || userId || '').toString();
     if (uid) io.to(uid).emit('task:completed', task);
-    if (uid && io) {
-        io.to(uid).emit('task:completed', task);
-        const socketId = activeUsers.get(uid);
-        if (socketId) {
-            io.to(socketId).emit('task:completed', task);
-        }
-    }
 };
 
 // Support tickets: notify anyone with the ticket open (support:<id> room),
@@ -325,8 +270,7 @@ export const emitSupportMessage = (io, ticket, message) => {
     io.to(`support:${ticketId}`).emit('support:message:new', { ticketId, message });
 
     const ownerId = ticket.userId.toString();
-    const ownerSocketId = activeUsers.get(ownerId);
-    if (ownerSocketId) io.to(ownerSocketId).emit('support:message:notification', { ticketId, message });
+    if (isUserOnline(ownerId)) io.to(ownerId).emit('support:message:notification', { ticketId, message });
 
     io.to(ADMIN_ROOM).emit('support:ticket:activity', { ticket, message });
 };
@@ -336,8 +280,7 @@ export const emitSupportTicketUpdate = (io, ticket) => {
     io.to(`support:${ticketId}`).emit('support:ticket:updated', { ticket });
 
     const ownerId = ticket.userId.toString();
-    const ownerSocketId = activeUsers.get(ownerId);
-    if (ownerSocketId) io.to(ownerSocketId).emit('support:ticket:updated', { ticket });
+    if (isUserOnline(ownerId)) io.to(ownerId).emit('support:ticket:updated', { ticket });
 
     io.to(ADMIN_ROOM).emit('support:ticket:updated', { ticket });
 };

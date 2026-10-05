@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import socketService from '../services/socket.service';
 import { CHAT_KEYS } from '../queries/useChatQuery';
 import { DISCOVERY_KEYS } from '../queries/useDiscoveryQuery';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * SocketQuerySync - Global component to sync real-time socket events with TanStack Query cache.
@@ -11,8 +12,16 @@ import { DISCOVERY_KEYS } from '../queries/useDiscoveryQuery';
  */
 export const SocketQuerySync = () => {
     const queryClient = useQueryClient();
+    const { user } = useAuth();
 
     useEffect(() => {
+        const handleConnect = () => {
+            // Catch up after sleep, a network switch, or a temporary server
+            // outage. Socket events are not durable, so REST is the authority
+            // for anything sent while this client was disconnected.
+            queryClient.invalidateQueries({ queryKey: CHAT_KEYS.lists() });
+        };
+
         // Handle user going online
         const handleUserOnline = (data: { userId: string }) => {
             const userId = String(data?.userId || '');
@@ -149,8 +158,9 @@ export const SocketQuerySync = () => {
             const senderId = typeof data.message.senderId === 'object'
                 ? data.message.senderId._id || data.message.senderId.id
                 : data.message.senderId;
+            const isMine = String(senderId || '') === String(user?.id || '');
 
-            if (senderId) {
+            if (senderId && !isMine) {
                 handleUserOnline({ userId: String(senderId) });
             }
 
@@ -165,8 +175,10 @@ export const SocketQuerySync = () => {
                                 ...chat,
                                 lastMessage: data.message,
                                 lastMessageAt: data.message.createdAt || new Date().toISOString(),
-                                hasUnread: true,
-                                unreadCount: (chat.unreadCount || 0) + 1,
+                                hasUnread: isMine ? chat.hasUnread : true,
+                                unreadCount: isMine
+                                    ? chat.unreadCount || 0
+                                    : (chat.unreadCount || 0) + 1,
                             };
                         }
                         return chat;
@@ -177,21 +189,21 @@ export const SocketQuerySync = () => {
         };
 
         // Subscribe to socket events
+        socketService.on('connect', handleConnect);
         socketService.on('user:online', handleUserOnline);
         socketService.on('user:offline', handleUserOffline);
         socketService.on('user:status:response', handleUserStatusResponse);
         socketService.on('message:new', handleNewMessage);
-        socketService.on('message:notification', handleNewMessage);
 
         return () => {
             // Unsubscribe on unmount
+            socketService.off('connect', handleConnect);
             socketService.off('user:online', handleUserOnline);
             socketService.off('user:offline', handleUserOffline);
             socketService.off('user:status:response', handleUserStatusResponse);
             socketService.off('message:new', handleNewMessage);
-            socketService.off('message:notification', handleNewMessage);
         };
-    }, [queryClient]);
+    }, [queryClient, user?.id]);
 
     return null; // This component doesn't render anything
 };
