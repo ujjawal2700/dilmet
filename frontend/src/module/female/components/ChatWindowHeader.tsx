@@ -75,9 +75,9 @@ export const ChatWindowHeader = ({
 
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 bg-coin-gradient py-1.5 px-3 rounded-full shadow-cta">
-          <MaterialSymbol name="payments" size={16} filled className="text-[#7a4400]" />
+          <MaterialSymbol name="monetization_on" size={16} filled className="text-[#7a4400]" />
           <span className="text-[11px] font-black text-[#7a4400] tracking-tighter">
-            ₹{(coinBalance || 0).toLocaleString()}
+            {(coinBalance || 0).toLocaleString()}
           </span>
         </div>
 

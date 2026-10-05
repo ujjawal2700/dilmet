@@ -52,14 +52,26 @@ export const EarningsCard = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="skeuo-inset bg-gray-50/30 dark:bg-black/20 rounded-2xl p-4 flex flex-col gap-1 border border-white/10">
             <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">{t('available')}</span>
-            <span className="text-lg font-black text-emerald-500 dark:text-emerald-400 tracking-tight leading-none group-hover:scale-105 transition-transform origin-left">
-              {formattedAvailable}
+            <div className="flex items-baseline gap-1 group-hover:scale-105 transition-transform origin-left">
+              <span className="text-lg font-black text-emerald-500 dark:text-emerald-400 tracking-tight leading-none">
+                {formattedAvailable}
+              </span>
+              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{t('coins')}</span>
+            </div>
+            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+              ≈ ₹{(availableBalance * 0.1).toFixed(2)}
             </span>
           </div>
           <div className="skeuo-inset bg-gray-50/30 dark:bg-black/20 rounded-2xl p-4 flex flex-col gap-1 border border-white/10">
             <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">{t('pending')}</span>
-            <span className="text-lg font-black text-amber-500 dark:text-amber-400 tracking-tight leading-none group-hover:scale-105 transition-transform origin-left">
-              {formattedPending}
+            <div className="flex items-baseline gap-1 group-hover:scale-105 transition-transform origin-left">
+              <span className="text-lg font-black text-amber-500 dark:text-amber-400 tracking-tight leading-none">
+                {formattedPending}
+              </span>
+              <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{t('coins')}</span>
+            </div>
+            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+              ≈ ₹{(pendingWithdrawals * 0.1).toFixed(2)}
             </span>
           </div>
         </div>

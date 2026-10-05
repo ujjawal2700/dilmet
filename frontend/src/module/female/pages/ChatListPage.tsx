@@ -248,10 +248,10 @@ export const ChatListPage = () => {
                 onClick={() => navigate("/female/earnings")}
                 className="h-10 px-3.5 rounded-2xl flex items-center gap-1.5 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100 text-pink-600 active:scale-95 transition-all">
                 <MaterialSymbol
-                  name="payments"
+                  name="monetization_on"
                   size={16}
                   filled
-                  className="text-pink-500"
+                  className="text-amber-500"
                 />
                 <span className="text-[11px] font-black">
                   {availableBalance.toLocaleString()}

@@ -85,7 +85,15 @@ export const getAllTransactions = async (params?: any) => {
 };
 
 export const requestWithdrawal = async (data: any) => {
-    const response = await apiClient.post('/wallet/withdrawals', data);
+    const payload = {
+        coinsRequested: data.coinsRequested ?? data.amount,
+        payoutMethod: data.payoutMethod ?? data.method,
+        payoutDetails: data.payoutDetails ?? data.details,
+        amount: data.coinsRequested ?? data.amount,
+        method: data.payoutMethod ?? data.method,
+        details: data.payoutDetails ?? data.details,
+    };
+    const response = await apiClient.post('/wallet/withdrawals', payload);
     return response.data.data.withdrawal;
 };
 

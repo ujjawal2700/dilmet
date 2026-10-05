@@ -302,9 +302,22 @@ export const getEarningsSummary = async (req, res, next) => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // 1-7. Execute all queries in PARALLEL
+        const EARNING_TYPES = [
+            'message_earned',
+            'image_earned',
+            'video_call_earned',
+            'voice_call_earned',
+            'gift_received',
+            'bonus',
+            'referral_bonus',
+            'task_reward',
+            'adjustment'
+        ];
+
         const [
             totalEarningsData,
             withdrawalsData,
+            pendingWithdrawalsData,
             earningsByTypeData,
             user,
             monthlyEarningsData,
@@ -313,34 +326,39 @@ export const getEarningsSummary = async (req, res, next) => {
         ] = await Promise.all([
             // 1. Total Earnings
             Transaction.aggregate([
-                { $match: { userId: currentUserId, direction: 'credit', type: { $in: ['message_earned', 'video_call_earned', 'gift_received'] }, status: 'completed' } },
+                { $match: { userId: currentUserId, direction: 'credit', type: { $in: EARNING_TYPES }, status: 'completed' } },
                 { $group: { _id: null, total: { $sum: '$amountCoins' } } }
             ]),
-            // 2. Withdrawals
+            // 2. Completed / Approved Withdrawals
             Withdrawal.aggregate([
-                { $match: { userId: currentUserId, status: { $in: ['pending', 'approved', 'paid'] } } },
+                { $match: { userId: currentUserId, status: { $in: ['approved', 'paid'] } } },
+                { $group: { _id: null, total: { $sum: '$coinsRequested' } } }
+            ]),
+            // 2b. Pending Withdrawals
+            Withdrawal.aggregate([
+                { $match: { userId: currentUserId, status: 'pending' } },
                 { $group: { _id: null, total: { $sum: '$coinsRequested' } } }
             ]),
             // 3. Earnings by Type
             Transaction.aggregate([
-                { $match: { userId: currentUserId, direction: 'credit', type: { $in: ['message_earned', 'video_call_earned', 'gift_received'] }, status: 'completed' } },
+                { $match: { userId: currentUserId, direction: 'credit', type: { $in: EARNING_TYPES }, status: 'completed' } },
                 { $group: { _id: '$type', amount: { $sum: '$amountCoins' } } }
             ]),
             // 4. User Balance
             User.findById(userId).select('coinBalance').lean(),
             // 5. Monthly Earnings
             Transaction.aggregate([
-                { $match: { userId: currentUserId, direction: 'credit', type: { $in: ['message_earned', 'video_call_earned', 'gift_received'] }, status: 'completed', createdAt: { $gte: startOfMonth } } },
+                { $match: { userId: currentUserId, direction: 'credit', type: { $in: EARNING_TYPES }, status: 'completed', createdAt: { $gte: startOfMonth } } },
                 { $group: { _id: null, total: { $sum: '$amountCoins' } } }
             ]),
             // 6. Weekly Earnings
             Transaction.aggregate([
-                { $match: { userId: currentUserId, direction: 'credit', type: { $in: ['message_earned', 'video_call_earned', 'gift_received'] }, status: 'completed', createdAt: { $gte: startOfWeek } } },
+                { $match: { userId: currentUserId, direction: 'credit', type: { $in: EARNING_TYPES }, status: 'completed', createdAt: { $gte: startOfWeek } } },
                 { $group: { _id: null, total: { $sum: '$amountCoins' } } }
             ]),
             // 7. Daily Earnings
             Transaction.aggregate([
-                { $match: { userId: currentUserId, direction: 'credit', type: { $in: ['message_earned', 'video_call_earned', 'gift_received'] }, status: 'completed', createdAt: { $gte: startOfDay } } },
+                { $match: { userId: currentUserId, direction: 'credit', type: { $in: EARNING_TYPES }, status: 'completed', createdAt: { $gte: startOfDay } } },
                 { $group: { _id: null, total: { $sum: '$amountCoins' } } }
             ])
         ]);
@@ -348,12 +366,18 @@ export const getEarningsSummary = async (req, res, next) => {
         // Process results
         const totalEarnings = totalEarningsData.length > 0 ? totalEarningsData[0].total : 0;
         const totalWithdrawals = withdrawalsData.length > 0 ? withdrawalsData[0].total : 0;
-        const availableBalance = Math.max(0, totalEarnings - totalWithdrawals);
+        const pendingWithdrawals = pendingWithdrawalsData.length > 0 ? pendingWithdrawalsData[0].total : 0;
+        const availableBalance = Math.max(0, totalEarnings - (totalWithdrawals + pendingWithdrawals));
 
         const earningsByType = {
             message_earned: 0,
+            image_earned: 0,
             video_call_earned: 0,
-            gift_received: 0
+            voice_call_earned: 0,
+            gift_received: 0,
+            bonus: 0,
+            referral_bonus: 0,
+            task_reward: 0
         };
         earningsByTypeData.forEach(item => {
             earningsByType[item._id] = item.amount;
@@ -368,6 +392,7 @@ export const getEarningsSummary = async (req, res, next) => {
             data: {
                 totalEarnings,
                 availableBalance,
+                pendingWithdrawals,
                 earningsByType,
                 periodStats: {
                     daily: dailyEarnings,
@@ -476,19 +501,26 @@ export const getMyReferrals = async (req, res, next) => {
 export const requestWithdrawal = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const { coinsRequested, payoutMethod, payoutDetails } = req.body;
+        const coinsRequested = Number(req.body.coinsRequested ?? req.body.amount);
+        const payoutMethod = req.body.payoutMethod ?? req.body.method;
+        const payoutDetails = req.body.payoutDetails ?? req.body.details;
+
+        if (!coinsRequested || isNaN(coinsRequested) || coinsRequested <= 0) {
+            throw new BadRequestError('Coins requested is required and must be greater than 0');
+        }
+
+        if (!payoutMethod) {
+            throw new BadRequestError('Payout method is required');
+        }
 
         // Validate withdrawal
         await dataValidation.validateWithdrawal(userId, coinsRequested);
 
-        // Find applicable payout slab
+        // Find applicable payout slab (or fallback to default 10%)
         const slab = await PayoutSlab.findApplicableSlab(coinsRequested);
-        if (!slab) {
-            throw new BadRequestError('No applicable payout slab found');
-        }
+        const payoutPercentage = slab ? slab.payoutPercentage : 10;
 
         // Calculate payout
-        const payoutPercentage = slab.payoutPercentage;
         const payoutAmountINR = (coinsRequested * payoutPercentage) / 100;
         const processingFee = 0; // Can be configured
         const netPayoutAmount = payoutAmountINR - processingFee;

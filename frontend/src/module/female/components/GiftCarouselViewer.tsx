@@ -57,6 +57,8 @@ export const GiftCarouselViewer = ({
 
   const currentGift = gifts[currentIndex];
   const theme = getGiftTheme(currentGift);
+  const giftUnitCoins = Number(currentGift.tradeValue ?? currentGift.cost ?? (currentGift as any).giftCost ?? 0);
+  const totalGiftCoins = giftUnitCoins * (currentGift.quantity || 1);
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? gifts.length - 1 : prev - 1));
@@ -162,11 +164,14 @@ export const GiftCarouselViewer = ({
                {/* Trade Value & Quantity */}
                <div className="flex items-center justify-between bg-slate-50 px-5 py-4 rounded-3xl border border-slate-100">
                   <div className="space-y-0.5">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Trade Value</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Gift Value</p>
                      <div className="flex items-center gap-1.5">
                        <MaterialSymbol name="monetization_on" size={18} className="text-amber-500" />
                        <span className="text-lg font-black text-slate-800 tracking-tight">
-                         ₹{currentGift.tradeValue * (currentGift.quantity || 1)}
+                         {totalGiftCoins.toLocaleString()} Coins
+                       </span>
+                       <span className="text-xs font-semibold text-slate-400">
+                         (≈ ₹{(totalGiftCoins * 0.1).toFixed(2)})
                        </span>
                      </div>
                   </div>

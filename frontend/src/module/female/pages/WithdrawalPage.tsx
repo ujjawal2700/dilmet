@@ -78,6 +78,9 @@ export const WithdrawalPage = () => {
       setIsSubmitting(true);
       const details = method === 'UPI' ? { upiId } : bankDetails;
       await walletService.requestWithdrawal({
+        coinsRequested: withdrawalAmount,
+        payoutMethod: method,
+        payoutDetails: details,
         amount: withdrawalAmount,
         method,
         details
@@ -188,6 +191,11 @@ export const WithdrawalPage = () => {
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase tracking-widest text-muted-light">coins</span>
               </div>
+              {amount && !isNaN(parseInt(amount)) && parseInt(amount) > 0 && (
+                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 px-4">
+                  Estimated payout: ≈ ₹{(parseInt(amount) * 0.1).toFixed(2)}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -312,7 +320,7 @@ export const WithdrawalPage = () => {
                   <div key={withdrawal._id} className="flex items-center justify-between p-6 group transition-colors hover:bg-white/10">
                      <div className="flex items-center gap-4">
                         <div className={`bg-[#f6ece7] size-12 rounded-2xl flex items-center justify-center border ${getStatusColor(withdrawal.status)}`}>
-                           <MaterialSymbol name={withdrawal.method === 'UPI' ? 'send' : 'account_balance'} size={24} filled />
+                           <MaterialSymbol name={(withdrawal.payoutMethod || withdrawal.method) === 'UPI' ? 'send' : 'account_balance'} size={24} filled />
                         </div>
                         <div className="space-y-1">
                            <div className="flex items-center gap-2">

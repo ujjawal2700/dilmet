@@ -58,75 +58,75 @@ class SocketService {
             this.socket = null;
         }
 
-        this.socket = io(getSocketUrl(), {
-            auth: { token },
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionDelay: 2000,
-            reconnectionDelayMax: 10000,
-            reconnectionAttempts: Infinity,
-        });
+            this.socket = io(getSocketUrl(), {
+                auth: { token },
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 10000,
+                reconnectionAttempts: Infinity,
+            });
 
-        this.socket.on('connect', () => {
-            console.log('✅ Socket connected:', this.socket?.id);
-            // Start heartbeat on connect
-            this.startHeartbeat();
+            this.socket.on('connect', () => {
+                console.log('✅ Socket connected:', this.socket?.id);
+                // Start heartbeat on connect
+                this.startHeartbeat();
 
-            // Rejoin current chat if we were in one
-            if (this.currentChatId) {
-                console.log('🔄 Rejoining chat room:', this.currentChatId);
-                this.joinChat(this.currentChatId);
-            }
-            this.emit('connect', { id: this.socket?.id });
-        });
+                // Rejoin current chat if we were in one
+                if (this.currentChatId) {
+                    console.log('🔄 Rejoining chat room:', this.currentChatId);
+                    this.joinChat(this.currentChatId);
+                }
+                this.emit('connect', { id: this.socket?.id });
+            });
 
-        this.socket.on('disconnect', (reason) => {
-            console.log('Socket disconnected:', reason);
-            // Stop heartbeat on disconnect
-            this.stopHeartbeat();
-            this.emit('disconnect', reason);
-        });
+            this.socket.on('disconnect', (reason) => {
+                console.log('Socket disconnected:', reason);
+                // Stop heartbeat on disconnect
+                this.stopHeartbeat();
+                this.emit('disconnect', reason);
+            });
 
-        this.socket.on('reconnect', () => {
-            console.log('Socket reconnected');
-            // Restart heartbeat on reconnect
-            this.startHeartbeat();
-            this.emit('connect', { id: this.socket?.id });
-        });
+            this.socket.on('reconnect', () => {
+                console.log('Socket reconnected');
+                // Restart heartbeat on reconnect
+                this.startHeartbeat();
+                this.emit('connect', { id: this.socket?.id });
+            });
 
-        this.socket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
-        });
+            this.socket.on('connect_error', (error) => {
+                console.error('Socket connection error:', error);
+            });
 
-        // Setup event listeners
-        this.setupDefaultListeners();
-    }
+            // Setup event listeners
+            this.setupDefaultListeners();
+        }
 
     /**
      * Start heartbeat - sends ping every 30s
      */
     private startHeartbeat() {
-        // Clear any existing interval first
-        this.stopHeartbeat();
+            // Clear any existing interval first
+            this.stopHeartbeat();
 
-        // Send initial heartbeat immediately
-        this.socket?.emit('heartbeat');
+            // Send initial heartbeat immediately
+            this.socket?.emit('heartbeat');
 
-        // Then send every 30 seconds
-        this.heartbeatInterval = setInterval(() => {
-            if (this.socket?.connected) {
-                this.socket.emit('heartbeat');
-            }
-        }, HEARTBEAT_INTERVAL);
+            // Then send every 30 seconds
+            this.heartbeatInterval = setInterval(() => {
+                if (this.socket?.connected) {
+                    this.socket.emit('heartbeat');
+                }
+            }, HEARTBEAT_INTERVAL);
 
-        console.log('💓 Heartbeat started');
-    }
+            console.log('💓 Heartbeat started');
+        }
 
     /**
      * Stop heartbeat
      */
     private stopHeartbeat() {
-        if (this.heartbeatInterval) {
+            if(this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
             console.log('💔 Heartbeat stopped');

@@ -30,7 +30,7 @@ export const getDashboardData = async (req, res, next) => {
             chats
         ] = await Promise.all([
             Transaction.aggregate([{ $match: { userId: currentUserId, direction: 'credit', status: 'completed' } }, { $group: { _id: null, total: { $sum: '$amountCoins' } } }]),
-            Withdrawal.aggregate([{ $match: { userId: currentUserId, status: 'completed' } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }]),
+            Withdrawal.aggregate([{ $match: { userId: currentUserId, status: { $in: ['approved', 'paid'] } } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }]),
             Withdrawal.aggregate([{ $match: { userId: currentUserId, status: 'pending' } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }]),
             Message.countDocuments({ receiverId: currentUserId }),
             Chat.countDocuments({
@@ -75,7 +75,7 @@ export const getEarnings = async (req, res, next) => {
         const currentUserId = new mongoose.Types.ObjectId(req.user.id);
         const [earnings, withdrawals, pending] = await Promise.all([
             Transaction.aggregate([{ $match: { userId: currentUserId, direction: 'credit', status: 'completed' } }, { $group: { _id: null, total: { $sum: '$amountCoins' } } }]),
-            Withdrawal.aggregate([{ $match: { userId: currentUserId, status: 'completed' } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }]),
+            Withdrawal.aggregate([{ $match: { userId: currentUserId, status: { $in: ['approved', 'paid'] } } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }]),
             Withdrawal.aggregate([{ $match: { userId: currentUserId, status: 'pending' } }, { $group: { _id: null, total: { $sum: '$coinsRequested' } } }])
         ]);
 

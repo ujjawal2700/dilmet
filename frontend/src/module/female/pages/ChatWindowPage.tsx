@@ -59,7 +59,8 @@ export const ChatWindowPage = () => {
         setMessages(messagesData.messages);
 
         // Request real-time user status
-        const targetUserId = chatData?.userId || (chatData as any)?.otherUser?._id;
+        const targetUserId =
+          chatData?.userId || (chatData as any)?.otherUser?._id;
         if (targetUserId) {
           socketService.requestUserStatus(targetUserId);
         }
@@ -92,20 +93,25 @@ export const ChatWindowPage = () => {
 
     const addMessageDeduped = (prev: Message[], incoming: any): Message[] => {
       const id = incoming._id;
-      if (id && prev.some((m: any) => String(m._id) === String(id))) return prev;
+      if (id && prev.some((m: any) => String(m._id) === String(id)))
+        return prev;
       return [...prev, incoming];
     };
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       if (String(data.chatId) === String(chatId)) {
-        setMessages((prev) => addMessageDeduped(prev as any, data.message) as any);
+        setMessages(
+          (prev) => addMessageDeduped(prev as any, data.message) as any,
+        );
         scrollToBottom();
       }
     };
 
     const handleNotification = (data: { chatId: string; message: any }) => {
       if (String(data.chatId) === String(chatId)) {
-        setMessages((prev) => addMessageDeduped(prev as any, data.message) as any);
+        setMessages(
+          (prev) => addMessageDeduped(prev as any, data.message) as any,
+        );
         scrollToBottom();
       }
     };
@@ -142,7 +148,10 @@ export const ChatWindowPage = () => {
       });
     };
 
-    const handleUserStatusResponse = (data: { userId: string; isOnline: boolean }) => {
+    const handleUserStatusResponse = (data: {
+      userId: string;
+      isOnline: boolean;
+    }) => {
       setChatInfo((prev) => {
         if (!prev) return prev;
         const otherId = (prev as any).userId || (prev as any).otherUser?._id;
@@ -376,7 +385,7 @@ export const ChatWindowPage = () => {
                 return (
                   <GiftMessageBubble
                     key={msg._id || index}
-                    gifts={msg.metadata?.gifts || []}
+                    gifts={msg.metadata?.gifts || (msg as any).gifts || []}
                     note={msg.content}
                     timestamp={new Date(msg.createdAt)}
                     senderName={isMine ? t("you") || "You" : chatInfo.userName}
@@ -395,7 +404,10 @@ export const ChatWindowPage = () => {
                   message={
                     {
                       ...msg,
-                      type: msg.messageType || msg.type || (msg.attachments?.length ? 'image' : 'text'),
+                      type:
+                        msg.messageType ||
+                        msg.type ||
+                        (msg.attachments?.length ? "image" : "text"),
                       isSent: isMine,
                       senderAvatar: isMine
                         ? user?.avatarUrl

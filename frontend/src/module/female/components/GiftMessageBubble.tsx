@@ -14,6 +14,11 @@ interface GiftMessageBubbleProps {
   senderAvatar?: string;
 }
 
+const getGiftCoins = (g: any): number => {
+  if (!g) return 0;
+  return Number(g.tradeValue ?? g.cost ?? g.giftCost ?? g.amountCoins ?? 0);
+};
+
 export const GiftMessageBubble = ({
   gifts,
   note,
@@ -32,10 +37,15 @@ export const GiftMessageBubble = ({
       id: 'default',
       name: 'Special Gift',
       icon: 'featured_seasonal_and_gifts',
+      cost: 0,
       tradeValue: 0,
       imageUrl: ''
     };
+    const giftName = gift.name || (gift as any).giftName || 'Special Gift';
+    const giftImg = gift.imageUrl || (gift as any).giftImage || '';
     const theme = getGiftTheme(gift);
+    const unitCoins = getGiftCoins(gift);
+    const totalCoins = unitCoins * (gift.quantity || 1);
 
     return (
       <div className={`flex items-end gap-2.5 ${isSent ? 'flex-row-reverse' : 'flex-row'} mb-4 px-4 transition-all duration-300`}>
@@ -56,21 +66,22 @@ export const GiftMessageBubble = ({
             {/* Gift Item Content */}
             <div className="flex items-center gap-4 mb-3">
               <div className={`p-3.5 bg-gradient-to-br ${theme.primary} rounded-[1.25rem] shadow-lg shadow-pink-500/10`}>
-                {gift.imageUrl ? (
-                  <img src={gift.imageUrl} alt={gift.name} className="w-10 h-10 object-contain drop-shadow-sm" />
+                {giftImg ? (
+                  <img src={giftImg} alt={giftName} className="w-10 h-10 object-contain drop-shadow-sm" />
                 ) : (
                   <MaterialSymbol name={gift.icon as any} size={32} className="text-white" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-black text-base tracking-tight truncate">{gift.name}</h4>
+                <h4 className="font-black text-base tracking-tight truncate">{giftName}</h4>
                 {senderName && <p className="text-[9px] font-black uppercase tracking-widest text-pink-500/60 mt-1">From {senderName}</p>}
               </div>
             </div>
             
-            <div className="mt-2 pt-2 border-t border-slate-50 flex items-center gap-2">
+            <div className="mt-2 pt-2 border-t border-slate-50 flex items-center gap-1.5">
               <MaterialSymbol name="monetization_on" size={16} className="text-amber-500" />
-              <span className="text-[11px] font-black text-slate-700">₹{gift.tradeValue * (gift.quantity || 1)}</span>
+              <span className="text-[11px] font-black text-slate-700">{totalCoins.toLocaleString()} Coins</span>
+              <span className="text-[10px] font-semibold text-slate-400">(≈ ₹{(totalCoins * 0.1).toFixed(2)})</span>
             </div>
 
             {note && <div className="mt-3 pt-3 border-t border-slate-50 italic text-xs text-slate-500">"{note}"</div>}
@@ -122,13 +133,19 @@ export const GiftMessageBubble = ({
              <div className="text-center text-[10px] font-bold text-slate-400">Gifts from {senderName}</div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Value:</span>
-            <div className="flex items-center gap-1.5">
-              <MaterialSymbol name="monetization_on" size={16} className="text-amber-500" />
-              <span className="text-sm font-black text-slate-800">₹{gifts.reduce((sum, g) => sum + (g.tradeValue * (g.quantity || 1)), 0)}</span>
-            </div>
-          </div>
+          {(() => {
+            const multiTotalCoins = gifts.reduce((sum, g) => sum + (getGiftCoins(g) * (g.quantity || 1)), 0);
+            return (
+              <div className="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Value:</span>
+                <div className="flex items-center gap-1.5">
+                  <MaterialSymbol name="monetization_on" size={16} className="text-amber-500" />
+                  <span className="text-sm font-black text-slate-800">{multiTotalCoins.toLocaleString()} Coins</span>
+                  <span className="text-[11px] font-semibold text-slate-400">(≈ ₹{(multiTotalCoins * 0.1).toFixed(2)})</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
         <div className={`px-1 mt-1.5 ${isSent ? 'pr-1' : 'pl-1'}`}>
            <span className="text-[9.5px] font-black uppercase tracking-[0.15em] text-slate-400/70">{time}</span>

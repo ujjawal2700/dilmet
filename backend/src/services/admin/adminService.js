@@ -92,7 +92,7 @@ export const getDashboardStats = async () => {
         { type: 'Image Messages', count: await Transaction.countDocuments({ type: 'image_spent', status: 'completed' }) },
         { type: 'Video Calls', count: await Transaction.countDocuments({ type: 'video_call_spent', status: 'completed' }) },
         { type: 'Gifts', count: await Transaction.countDocuments({ type: 'gift_sent', status: 'completed' }) },
-        { type: 'Withdrawals', count: await Withdrawal.countDocuments({ status: 'completed' }) }
+        { type: 'Withdrawals', count: await Withdrawal.countDocuments({ status: { $in: ['approved', 'paid'] } }) }
     ];
 
     // 4. Recent Activity
@@ -142,12 +142,12 @@ export const getDashboardStats = async () => {
     // Payouts from withdrawals
     const payoutData = await Withdrawal.aggregate([
         {
-            $match: { status: 'completed' }
+            $match: { status: { $in: ['approved', 'paid'] } }
         },
         {
             $group: {
                 _id: null,
-                totalPayouts: { $sum: '$amount' }
+                totalPayouts: { $sum: '$netPayoutAmount' }
             }
         }
     ]);

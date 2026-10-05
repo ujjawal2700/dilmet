@@ -66,12 +66,18 @@ export const EarningsPage = () => {
     switch (type) {
       case "message_earned":
         return "mail";
+      case "image_earned":
+        return "photo_camera";
       case "video_call_earned":
         return "videocam";
       case "voice_call_earned":
         return "call";
       case "gift_received":
         return "redeem";
+      case "bonus":
+      case "referral_bonus":
+      case "task_reward":
+        return "card_giftcard";
       default:
         return "monetization_on";
     }
@@ -82,12 +88,18 @@ export const EarningsPage = () => {
     switch (type) {
       case "message_earned":
         return "text-blue-500";
+      case "image_earned":
+        return "text-emerald-500";
       case "video_call_earned":
         return "text-purple-500";
       case "voice_call_earned":
         return "text-indigo-500";
       case "gift_received":
         return "text-pink-500";
+      case "bonus":
+      case "referral_bonus":
+      case "task_reward":
+        return "text-amber-500";
       default:
         return "text-amber-500";
     }
@@ -97,13 +109,21 @@ export const EarningsPage = () => {
   const formatType = (type: string) => {
     switch (type) {
       case "message_earned":
-        return t("typeMessage");
+        return t("typeMessage") || "Messages";
+      case "image_earned":
+        return "Photos";
       case "video_call_earned":
-        return t("typeVideoCall");
+        return t("typeVideoCall") || "Video Calls";
       case "voice_call_earned":
-        return t("typeVoiceCall");
+        return t("typeVoiceCall") || "Voice Calls";
       case "gift_received":
-        return t("typeGift");
+        return t("typeGift") || "Gifts";
+      case "bonus":
+        return "Bonus";
+      case "referral_bonus":
+        return "Referral";
+      case "task_reward":
+        return "Tasks";
       default:
         return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     }
@@ -188,9 +208,17 @@ export const EarningsPage = () => {
                   <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     {t("availableToWithdraw")}
                   </span>
-                  <span className="text-lg font-black text-emerald-500 dark:text-emerald-400 tracking-tight leading-none">
-                    ₹{balance.toLocaleString()}
-                  </span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-lg font-black text-emerald-500 dark:text-emerald-400 tracking-tight leading-none">
+                      {balance.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                      {t("coins")}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">
+                      (≈ ₹{(balance * 0.1).toFixed(2)})
+                    </span>
+                  </div>
                 </div>
 
                 <button
