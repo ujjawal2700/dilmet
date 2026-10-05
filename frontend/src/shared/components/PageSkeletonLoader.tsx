@@ -49,16 +49,6 @@ export const PageSkeletonLoader: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* 5. Persistent Glassy Bottom Nav Skeleton Placeholder */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 w-full h-[66px] bg-white/80 dark:bg-slate-900/85 backdrop-blur-2xl border-t border-white/80 dark:border-white/10 z-50 flex items-center justify-around px-2">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <div key={n} className="flex flex-col items-center gap-1">
-            <div className="size-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
-            <div className="h-2 w-8 rounded bg-slate-200 dark:bg-slate-800" />
-          </div>
-        ))}
-      </div>
     </div>
   );
 };

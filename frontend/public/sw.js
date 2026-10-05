@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `dil_mate-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dil_mate-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `dil_mate-api-${CACHE_VERSION}`;

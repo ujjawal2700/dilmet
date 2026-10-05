@@ -39,6 +39,19 @@ if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register(getServiceWorkerUrl())
         .then(registration => {
           console.log('SW registered: ', registration);
+          if (registration.waiting) {
+            registration.waiting.postMessage('skipWaiting');
+          }
+          registration.onupdatefound = () => {
+            const installing = registration.installing;
+            if (installing) {
+              installing.onstatechange = () => {
+                if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                  installing.postMessage('skipWaiting');
+                }
+              };
+            }
+          };
         })
         .catch(registrationError => {
           console.log('SW registration failed: ', registrationError);
