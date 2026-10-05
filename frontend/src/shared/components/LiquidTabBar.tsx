@@ -25,6 +25,8 @@ export type LiquidTab = {
   end?: boolean;
   locked?: boolean;
   badge?: boolean | number | string;
+  matchPaths?: string[];
+  matches?: (pathname: string) => boolean;
 };
 
 // Physics constants
@@ -53,7 +55,7 @@ function tabFace(tab: LiquidTab, highlighted: boolean, inLens = false) {
     <span
       className={cn(
         "liquid-face relative flex w-full flex-col items-center gap-1 py-2",
-        highlighted ? "text-primary" : "text-muted"
+        highlighted ? "text-[var(--color-primary,#ec4899)] font-bold" : "text-[var(--color-muted,#64748B)]"
       )}
     >
       {face}
@@ -66,8 +68,15 @@ function activeIndexFor(tabs: LiquidTab[], pathname: string): number {
   let best = -1;
   let bestLen = -1;
   tabs.forEach((t, i) => {
-    const hit = t.end ? path === t.to : path === t.to || path.startsWith(`${t.to}/`);
-    if (hit && t.to.length > bestLen) {
+    let hit = false;
+    if (t.matches) {
+      hit = t.matches(path);
+    } else if (t.matchPaths) {
+      hit = t.matchPaths.some((p) => path === p || path.startsWith(`${p}/`));
+    } else {
+      hit = t.end ? path === t.to : path === t.to || path.startsWith(`${t.to}/`);
+    }
+    if (hit && (t.to.length > bestLen || t.matches || t.matchPaths)) {
       best = i;
       bestLen = t.to.length;
     }
@@ -81,12 +90,14 @@ export function LiquidTabBar({
   ariaLabel = "Navigation",
   onLockedPress,
   slideTransition = false,
+  className = "mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 lg:hidden",
 }: {
   tabs: LiquidTab[];
   testId?: string;
   ariaLabel?: string;
   onLockedPress?: (to: string) => void;
   slideTransition?: boolean;
+  className?: string;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -122,8 +133,8 @@ export function LiquidTabBar({
   const lensX = useTransform(x, (v) => -v);
   const lensY = useTransform(y, (v) => -v);
 
-  const lensLayer = (zoom: number, className: string) => (
-    <span className={cn("liquid-lens-zoom", className)} style={{ transform: `scale(${zoom})` }}>
+  const lensLayer = (zoom: number, layerClassName: string) => (
+    <span className={cn("liquid-lens-zoom", layerClassName)} style={{ transform: `scale(${zoom})` }}>
       <motion.span className="liquid-lens-row" style={{ width: shellBox.width, height: shellBox.height, x: lensX, y: lensY }}>
         {tabs.map((tab, i) => (
           <span
@@ -258,7 +269,7 @@ export function LiquidTabBar({
     <motion.nav
       data-testid={testId}
       aria-label={ariaLabel}
-      className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 md:hidden"
+      className={cn("mobile-bottom-nav fixed inset-x-0 bottom-0 z-30 lg:hidden", className)}
       initial={slideTransition && !enterInPlace ? { y: "110%" } : false}
       animate={{ y: 0 }}
       exit={slideTransition ? { y: "110%" } : undefined}
@@ -319,16 +330,16 @@ export function LiquidTabBar({
               {tabFace(tab, highlighted)}
             </motion.span>
           );
-          const className = cn(
-            "mobile-bottom-nav-item relative flex flex-1 items-stretch justify-stretch rounded-2xl text-[10px] font-medium",
-            highlighted ? "text-primary" : "text-muted",
+          const itemClassName = cn(
+            "mobile-bottom-nav-item relative flex flex-1 items-stretch justify-stretch rounded-2xl text-[10px] font-medium transition-colors",
+            highlighted ? "text-[var(--color-primary,#ec4899)] font-bold" : "text-[var(--color-muted,#64748B)]",
             i === activeIndex && "touch-none"
           );
           const shared = {
             ref: (el: HTMLElement | null) => {
               itemRefs.current[i] = el;
             },
-            className,
+            className: itemClassName,
             draggable: false,
             onPointerDown: (e: React.PointerEvent) => onPointerDown(e, i),
           };
