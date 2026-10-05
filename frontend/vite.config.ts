@@ -22,13 +22,35 @@ export default defineConfig({
           if (!id.includes('node_modules')) return;
 
           // Core React - rarely changes, cache separately
-          if (id.includes('/react@') ||
+          if (
+            id.includes('/react@') ||
             id.includes('/react-dom@') ||
             id.includes('/react-router-dom@') ||
             id.includes('/react/') ||
             id.includes('/react-dom/') ||
-            id.includes('/react-router')) {
+            id.includes('/react-router')
+          ) {
             return 'vendor-react';
+          }
+          // Animation library
+          if (id.includes('/motion/') || id.includes('/framer-motion/')) {
+            return 'vendor-motion';
+          }
+          // Lucide icons
+          if (id.includes('/lucide-react/')) {
+            return 'vendor-lucide';
+          }
+          // Firebase SDK
+          if (id.includes('/firebase/') || id.includes('/@firebase/')) {
+            return 'vendor-firebase';
+          }
+          // React Query
+          if (id.includes('/@tanstack/')) {
+            return 'vendor-query';
+          }
+          // State Machine
+          if (id.includes('/xstate') || id.includes('/@xstate/')) {
+            return 'vendor-xstate';
           }
           // Socket.IO - loaded for real-time features
           if (id.includes('/socket.io-client') || id.includes('/engine.io')) {
@@ -38,13 +60,11 @@ export default defineConfig({
           if (id.includes('/agora-rtc-sdk-ng')) {
             return 'vendor-agora';
           }
-          // REMOVED: i18n chunk causes initialization errors
-          // i18next depends on React, must be in main bundle
         },
       },
     },
-    // Increase chunk size warning limit
-    chunkSizeWarningLimit: 500,
+    // Increase chunk size warning limit for agora SDK (1.3MB)
+    chunkSizeWarningLimit: 1500,
     // Use esbuild for faster, smaller builds (default)
     minify: 'esbuild',
     // Target modern browsers for smaller bundle

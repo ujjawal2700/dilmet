@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import './shared/theme/navbar.css'
 import './index.css'
 import { getServiceWorkerUrl } from './core/services/fcm.service'
 import { installNativeBackDetection } from './shared/lib/nativeBack'
@@ -9,10 +10,17 @@ import { installNoLongPressMenus } from './shared/lib/noLongPressMenus'
 installNativeBackDetection();
 installNoLongPressMenus();
 
+const isLocalHost = (host: string) =>
+  ['localhost', '127.0.0.1', '::1'].includes(host) ||
+  host.startsWith('192.168.') ||
+  host.startsWith('10.') ||
+  host.startsWith('172.');
+
 if (
+  import.meta.env.PROD &&
   typeof window !== 'undefined' &&
   window.location.protocol === 'http:' &&
-  !['localhost', '127.0.0.1'].includes(window.location.hostname)
+  !isLocalHost(window.location.hostname)
 ) {
   window.location.replace(`https://${window.location.host}${window.location.pathname}${window.location.search}${window.location.hash}`);
 }

@@ -32,10 +32,11 @@ export type LiquidTab = {
 // Physics constants for under-damped liquid momentum overshoot
 const GLIDE = { type: "spring", stiffness: 360, damping: 24, mass: 0.85 } as const;
 const GLIDE_CALM = { type: "spring", stiffness: 500, damping: 45 } as const;
-const BLEED_X = 5;
+const BLEED_X = 2;
 const DRAG_SLOP_PX = 4;
 
 function activeIndexFor(tabs: LiquidTab[], pathname: string): number {
+  if (!pathname) return 0;
   const path = pathname.replace(/\/+$/, "") || "/";
   let best = -1;
   let bestLen = -1;
@@ -53,7 +54,7 @@ function activeIndexFor(tabs: LiquidTab[], pathname: string): number {
       bestLen = t.to.length;
     }
   });
-  return best;
+  return best >= 0 ? best : 0;
 }
 
 export function LiquidTabBar({
@@ -89,26 +90,32 @@ export function LiquidTabBar({
   const [dragging, setDragging] = useState(false);
   const [hoverIndex, setHoverIndex] = useState(activeIndex);
 
-  // Velocity-based physical liquid stretch & squash
+  // Velocity-based physical liquid stretch & squash with volume conservation
   const velocity = useVelocity(x);
   const smoothVelocity = useSpring(velocity, { stiffness: 420, damping: 20 });
-  const stretch = useTransform(smoothVelocity, [-2200, 0, 2200], reduceMotion ? [1, 1, 1] : [1.35, 1, 1.35]);
-  const squash = useTransform(stretch, (s) => 1 / Math.sqrt(s));
+  const stretch = useTransform(smoothVelocity, [-2200, 0, 2200], reduceMotion ? [1, 1, 1] : [1.38, 1, 1.38]);
+  const squash = useTransform(stretch, (s) => 1 / Math.sqrt(Math.max(0.1, s)));
   const lift = useSpring(1, { stiffness: 460, damping: 13 });
   const liftY = useSpring(0, { stiffness: 380, damping: 15 });
-  const hop = useTransform(smoothVelocity, (v) => (reduceMotion ? 0 : -Math.min(5, Math.abs(v) / 450)));
+  const hop = useTransform(smoothVelocity, (v) => (reduceMotion ? 0 : -Math.min(6, Math.abs(v) / 400)));
 
   const scaleX = useTransform(() => stretch.get() * lift.get());
   const scaleY = useTransform(() => squash.get() * lift.get());
   const y = useTransform(() => hop.get() + liftY.get());
 
-  const pillX = (slot: { left: number }) => slot.left - BLEED_X;
+  const pillX = (slot: { left: number }) => Math.max(0, slot.left - BLEED_X);
   const pillW = (slot: { width: number }) => slot.width + BLEED_X * 2;
 
   const measure = useCallback(() => {
+    if (typeof window === "undefined") return;
     const shell = shellRef.current;
     if (!shell) return;
-    setSlots(itemRefs.current.map((el) => (el ? { left: el.offsetLeft, width: el.offsetWidth } : { left: 0, width: 0 })));
+    const measuredSlots = itemRefs.current.map((el) =>
+      el ? { left: el.offsetLeft, width: el.offsetWidth } : { left: 0, width: 0 }
+    );
+    if (measuredSlots.length > 0 && measuredSlots.some((s) => s.width > 0)) {
+      setSlots(measuredSlots);
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -124,8 +131,9 @@ export function LiquidTabBar({
   const pendingIndex = useRef<number | null>(null);
 
   useEffect(() => {
+    if (activeIndex < 0) return;
     const slot = slots[activeIndex];
-    if (!slot || dragging) return;
+    if (!slot || slot.width === 0 || dragging) return;
     if (pendingIndex.current !== null && pendingIndex.current !== activeIndex) return;
     pendingIndex.current = null;
     setHoverIndex(activeIndex);
@@ -142,7 +150,7 @@ export function LiquidTabBar({
     animate(width, pillW(slot), reduceMotion ? GLIDE_CALM : GLIDE);
   }, [activeIndex, slots, dragging, reduceMotion, x, width]);
 
-  // Drag interaction
+  // Drag interaction with boundary rubber-banding & optical magnification
   const drag = useRef<{ id: number; startX: number; originLeft: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
 
@@ -163,7 +171,7 @@ export function LiquidTabBar({
     if (index !== activeIndex || !slots[index]) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     drag.current = { id: e.pointerId, startX: e.clientX, originLeft: x.get(), moved: false };
-    if (!reduceMotion) lift.set(0.93);
+    if (!reduceMotion) lift.set(0.92);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -177,16 +185,20 @@ export function LiquidTabBar({
       width.stop();
       setDragging(true);
       if (!reduceMotion) {
-        lift.set(1.15);
-        liftY.set(-4);
+        lift.set(1.18);
+        liftY.set(-6);
       }
-      shellRef.current?.setPointerCapture(e.pointerId);
+      try {
+        shellRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        // Fallback if pointer capture unsupported
+      }
     }
     const first = slots[0] ? pillX(slots[0]) : 0;
     const last = slots[slots.length - 1] ? pillX(slots[slots.length - 1]) : 0;
     let next = d.originLeft + dx;
-    if (next < first) next = first - Math.sqrt(first - next) * 3;
-    if (next > last) next = last + Math.sqrt(next - last) * 3;
+    if (next < first) next = first - Math.sqrt(Math.max(0, first - next)) * 3.5;
+    if (next > last) next = last + Math.sqrt(Math.max(0, next - last)) * 3.5;
     x.set(next);
     const i = nearestIndex(next);
     setHoverIndex(i);
@@ -199,6 +211,15 @@ export function LiquidTabBar({
     drag.current = null;
     lift.set(1);
     liftY.set(0);
+
+    try {
+      if (shellRef.current?.hasPointerCapture(e.pointerId)) {
+        shellRef.current?.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignored
+    }
+
     if (!d.moved) return;
     suppressClick.current = true;
     setDragging(false);
@@ -247,7 +268,7 @@ export function LiquidTabBar({
         onContextMenu={(e) => e.preventDefault()}
       >
         {/* Floating Liquid-Glass Sliding Capsule */}
-        {activeIndex >= 0 && (
+        {slots.length > 0 && slots[activeIndex]?.width > 0 && (
           <motion.span
             aria-hidden
             className={cn("mobile-bottom-nav-active liquid-pill absolute pointer-events-none", dragging && "is-dragging")}
@@ -262,47 +283,72 @@ export function LiquidTabBar({
               scaleY,
             }}
           >
-            <span className="liquid-glass-backdrop" />
-            <span className="liquid-rim" />
-            <span className="liquid-fringe-warm" />
-            <span className="liquid-fringe-cool" />
+            {dragging ? (
+              <>
+                {/* Dynamic Prismatic Chromatic Aberration Halo & Magnifier Lens when Dragging */}
+                <span className="liquid-prismatic-halo" />
+                <span className="liquid-drag-lens" />
+              </>
+            ) : (
+              /* Low-transparency frosted liquid glass pill when static */
+              <span className="liquid-pill-static" />
+            )}
           </motion.span>
         )}
 
-        {/* Crisp Single-Layer Tab Items (No duplicate rows) */}
+        {/* Tab Items with Optical Magnification & Light Bend Physics */}
         {tabs.map((tab, i) => {
-          const highlighted = i === (dragging ? hoverIndex : activeIndex);
+          const isTarget = i === (dragging ? hoverIndex : activeIndex);
+          const Icon = tab.icon;
+
+          // Calculate optical magnification and elevation bend based on distance to dragging pill
           const content = (
             <motion.span
-              className="relative z-10 flex w-full flex-col items-center justify-center gap-0.5 py-1"
+              className="relative z-10 flex w-full flex-col items-center justify-center gap-0.5 py-1.5"
               whileTap={dragging ? undefined : { scale: 0.92 }}
-              animate={{
-                scale: dragging && highlighted ? 1.08 : 1,
-                y: highlighted ? -1 : 0,
-              }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              animate={
+                dragging
+                  ? isTarget
+                    ? { scale: 1.28, y: -6, filter: "brightness(1.2)" }
+                    : { scale: 0.94, y: 0, opacity: 0.65 }
+                  : isTarget
+                    ? { scale: 1.05, y: -0.5, filter: "brightness(1.05)", opacity: 1 }
+                    : { scale: 1, y: 0, filter: "brightness(1)", opacity: 1 }
+              }
+              transition={{ type: "spring", stiffness: 450, damping: 26 }}
             >
               <span className="relative flex items-center justify-center">
-                <tab.icon
-                  className={cn(
-                    "size-5 transition-all duration-200",
-                    highlighted
-                      ? "text-pink-600 dark:text-pink-400 drop-shadow-[0_2px_8px_rgba(236,72,153,0.35)] scale-110"
-                      : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                  )}
-                  strokeWidth={highlighted ? 2.4 : 1.9}
-                />
-                {tab.locked && <Lock className="absolute -right-2 -top-1 size-2.5 text-slate-500" />}
+                {Icon && (
+                  <Icon
+                    className={cn(
+                      "size-5 transition-all duration-200",
+                      isTarget
+                        ? "text-pink-600 dark:text-pink-400 scale-110 drop-shadow-[0_2px_8px_rgba(236,72,153,0.35)]"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                    )}
+                    strokeWidth={isTarget ? 2.4 : 1.9}
+                  />
+                )}
+                {tab.locked && <Lock className="absolute -right-2 -top-1 size-2.5 text-slate-400 dark:text-slate-500" />}
                 {Boolean(tab.badge) && (
-                  <span className="absolute -top-1 -right-2 h-2.5 w-2.5 rounded-full bg-pink-500 border-2 border-white dark:border-slate-900 shadow-xs animate-pulse" />
+                  <span
+                    className={cn(
+                      "absolute rounded-full bg-pink-500 border-2 border-white dark:border-slate-900 shadow-xs animate-pulse flex items-center justify-center text-white font-black text-[8px]",
+                      typeof tab.badge === "number" || typeof tab.badge === "string"
+                        ? "-top-1.5 -right-2.5 h-4 min-w-[1rem] px-1 leading-none"
+                        : "-top-1 -right-1.5 h-2.5 w-2.5"
+                    )}
+                  >
+                    {typeof tab.badge === "number" || typeof tab.badge === "string" ? tab.badge : ""}
+                  </span>
                 )}
               </span>
               <span
                 className={cn(
-                  "text-[10px] tracking-tight leading-none transition-all duration-200",
-                  highlighted
-                    ? "font-black text-pink-600 dark:text-pink-400"
-                    : "font-semibold text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                  "text-[10px] tracking-tight leading-none transition-all duration-200 select-none",
+                  isTarget
+                    ? "font-black text-pink-600 dark:text-pink-400 drop-shadow-[0_1px_4px_rgba(236,72,153,0.25)]"
+                    : "font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
                 )}
               >
                 {tab.label}
@@ -311,7 +357,7 @@ export function LiquidTabBar({
           );
 
           const itemClassName = cn(
-            "mobile-bottom-nav-item relative flex flex-1 items-stretch justify-stretch rounded-2xl text-[10px] font-medium transition-colors select-none",
+            "mobile-bottom-nav-item group relative flex flex-1 items-stretch justify-stretch rounded-2xl text-[10px] font-medium transition-colors select-none",
             i === activeIndex && "touch-none"
           );
 
