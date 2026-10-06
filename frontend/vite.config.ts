@@ -63,8 +63,8 @@ export default defineConfig({
         },
       },
     },
-    // Increase chunk size warning limit for agora SDK (1.3MB)
-    chunkSizeWarningLimit: 1500,
+    // Increase chunk size warning limit for Agora Web SDK (~1.6MB minified)
+    chunkSizeWarningLimit: 1800,
     // Use esbuild for faster, smaller builds (default)
     minify: 'esbuild',
     // Target modern browsers for smaller bundle
