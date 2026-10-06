@@ -152,9 +152,14 @@ export const ChatWindowPage = () => {
     const handleUserOnline = (data: { userId: string }) => {
       setChatInfo((prev) => {
         if (!prev) return prev;
-        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
-        if (data.userId === otherId) {
-          return { ...prev, isOnline: true };
+        const prevAny = prev as any;
+        const otherId = String(prevAny.userId || prevAny.otherUser?._id || prevAny.otherUser?.id || "");
+        if (otherId && String(data.userId) === otherId) {
+          return {
+            ...prev,
+            isOnline: true,
+            ...(prevAny.otherUser ? { otherUser: { ...prevAny.otherUser, isOnline: true } } : {}),
+          };
         }
         return prev;
       });
@@ -163,9 +168,14 @@ export const ChatWindowPage = () => {
     const handleUserOffline = (data: { userId: string; lastSeen?: string }) => {
       setChatInfo((prev) => {
         if (!prev) return prev;
-        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
-        if (data.userId === otherId) {
-          return { ...prev, isOnline: false };
+        const prevAny = prev as any;
+        const otherId = String(prevAny.userId || prevAny.otherUser?._id || prevAny.otherUser?.id || "");
+        if (otherId && String(data.userId) === otherId) {
+          return {
+            ...prev,
+            isOnline: false,
+            ...(prevAny.otherUser ? { otherUser: { ...prevAny.otherUser, isOnline: false } } : {}),
+          };
         }
         return prev;
       });
@@ -177,9 +187,14 @@ export const ChatWindowPage = () => {
     }) => {
       setChatInfo((prev) => {
         if (!prev) return prev;
-        const otherId = (prev as any).userId || (prev as any).otherUser?._id;
-        if (data.userId === otherId) {
-          return { ...prev, isOnline: data.isOnline };
+        const prevAny = prev as any;
+        const otherId = String(prevAny.userId || prevAny.otherUser?._id || prevAny.otherUser?.id || "");
+        if (otherId && String(data.userId) === otherId) {
+          return {
+            ...prev,
+            isOnline: data.isOnline,
+            ...(prevAny.otherUser ? { otherUser: { ...prevAny.otherUser, isOnline: data.isOnline } } : {}),
+          };
         }
         return prev;
       });
