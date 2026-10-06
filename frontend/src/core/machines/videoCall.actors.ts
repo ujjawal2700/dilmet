@@ -42,9 +42,29 @@ class AgoraClientManager {
         // Clean up existing tracks first
         await this.cleanupTracks();
 
+        // Release ringtone audio handles and give Android audio hardware a moment to reset
+        audioManager.stopRingtone();
+        await new Promise((r) => setTimeout(r, 120));
+
+        const createAudioWithFallback = async (): Promise<IMicrophoneAudioTrack> => {
+            try {
+                // Try standard with acoustic echo cancellation, noise suppression, AGC
+                return await AgoraRTC.createMicrophoneAudioTrack({ AEC: true, ANS: true, AGC: true });
+            } catch (err: any) {
+                console.warn('⚠️ Standard mic track creation failed, attempting minimal constraints fallback:', err?.message || err);
+                // In Android WebView / Flutter wrappers, AEC/ANS hardware access can throw NotReadableError
+                try {
+                    await new Promise((r) => setTimeout(r, 150));
+                    return await AgoraRTC.createMicrophoneAudioTrack();
+                } catch (fallbackErr: any) {
+                    console.error('❌ Minimal mic track creation failed:', fallbackErr);
+                    throw fallbackErr;
+                }
+            }
+        };
+
         if (callType === 'voice') {
-            // Voice calls never touch the camera - mic only
-            const audioTrack = await AgoraRTC.createMicrophoneAudioTrack({ AEC: true, ANS: true, AGC: true });
+            const audioTrack = await createAudioWithFallback();
             this.localAudioTrack = audioTrack;
             this.localVideoTrack = null;
 
@@ -52,13 +72,27 @@ class AgoraClientManager {
             return { localVideoTrack: null, localAudioTrack: audioTrack };
         }
 
-        const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks(
-            { AEC: true, ANS: true, AGC: true },
-            {
+        let audioTrack: IMicrophoneAudioTrack;
+        let videoTrack: ICameraVideoTrack;
+
+        try {
+            [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks(
+                { AEC: true, ANS: true, AGC: true },
+                {
+                    encoderConfig: { width: 640, height: 480, frameRate: 24, bitrateMax: 1000 },
+                    optimizationMode: 'motion'
+                }
+            );
+        } catch (jointErr: any) {
+            console.warn('⚠️ Joint camera+mic creation failed in WebView, creating sequentially:', jointErr?.message || jointErr);
+            // In Flutter / Android WebViews, acquiring camera and mic simultaneously can conflict with the device audio driver
+            await new Promise((r) => setTimeout(r, 150));
+            audioTrack = await createAudioWithFallback();
+            videoTrack = await AgoraRTC.createCameraVideoTrack({
                 encoderConfig: { width: 640, height: 480, frameRate: 24, bitrateMax: 1000 },
                 optimizationMode: 'motion'
-            }
-        );
+            });
+        }
 
         this.localAudioTrack = audioTrack;
         this.localVideoTrack = videoTrack;

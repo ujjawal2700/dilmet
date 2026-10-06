@@ -229,86 +229,121 @@ export const VideoCallModal = () => {
     }
 
     const modalContent = (() => {
-        // Incoming call UI
+        // Incoming call UI - Reimagined Luxury Glassmorphic Design
         if (callState.status === 'ringing' && callState.isIncoming) {
             return (
-                <div className="fixed inset-0 z-[10000] bg-black/80 flex items-center justify-center backdrop-blur-sm overscroll-contain touch-none">
-                    <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
-                        {/* Avatar */}
-                        <div className="relative mx-auto mb-6">
-                            <div className="w-28 h-28 rounded-full bg-white/20 mx-auto overflow-hidden ring-4 ring-white/30 animate-pulse">
-                                {callState.remoteUserAvatar ? (
-                                    <img
-                                        src={callState.remoteUserAvatar}
-                                        alt={callState.remoteUserName || 'Caller'}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-white">
-                                        {callState.remoteUserName?.[0]?.toUpperCase() || '?'}
-                                    </div>
-                                )}
-                            </div>
-                            {/* Pulsing ring animation */}
-                            <div className="absolute inset-0 rounded-full border-4 border-white/50 animate-ping" style={{ animationDuration: '1.5s' }} />
-                        </div>
+                <div className="fixed inset-0 z-[10000] bg-black/85 flex items-center justify-center backdrop-blur-md px-4 overscroll-contain touch-none animate-in fade-in duration-300">
+                    <div className="relative w-full max-w-sm rounded-[2.5rem] bg-gradient-to-b from-[#1f1a2e]/95 via-[#161224]/95 to-[#0e0a17]/98 border border-white/15 p-8 text-center shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-hidden">
+                        {/* Ambient glow blobs */}
+                        <div className="absolute -top-16 -left-16 w-44 h-44 bg-pink-500/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
+                        <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-purple-600/30 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
-                        {/* Caller info */}
-                        <h2 className="text-2xl font-bold text-white mb-2">
-                            {callState.remoteUserName || 'Unknown'}
-                        </h2>
-                        <p className="text-white/80 mb-8">{isVoiceCall ? 'Incoming voice call...' : 'Incoming video call...'}</p>
-
-                        {/* Call cost notice */}
-                        <div className="bg-white/10 rounded-xl px-4 py-2 mb-4 inline-block">
-                            <span className="text-white/70 text-sm">
-                                💰 This call is worth <span className="font-bold text-yellow-300">{activeCallPrice} coins</span>
+                        {/* Top Badge: Call Type */}
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/10 backdrop-blur-md mb-6">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[11px] font-black tracking-widest text-white/90 uppercase">
+                                {isVoiceCall ? 'Incoming Voice Call' : 'Incoming Video Call'}
                             </span>
                         </div>
 
-                        {/* Permission Error */}
+                        {/* Avatar with luxury pulsing rings */}
+                        <div className="relative mx-auto mb-5 w-32 h-32 flex items-center justify-center">
+                            {/* Animated ripple rings */}
+                            <div className="absolute inset-0 rounded-full border-2 border-pink-500/40 animate-ping" style={{ animationDuration: '2s' }} />
+                            <div className="absolute -inset-2 rounded-full border border-purple-400/30 animate-pulse" style={{ animationDuration: '2.5s' }} />
+
+                            <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-pink-500 to-purple-600 p-[3px] shadow-2xl relative z-10">
+                                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900">
+                                    {callState.remoteUserAvatar ? (
+                                        <img
+                                            src={callState.remoteUserAvatar}
+                                            alt={callState.remoteUserName || 'Caller'}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-3xl font-black text-white bg-gradient-to-br from-pink-500 to-purple-700">
+                                            {callState.remoteUserName?.[0]?.toUpperCase() || '?'}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Caller Info */}
+                        <h2 className="text-2xl font-black text-white tracking-tight mb-1 truncate px-2">
+                            {callState.remoteUserName || 'Someone'}
+                        </h2>
+                        <p className="text-xs font-semibold text-white/60 mb-5 tracking-wide">
+                            wants to talk with you
+                        </p>
+
+                        {/* Earnings Highlight Badge */}
+                        <div className="bg-gradient-to-r from-amber-500/15 via-yellow-500/20 to-amber-500/15 border border-amber-400/30 rounded-2xl py-3 px-5 mb-6 backdrop-blur-sm">
+                            <p className="text-[11px] font-bold text-amber-200/90 tracking-wider uppercase mb-0.5">
+                                You will earn
+                            </p>
+                            <p className="text-lg font-black text-amber-300 flex items-center justify-center gap-1.5">
+                                <span>🪙</span>
+                                <span>+{activeCallPrice} Coins</span>
+                            </p>
+                        </div>
+
+                        {/* Permission Error / Warning */}
                         {permissionError && (
-                            <div className="mb-4 p-3 bg-red-500/20 border border-red-400/50 rounded-lg">
-                                <p className="text-sm text-white flex items-center justify-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                    </svg>
-                                    {permissionError}
+                            <div className="mb-5 p-3.5 bg-rose-500/20 border border-rose-500/40 rounded-2xl text-left animate-in fade-in duration-200">
+                                <p className="text-xs font-bold text-rose-200 flex items-start gap-2">
+                                    <span className="text-sm">⚠️</span>
+                                    <span>
+                                        {permissionError.includes('NotReadableError') || permissionError.includes('audio source')
+                                            ? 'Microphone is busy. Please close background audio apps or grant mic permission in app settings and tap Accept again.'
+                                            : permissionError}
+                                    </span>
                                 </p>
                             </div>
                         )}
 
-                        {/* Action buttons */}
-                        <div className="flex justify-center gap-6">
-                            {/* Reject */}
-                            <button
-                                onClick={rejectCall}
-                                disabled={isCheckingPermissions}
-                                className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 disabled:opacity-50"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" transform="rotate(135 12 12)" />
-                                </svg>
-                            </button>
-
-                            {/* Accept */}
-                            <button
-                                onClick={handleAcceptCall}
-                                disabled={isCheckingPermissions}
-                                className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 animate-bounce disabled:opacity-50 disabled:animate-none"
-                                style={{ animationDuration: '0.8s' }}
-                            >
-                                {isCheckingPermissions ? (
-                                    <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                        {/* Action buttons (Decline / Accept) */}
+                        <div className="flex items-center justify-center gap-8 pt-1">
+                            {/* Decline Button */}
+                            <div className="flex flex-col items-center gap-2">
+                                <button
+                                    onClick={rejectCall}
+                                    disabled={isCheckingPermissions}
+                                    aria-label="Decline Call"
+                                    className="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white flex items-center justify-center shadow-[0_10px_25px_rgba(244,63,94,0.45)] transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 rotate-[135deg]" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z" />
                                     </svg>
-                                )}
-                            </button>
+                                </button>
+                                <span className="text-[11px] font-bold text-white/50 tracking-wider uppercase">Decline</span>
+                            </div>
+
+                            {/* Accept Button */}
+                            <div className="flex flex-col items-center gap-2">
+                                <button
+                                    onClick={handleAcceptCall}
+                                    disabled={isCheckingPermissions}
+                                    aria-label="Accept Call"
+                                    className="w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-white flex items-center justify-center shadow-[0_10px_30px_rgba(16,185,129,0.5)] transition-all hover:scale-110 active:scale-95 disabled:opacity-60 relative group"
+                                >
+                                    <span className="absolute -inset-1 rounded-full bg-emerald-400/40 animate-ping group-hover:opacity-100 opacity-75" style={{ animationDuration: '1.4s' }}></span>
+                                    {isCheckingPermissions ? (
+                                        <svg className="animate-spin h-7 w-7 relative z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 relative z-10" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z" />
+                                        </svg>
+                                    )}
+                                </button>
+                                <span className="text-[11px] font-bold text-emerald-400 tracking-wider uppercase">Accept</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -878,10 +913,20 @@ export const VideoCallModal = () => {
                         {/* Decorative background element */}
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-                        <div className="w-20 h-20 rounded-full bg-white/5 mx-auto mb-6 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white/40 group-hover:text-indigo-400 transition-colors" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" transform="rotate(135 12 12)" />
-                            </svg>
+                        {/* Header icon / indicator */}
+                        <div className="relative mx-auto mb-6 w-20 h-20 flex items-center justify-center">
+                            <div className={`absolute inset-0 rounded-3xl ${canRejoin ? 'bg-amber-500/20' : 'bg-rose-500/15'} blur-xl`} />
+                            <div className={`w-20 h-20 rounded-3xl ${canRejoin ? 'bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border-amber-400/30' : 'bg-gradient-to-tr from-rose-500/20 to-red-600/20 border-rose-400/30'} border flex items-center justify-center shadow-xl`}>
+                                {canRejoin ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-9 w-9 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-9 w-9 text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                                    </svg>
+                                )}
+                            </div>
                         </div>
 
                         <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
@@ -889,9 +934,9 @@ export const VideoCallModal = () => {
                         </h2>
 
                         {canRejoin && (
-                            <div className="mt-4">
-                                <p className="text-gray-400 text-sm mb-8 leading-relaxed px-4">
-                                    Your call was disconnected. You have <span className="text-indigo-400 font-bold">{formatTime(remainingTime)}</span> left.
+                            <div className="mt-3">
+                                <p className="text-gray-300 text-sm mb-6 leading-relaxed px-2">
+                                    Connection dropped. You still have <span className="text-amber-300 font-bold">{formatTime(remainingTime)}</span> reserved for this call.
                                 </p>
                                 <div className="flex flex-col gap-3">
                                     <button
@@ -901,43 +946,43 @@ export const VideoCallModal = () => {
                                             await rejoinCall();
                                         }}
                                         disabled={isInternalProcessing}
-                                        className={`w-full h-14 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${isInternalProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full h-14 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-[0_10px_25px_rgba(16,185,129,0.35)] active:scale-95 ${isInternalProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                                         </svg>
-                                        {isInternalProcessing ? 'REJOINING...' : 'REJOIN CALL'}
+                                        {isInternalProcessing ? 'RECONNECTING...' : 'RECONNECT CALL'}
                                     </button>
                                     <button
                                         onClick={async () => {
                                             if (isInternalProcessing) return;
                                             setIsInternalProcessing(true);
-                                            // Sending END_CALL to machine will transition to idle
-                                            // socketEmitters.endCall will trigger hard end on backend
                                             await endCall();
                                         }}
                                         disabled={isInternalProcessing}
-                                        className="w-full h-14 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-2xl font-bold transition-all active:scale-95 border border-white/5 uppercase text-[10px] tracking-[0.2em]"
+                                        className="w-full h-12 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 border border-white/10"
                                     >
-                                        End Permanently
+                                        Close Call
                                     </button>
                                 </div>
                             </div>
                         )}
 
                         {!canRejoin && (
-                            <div className="flex flex-col gap-4 w-full">
-                                <p className="text-gray-400 text-sm leading-relaxed px-4 mt-2">
-                                    {callState.error || 'The call session has concluded.'}
+                            <div className="flex flex-col gap-4 w-full mt-2">
+                                <p className="text-gray-300 text-sm leading-relaxed px-2">
+                                    {callState.error || 'The call session has ended or could not be established.'}
                                 </p>
-                                <p className="text-indigo-400/60 text-xs">
-                                    Returning to dashboard in 5 seconds...
-                                </p>
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-3 my-1">
+                                    <p className="text-xs text-white/60">
+                                        Returning to chat in a few moments...
+                                    </p>
+                                </div>
                                 <button
                                     onClick={() => closeModal()}
-                                    className="w-full h-14 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded-2xl font-bold transition-all active:scale-95 border border-indigo-600/20"
+                                    className="w-full h-13 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 shadow-lg"
                                 >
-                                    Return to Dashboard
+                                    Done
                                 </button>
                             </div>
                         )}

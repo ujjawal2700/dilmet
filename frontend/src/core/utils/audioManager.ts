@@ -28,8 +28,17 @@ class AudioManager {
     // Stop ringtone
     stopRingtone() {
         if (this.ringtoneAudio) {
-            this.ringtoneAudio.pause();
-            this.ringtoneAudio.currentTime = 0;
+            try {
+                this.ringtoneAudio.pause();
+                this.ringtoneAudio.currentTime = 0;
+                if (this.ringtoneAudio.src && this.ringtoneAudio.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(this.ringtoneAudio.src);
+                }
+                this.ringtoneAudio.removeAttribute('src');
+                this.ringtoneAudio.load();
+            } catch (e) {
+                console.warn('Error stopping ringtone:', e);
+            }
         }
     }
 
