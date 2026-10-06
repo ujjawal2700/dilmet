@@ -10,7 +10,20 @@ import { io, Socket } from 'socket.io-client';
 import { API_URL } from '../api/apiUrl';
 
 const getSocketUrl = (): string => {
-    let url = (import.meta.env.VITE_SOCKET_URL || API_URL.replace(/\/api\/?$/, '')).trim();
+    // 1. If explicit socket URL is set
+    let url = (import.meta.env.VITE_SOCKET_URL || '').trim();
+
+    // 2. In browser production, if on HTTPS or domain, default directly to same-origin so Nginx handles /socket.io/ proxy
+    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        if (!url || url.includes('localhost') || url.includes('127.0.0.1') || url.includes(':5001')) {
+            return window.location.origin;
+        }
+    }
+
+    if (!url) {
+        url = API_URL.replace(/\/api\/?$/, '').trim();
+    }
+
     if (
         typeof window !== 'undefined' &&
         window.location.hostname &&
